@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-19MTMYDQ3S"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-19MTMYDQ3S');
+</script>
+<link rel="icon" type="image/png" href="/my-game-arcade/favicon.png">
+<title>Rusty Says 🧠</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Nunito',sans-serif;min-height:100vh;
+  background:linear-gradient(135deg,#0a0a1a,#1a1a3e,#0f0f2e);
+  color:#fff;display:flex;justify-content:center;align-items:flex-start;
+  overflow-x:hidden;overflow-y:auto;user-select:none;-webkit-user-select:none;
+}
+.bg-blob{position:fixed;border-radius:50%;filter:blur(100px);opacity:.25;pointer-events:none;z-index:0}
+.bg-blob.a{width:500px;height:500px;background:#7c3aed;top:-120px;left:-100px;animation:fA 18s ease-in-out infinite}
+.bg-blob.b{width:400px;height:400px;background:#06b6d4;bottom:-80px;right:-80px;animation:fB 22s ease-in-out infinite}
+.bg-blob.c{width:300px;height:300px;background:#8b5cf6;top:50%;left:55%;animation:fC 20s ease-in-out infinite}
+@keyframes fA{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,80px)}}
+@keyframes fB{0%,100%{transform:translate(0,0)}50%{transform:translate(-50px,-60px)}}
+@keyframes fC{0%,100%{transform:translate(0,0)}50%{transform:translate(-40px,50px)}}
+
+.container{position:relative;z-index:1;width:100%;max-width:520px;padding:40px 20px;display:flex;flex-direction:column;align-items:center}
+.screen{display:none;width:100%;animation:fadeIn .4s ease}
+.screen.active{display:flex;flex-direction:column;align-items:center}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+@keyframes tileFlash{0%{transform:scale(1)}50%{transform:scale(.92)}100%{transform:scale(1)}}
+@keyframes loseLife{0%{transform:scale(1)}50%{transform:scale(1.5);opacity:.5}100%{transform:scale(1);opacity:1}}
+@keyframes levelUp{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+
+.logo{font-size:2.2rem;font-weight:900;text-align:center;line-height:1.15;margin-bottom:8px;background:linear-gradient(135deg,#a78bfa,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{font-size:.95rem;color:#94a1b2;text-align:center;margin-bottom:32px}
+
+.card{background:rgba(255,255,255,.06);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px 24px;width:100%;margin-bottom:18px;box-shadow:0 8px 32px rgba(0,0,0,.25)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 32px;border:none;border-radius:14px;font-family:inherit;font-size:1rem;font-weight:800;cursor:pointer;transition:all .2s;width:100%}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;box-shadow:0 4px 20px rgba(124,58,237,.4)}
+.btn-primary:hover{box-shadow:0 6px 28px rgba(124,58,237,.55)}
+.btn-outline{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.2)}
+.btn-outline:hover{border-color:#a78bfa;color:#a78bfa}
+.btn-share{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;box-shadow:0 4px 20px rgba(139,92,246,.3)}
+.btn-share:hover{box-shadow:0 6px 28px rgba(139,92,246,.5)}
+.btn+.btn{margin-top:12px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+.instructions{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 20px;margin:0 0 18px;width:100%}
+.instructions h3{font-size:.85rem;color:#a78bfa;margin-bottom:8px;text-transform:uppercase;letter-spacing:.1em}
+.instructions p{font-size:.82rem;color:#94a1b2;line-height:1.6}
+.instructions strong{color:#fff}
+
+/* Grid size picker */
+.grid-picker{display:flex;gap:8px;margin:12px 0;width:100%}
+.grid-pick{
+  flex:1;padding:16px 12px;border:2px solid rgba(255,255,255,.12);border-radius:14px;
+  background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-weight:700;
+  font-size:.85rem;cursor:pointer;transition:all .2s;text-align:center;
+}
+.grid-pick:hover{border-color:#a78bfa}
+.grid-pick.active{background:rgba(167,139,250,.15);border-color:#a78bfa}
+.grid-pick .pick-emoji{font-size:1.3rem;display:block;margin-bottom:2px}
+.grid-pick .pick-name{font-weight:800;font-size:.9rem}
+.grid-pick .pick-desc{font-size:.7rem;color:#94a1b2;margin-top:2px}
+
+.best-score{text-align:center;margin:12px 0;font-size:.85rem;color:#94a1b2;font-weight:700}
+.best-score span{color:#a78bfa;font-weight:900;font-size:1rem}
+
+/* ══════ GAME HUD ══════ */
+.game-hud{
+  display:flex;justify-content:space-between;align-items:center;
+  width:100%;padding:12px 0;margin-bottom:8px;
+}
+.hud-item{text-align:center;flex:1}
+.hud-label{font-size:.65rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.hud-value{font-size:1.4rem;font-weight:900}
+.hud-value.level-val{color:#a78bfa}
+.hud-value.lives-val{color:#ef4444;transition:all .3s}
+.hud-value.score-val{color:#06b6d4}
+
+.game-msg{
+  text-align:center;font-size:1.1rem;font-weight:800;
+  margin:12px 0;min-height:36px;transition:all .3s;
+}
+.game-msg.watching{color:#facc15}
+.game-msg.your-turn{color:#22c55e}
+.game-msg.wrong{color:#ef4444;animation:shake .4s ease}
+.game-msg.correct{color:#22c55e;animation:levelUp .4s ease}
+
+/* ══════ GRID ══════ */
+.grid-container{
+  width:100%;max-width:400px;margin:16px auto;
+  display:grid;gap:10px;
+  aspect-ratio:1;
+}
+.grid-container.size-3{grid-template-columns:repeat(3,1fr)}
+.grid-container.size-4{grid-template-columns:repeat(4,1fr)}
+.grid-container.size-5{grid-template-columns:repeat(5,1fr)}
+
+.tile{
+  aspect-ratio:1;border-radius:16px;
+  background:rgba(255,255,255,.06);
+  border:2px solid rgba(255,255,255,.08);
+  cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;justify-content:center;
+  -webkit-tap-highlight-color:transparent;
+  position:relative;overflow:hidden;
+}
+.tile::after{
+  content:'';position:absolute;inset:0;border-radius:14px;
+  background:radial-gradient(circle at center,rgba(255,255,255,.1),transparent);
+  opacity:0;transition:opacity .15s;
+}
+.tile:hover:not(.disabled){border-color:rgba(255,255,255,.2)}
+.tile:active:not(.disabled){transform:scale(.95)}
+.tile.disabled{cursor:default;pointer-events:none}
+
+/* Tile colors — theme matched */
+.tile.lit-0{background:rgba(124,58,237,.7);border-color:rgba(124,58,237,.9);box-shadow:0 0 20px rgba(124,58,237,.5)}
+.tile.lit-1{background:rgba(6,182,212,.7);border-color:rgba(6,182,212,.9);box-shadow:0 0 20px rgba(6,182,212,.5)}
+.tile.lit-2{background:rgba(167,139,250,.7);border-color:rgba(167,139,250,.9);box-shadow:0 0 20px rgba(167,139,250,.5)}
+.tile.lit-3{background:rgba(34,211,238,.7);border-color:rgba(34,211,238,.9);box-shadow:0 0 20px rgba(34,211,238,.5)}
+.tile.lit-4{background:rgba(139,92,246,.7);border-color:rgba(139,92,246,.9);box-shadow:0 0 20px rgba(139,92,246,.5)}
+.tile.lit-5{background:rgba(14,165,233,.7);border-color:rgba(14,165,233,.9);box-shadow:0 0 20px rgba(14,165,233,.5)}
+.tile.lit-6{background:rgba(192,132,252,.7);border-color:rgba(192,132,252,.9);box-shadow:0 0 20px rgba(192,132,252,.5)}
+.tile.lit-7{background:rgba(56,189,248,.7);border-color:rgba(56,189,248,.9);box-shadow:0 0 20px rgba(56,189,248,.5)}
+.tile.lit-8{background:rgba(109,40,217,.7);border-color:rgba(109,40,217,.9);box-shadow:0 0 20px rgba(109,40,217,.5)}
+
+.tile.lit-correct{background:rgba(34,197,94,.7);border-color:rgba(34,197,94,.9);box-shadow:0 0 20px rgba(34,197,94,.5)}
+.tile.lit-wrong{background:rgba(239,68,68,.7);border-color:rgba(239,68,68,.9);box-shadow:0 0 20px rgba(239,68,68,.5);animation:shake .3s ease}
+
+/* ══════ RESULTS ══════ */
+.results-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;width:100%;margin:16px 0}
+.result-box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px 12px;text-align:center}
+.result-box .label{font-size:.7rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.result-box .value{font-size:1.5rem;font-weight:900}
+.result-box .value.purple{background:linear-gradient(135deg,#a78bfa,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.result-box .value.cyan{background:linear-gradient(135deg,#06b6d4,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.result-box .value.green{color:#22c55e}
+
+.rank-badge{text-align:center;padding:20px;border-radius:16px;margin:12px 0;animation:popIn .5s ease;width:100%}
+.rank-emoji{font-size:3rem;margin-bottom:8px}
+.rank-title{font-size:1.4rem;font-weight:900}
+.rank-desc{font-size:.85rem;color:#94a1b2;margin-top:4px;font-weight:600}
+
+.rank-badge.beginner{background:rgba(148,161,178,.1);border:2px solid rgba(148,161,178,.2)}
+.rank-badge.beginner .rank-title{color:#94a1b2}
+.rank-badge.sharp{background:rgba(6,182,212,.1);border:2px solid rgba(6,182,212,.2)}
+.rank-badge.sharp .rank-title{color:#22d3ee}
+.rank-badge.focused{background:rgba(34,197,94,.1);border:2px solid rgba(34,197,94,.2)}
+.rank-badge.focused .rank-title{color:#22c55e}
+.rank-badge.master{background:rgba(250,204,21,.1);border:2px solid rgba(250,204,21,.2)}
+.rank-badge.master .rank-title{color:#facc15}
+.rank-badge.legend{background:rgba(167,139,250,.1);border:2px solid rgba(167,139,250,.2)}
+.rank-badge.legend .rank-title{color:#a78bfa}
+
+.new-best{text-align:center;font-size:1rem;font-weight:800;color:#22c55e;margin:8px 0;animation:popIn .5s ease}
+
+.fun-fact{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 18px;margin:12px 0;width:100%;text-align:center;font-size:.82rem;color:#94a1b2;line-height:1.5}
+.fun-fact strong{color:#a78bfa}
+
+.share-section{width:100%;margin:16px 0;text-align:center}
+.share-preview{width:100%;border-radius:16px;margin-bottom:12px;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.share-buttons{display:flex;gap:8px}
+.share-buttons .btn{flex:1}
+
+@media(max-width:480px){
+  .logo{font-size:1.7rem}
+  .card{padding:24px 20px}
+  .grid-container{max-width:340px;gap:8px}
+  .tile{border-radius:12px}
+  .results-grid{gap:8px}
+  .result-box .value{font-size:1.3rem}
+}
+</style>
+</head>
+<body>
+
+<a href="../" id="arcade-home-btn" style="position:fixed;top:16px;left:16px;z-index:999;background:rgba(255,255,255,.06);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:10px 16px;color:#fff;text-decoration:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:.85rem;display:flex;align-items:center;gap:6px;transition:all .3s;box-shadow:0 4px 15px rgba(0,0,0,.2)">🏠 Back to the Arcade</a>
+<style>#arcade-home-btn:hover{background:rgba(255,255,255,.12);transform:translateY(-2px)}</style>
+
+<div class="bg-blob a"></div>
+<div class="bg-blob b"></div>
+<div class="bg-blob c"></div>
+
+<div class="container">
+
+<!-- ══════ HOME ══════ -->
+<div class="screen active" id="screen-home">
+<div class="logo">Rusty Says 🧠</div>
+<p class="subtitle">How long a sequence can you remember?</p>
+
+<div class="instructions">
+<h3>📖 How to play</h3>
+<p><strong>Rusty</strong> will light up tiles in a sequence. Watch carefully, then <strong>repeat the pattern</strong> by tapping the tiles in the same order. Each round adds <strong>one more step</strong>. You have <strong>3 lives</strong> — how far can you go?</p>
+</div>
+
+<div class="card">
+<label style="font-weight:700;font-size:.85rem;color:#ffffffcc;display:block;margin-bottom:8px">Grid Size</label>
+<div class="grid-picker">
+<button class="grid-pick active" data-size="3">
+<span class="pick-emoji">◻️</span>
+<span class="pick-name">3×3</span>
+<span class="pick-desc">Easy</span>
+</button>
+<button class="grid-pick" data-size="4">
+<span class="pick-emoji">◻️</span>
+<span class="pick-name">4×4</span>
+<span class="pick-desc">Medium</span>
+</button>
+<button class="grid-pick" data-size="5">
+<span class="pick-emoji">◻️</span>
+<span class="pick-name">5×5</span>
+<span class="pick-desc">Hard</span>
+</button>
+</div>
+</div>
+
+<div class="best-score" id="best-score-display"></div>
+<button class="btn btn-primary" id="btn-start">🧠 Start Game</button>
+</div>
+
+<!-- ══════ GAME ══════ -->
+<div class="screen" id="screen-game">
+
+<div class="game-hud">
+<div class="hud-item">
+<div class="hud-label">Level</div>
+<div class="hud-value level-val" id="hud-level">1</div>
+</div>
+<div class="hud-item">
+<div class="hud-label">Lives</div>
+<div class="hud-value lives-val" id="hud-lives">❤️❤️❤️</div>
+</div>
+<div class="hud-item">
+<div class="hud-label">Score</div>
+<div class="hud-value score-val" id="hud-score">0</div>
+</div>
+</div>
+
+<div class="game-msg watching" id="game-msg">🔮 Rusty says…</div>
+
+<div class="grid-container size-3" id="grid-container"></div>
+
+</div>
+
+<!-- ══════ RESULTS ══════ -->
+<div class="screen" id="screen-results">
+<div class="logo">Game Over 🧠</div>
+
+<div class="rank-badge" id="rank-badge">
+<div class="rank-emoji" id="rank-emoji">🧠</div>
+<div class="rank-title" id="rank-title">Memory Master</div>
+<div class="rank-desc" id="rank-desc">Impressive!</div>
+</div>
+
+<div class="new-best" id="new-best" style="display:none">🏆 New Personal Best!</div>
+
+<div class="results-grid">
+<div class="result-box">
+<div class="label">Level</div>
+<div class="value purple" id="res-level">0</div>
+</div>
+<div class="result-box">
+<div class="label">Score</div>
+<div class="value cyan" id="res-score">0</div>
+</div>
+<div class="result-box">
+<div class="label">Longest</div>
+<div class="value green" id="res-longest">0</div>
+</div>
+</div>
+
+<div class="fun-fact" id="fun-fact"></div>
+
+<div class="share-section">
+<canvas id="share-canvas" style="display:none"></canvas>
+<img id="share-preview" class="share-preview" style="display:none" alt="Result card"/>
+<div class="share-buttons">
+<button class="btn btn-share" id="btn-save-img">📸 Save Image</button>
+<button class="btn btn-outline" id="btn-copy-text">📋 Copy Result</button>
+</div>
+</div>
+
+<button class="btn btn-primary" id="btn-again">🔄 Play Again</button>
+<button class="btn btn-outline" id="btn-home">🏠 Back to Menu</button>
+</div>
+
+<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
+            border-radius:14px;padding:16px 20px;margin:20px 0;text-align:center;width:100%;">
+  <p style="color:#94a1b2;font-size:0.85rem;margin-bottom:10px;">Enjoying the game? 🎉</p>
+  <a href="https://ko-fi.com/restlessrusty" target="_blank"
+     style="color:#7f5af0;font-weight:700;text-decoration:none;">☕ Buy me a coffee to make more games!</a>
+</div>
+</div>
+
+<script>
+(function(){
+
+// ══════════════════════════════════
+// CONSTANTS
+// ══════════════════════════════════
+const RANKS=[
+  {min:20,emoji:'🧙‍♂️',title:'Memory Legend',desc:'Unbelievable! Your memory is god-tier!',cls:'legend'},
+  {min:14,emoji:'🧠',title:'Memory Master',desc:'Incredible recall — top tier performance!',cls:'master'},
+  {min:9,emoji:'🎯',title:'Focused Mind',desc:'Great memory! Well above average.',cls:'focused'},
+  {min:5,emoji:'👁️',title:'Sharp Eyes',desc:'Solid performance. Keep practicing!',cls:'sharp'},
+  {min:0,emoji:'🌱',title:'Getting Started',desc:'Sequences are tricky! Try again.',cls:'beginner'},
+];
+
+const FUN_FACTS=[
+  "The original Simon game was invented by <strong>Ralph Baer</strong> in 1978",
+  "The average person can remember <strong>7 ± 2</strong> items in short-term memory",
+  "Memory champions use a technique called <strong>memory palace</strong> to recall sequences",
+  "Your working memory capacity peaks in your <strong>mid-20s</strong>",
+  "Playing pattern games can improve your <strong>working memory by 30%</strong>",
+  "The world record for Simon is over <strong>84 steps</strong> in a single sequence",
+  "Your brain processes visual patterns <strong>60,000x faster</strong> than text",
+  "Sleep improves memory consolidation by up to <strong>40%</strong>",
+  "Musicians tend to have <strong>15% better</strong> sequential memory than non-musicians",
+  "The hippocampus is the brain region responsible for <strong>sequential memory</strong>",
+  "Gamers show <strong>improved working memory</strong> compared to non-gamers",
+  "Meditation can improve working memory capacity by <strong>16%</strong>",
+  "Exercise before a memory task improves performance by <strong>20%</strong>",
+  "Your brain uses <strong>20% of your body's energy</strong> despite being only 2% of your weight",
+  "Stress hormones can reduce working memory performance by <strong>25%</strong>",
+  "Children can typically remember sequences of <strong>5 items</strong> by age 7",
+  "Chunking information into groups can <strong>double</strong> your sequence recall",
+  "The speed at which you process patterns is linked to <strong>general intelligence</strong>",
+  "Professional chess players memorize board positions as <strong>patterns, not individual pieces</strong>",
+  "Your spatial memory is <strong>stronger</strong> than your verbal memory for most people",
+  "Caffeine can improve short-term memory by <strong>10%</strong> for about 45 minutes",
+  "London taxi drivers have <strong>larger hippocampi</strong> from memorizing city streets",
+  "Repeating a sequence activates the <strong>same neural pathways</strong> as first seeing it",
+  "A chimpanzee named Ayumu can memorize sequences <strong>faster than most humans</strong>",
+];
+
+// ══════════════════════════════════
+// STATE
+// ══════════════════════════════════
+let gridSize=3;
+let level=1;
+let score=0;
+let lives=3;
+let sequence=[];
+let playerIndex=0;
+let isPlaying=false; // sequence is playing
+let isPlayerTurn=false;
+let longestSequence=0;
+let gameActive=false;
+
+let bestScores={
+  3:parseInt(localStorage.getItem('rs_best_3'))||0,
+  4:parseInt(localStorage.getItem('rs_best_4'))||0,
+  5:parseInt(localStorage.getItem('rs_best_5'))||0,
+};
+
+const $=id=>document.getElementById(id);
+const screens=document.querySelectorAll('.screen');
+function showScreen(id){
+  screens.forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ══════════════════════════════════
+// HOME
+// ══════════════════════════════════
+function showBest(){
+  const el=$('best-score-display');
+  const b=bestScores[gridSize];
+  if(b>0){
+    el.innerHTML=`🏆 Personal Best (${gridSize}×${gridSize}): <span>Level ${b}</span>`;
+  }else{
+    el.innerHTML='No games played yet — set your first record!';
+  }
+}
+showBest();
+
+document.querySelectorAll('.grid-pick').forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll('.grid-pick').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    gridSize=parseInt(btn.dataset.size);
+    showBest();
+  };
+});
+
+// ══════════════════════════════════
+// AUDIO (Web Audio API — simple tones)
+// ══════════════════════════════════
+let audioCtx=null;
+function initAudio(){
+  if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+}
+
+function playTone(freq,duration){
+  if(!audioCtx)return;
+  const osc=audioCtx.createOscillator();
+  const gain=audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.type='sine';
+  osc.frequency.value=freq;
+  gain.gain.value=0.15;
+  gain.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+duration);
+  osc.start();
+  osc.stop(audioCtx.currentTime+duration);
+}
+
+// Frequencies for each tile index
+function getTileFreq(index){
+  const baseFreqs=[261.63,293.66,329.63,349.23,392.00,440.00,493.88,523.25,587.33,
+                   659.25,698.46,783.99,880.00,987.77,1046.50,1174.66,1318.51,
+                   1396.91,1567.98,1760.00,1975.53,2093.00,2349.32,2637.02,2793.83];
+  return baseFreqs[index%baseFreqs.length];
+}
+
+function playWrongSound(){
+  if(!audioCtx)return;
+  const osc=audioCtx.createOscillator();
+  const gain=audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.type='square';
+  osc.frequency.value=150;
+  gain.gain.value=0.12;
+  gain.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.4);
+  osc.start();
+  osc.stop(audioCtx.currentTime+0.4);
+}
+
+// ══════════════════════════════════
+// BUILD GRID
+// ══════════════════════════════════
+function buildGrid(){
+  const container=$('grid-container');
+  container.innerHTML='';
+  container.className='grid-container size-'+gridSize;
+
+  const total=gridSize*gridSize;
+  for(let i=0;i<total;i++){
+    const tile=document.createElement('div');
+    tile.className='tile disabled';
+    tile.dataset.index=i;
+    tile.addEventListener('click',()=>onTileClick(i));
+    tile.addEventListener('touchstart',(e)=>{
+      e.preventDefault();
+      onTileClick(i);
+    },{passive:false});
+    container.appendChild(tile);
+  }
+}
+
+function getTile(index){
+  return document.querySelector(`.tile[data-index="${index}"]`);
+}
+
+function lightTile(index,duration){
+  const tile=getTile(index);
+  if(!tile)return;
+  const colorClass='lit-'+(index%(gridSize*gridSize));
+  tile.classList.add(colorClass);
+  playTone(getTileFreq(index),duration/1000);
+  setTimeout(()=>{
+    tile.classList.remove(colorClass);
+  },duration*0.8);
+}
+
+function flashCorrect(index){
+  const tile=getTile(index);
+  if(!tile)return;
+  tile.classList.add('lit-correct');
+  playTone(getTileFreq(index),0.2);
+  setTimeout(()=>tile.classList.remove('lit-correct'),250);
+}
+
+function flashWrong(index){
+  const tile=getTile(index);
+  if(!tile)return;
+  tile.classList.add('lit-wrong');
+  playWrongSound();
+  setTimeout(()=>tile.classList.remove('lit-wrong'),500);
+}
+
+function setTilesEnabled(enabled){
+  document.querySelectorAll('.tile').forEach(t=>{
+    if(enabled)t.classList.remove('disabled');
+    else t.classList.add('disabled');
+  });
+}
+
+// ══════════════════════════════════
+// GAME LOGIC
+// ══════════════════════════════════
+function startGame(){
+  initAudio();
+  level=1;
+  score=0;
+  lives=3;
+  sequence=[];
+  longestSequence=0;
+  gameActive=true;
+
+  buildGrid();
+  updateHUD();
+  showScreen('screen-game');
+
+  setTimeout(()=>nextLevel(),800);
+}
+
+function updateHUD(){
+  $('hud-level').textContent=level;
+  const hearts='❤️'.repeat(Math.max(0,lives))+'🖤'.repeat(3-Math.max(0,lives));
+  $('hud-lives').textContent=hearts;
+  $('hud-score').textContent=score;
+}
+
+function getPlaybackSpeed(){
+  // Start at 600ms, slowly decrease, minimum 250ms
+  const speed=600-((level-1)*18);
+  return Math.max(250,speed);
+}
+
+function nextLevel(){
+  if(!gameActive)return;
+
+  // Add one random tile to sequence
+  const total=gridSize*gridSize;
+  sequence.push(Math.floor(Math.random()*total));
+
+  updateHUD();
+
+  // Play sequence
+  const msg=$('game-msg');
+  msg.textContent='🔮 Rusty says…';
+  msg.className='game-msg watching';
+
+  isPlaying=true;
+  isPlayerTurn=false;
+  setTilesEnabled(false);
+
+  const speed=getPlaybackSpeed();
+  const gap=speed*0.3;
+
+  let i=0;
+  function playNext(){
+    if(i>=sequence.length){
+      // Done playing — player's turn
+      setTimeout(()=>{
+        isPlaying=false;
+        isPlayerTurn=true;
+        playerIndex=0;
+        setTilesEnabled(true);
+        msg.textContent='🎯 Your turn! Repeat the pattern';
+        msg.className='game-msg your-turn';
+      },300);
+      return;
+    }
+    lightTile(sequence[i],speed);
+    i++;
+    setTimeout(playNext,speed+gap);
+  }
+
+  setTimeout(playNext,500);
+}
+
+function onTileClick(index){
+  if(!isPlayerTurn||isPlaying||!gameActive)return;
+
+  if(index===sequence[playerIndex]){
+    // Correct
+    flashCorrect(index);
+    playerIndex++;
+
+    if(playerIndex>=sequence.length){
+      // Completed the sequence!
+      isPlayerTurn=false;
+      setTilesEnabled(false);
+
+      // Score: more points for longer sequences
+      score+=level;
+      if(sequence.length>longestSequence)longestSequence=sequence.length;
+
+      const msg=$('game-msg');
+      msg.textContent='✅ Correct! Next level…';
+      msg.className='game-msg correct';
+
+      level++;
+      updateHUD();
+
+      setTimeout(()=>nextLevel(),1000);
+    }
+  }else{
+    // Wrong!
+    flashWrong(index);
+    isPlayerTurn=false;
+    setTilesEnabled(false);
+    lives--;
+
+    const msg=$('game-msg');
+    updateHUD();
+
+    // Animate life loss
+    $('hud-lives').style.animation='none';
+    $('hud-lives').offsetHeight;
+    $('hud-lives').style.animation='loseLife .4s ease';
+
+    if(lives<=0){
+      msg.textContent='💀 Game Over!';
+      msg.className='game-msg wrong';
+      gameActive=false;
+      setTimeout(()=>showResultsScreen(),1500);
+    }else{
+      msg.textContent=`❌ Wrong! ${lives} ${lives===1?'life':'lives'} left — watch again…`;
+      msg.className='game-msg wrong';
+
+      // Replay the same sequence (don't add new step)
+      level--; // stay on same level
+      setTimeout(()=>{
+        level++;
+        replaySequence();
+      },1500);
+    }
+  }
+}
+
+function replaySequence(){
+  if(!gameActive)return;
+
+  const msg=$('game-msg');
+  msg.textContent='🔮 Watch again…';
+  msg.className='game-msg watching';
+
+  isPlaying=true;
+  isPlayerTurn=false;
+  setTilesEnabled(false);
+
+  const speed=getPlaybackSpeed();
+  const gap=speed*0.3;
+
+  let i=0;
+  function playNext(){
+    if(i>=sequence.length){
+      setTimeout(()=>{
+        isPlaying=false;
+        isPlayerTurn=true;
+        playerIndex=0;
+        setTilesEnabled(true);
+        msg.textContent='🎯 Your turn! Try again';
+        msg.className='game-msg your-turn';
+      },300);
+      return;
+    }
+    lightTile(sequence[i],speed);
+    i++;
+    setTimeout(playNext,speed+gap);
+  }
+
+  setTimeout(playNext,500);
+}
+
+// ══════════════════════════════════
+// RESULTS
+// ══════════════════════════════════
+function showResultsScreen(){
+  const finalLevel=level-1;
+  const rank=RANKS.find(r=>finalLevel>=r.min)||RANKS[RANKS.length-1];
+
+  $('rank-emoji').textContent=rank.emoji;
+  $('rank-title').textContent=rank.title;
+  $('rank-desc').textContent=rank.desc;
+  $('rank-badge').className='rank-badge '+rank.cls;
+
+  $('res-level').textContent=finalLevel;
+  $('res-score').textContent=score;
+  $('res-longest').textContent=longestSequence;
+
+  // New best?
+  const key='rs_best_'+gridSize;
+  const nb=$('new-best');
+  if(finalLevel>bestScores[gridSize]){
+    bestScores[gridSize]=finalLevel;
+    localStorage.setItem(key,finalLevel);
+    nb.style.display='block';
+  }else{
+    nb.style.display='none';
+  }
+
+  // Fun fact
+  $('fun-fact').innerHTML='💡 '+FUN_FACTS[Math.floor(Math.random()*FUN_FACTS.length)];
+
+  // Share card
+  generateShareCard(finalLevel,score,longestSequence,rank);
+
+  showScreen('screen-results');
+}
+
+// ══════════════════════════════════
+// SHARE CARD
+// ══════════════════════════════════
+function generateShareCard(finalLevel,score,longest,rank){
+  const canvas=$('share-canvas');
+  const ctx=canvas.getContext('2d');
+  const w=600,h=400;
+  canvas.width=w;canvas.height=h;
+
+  const grad=ctx.createLinearGradient(0,0,w,h);
+  grad.addColorStop(0,'#0f0c29');
+  grad.addColorStop(0.5,'#1a1a3e');
+  grad.addColorStop(1,'#0f0f2e');
+  ctx.fillStyle=grad;
+  ctx.fillRect(0,0,w,h);
+
+  ctx.globalAlpha=0.08;
+  ctx.fillStyle='#7c3aed';
+  ctx.beginPath();ctx.arc(500,60,120,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#06b6d4';
+  ctx.beginPath();ctx.arc(80,350,100,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=1;
+
+  ctx.font='900 28px Nunito, sans-serif';
+  ctx.fillStyle='#a78bfa';
+  ctx.textAlign='center';
+  ctx.fillText('🧠 Rusty Says',w/2,48);
+
+  ctx.font='64px serif';
+  ctx.fillText(rank.emoji,w/2,128);
+
+  ctx.font='900 26px Nunito, sans-serif';
+  ctx.fillStyle='#fff';
+  ctx.fillText(rank.title,w/2,168);
+
+  ctx.font='700 14px Nunito, sans-serif';
+  ctx.fillStyle='#94a1b2';
+  ctx.fillText(`${gridSize}×${gridSize} Grid`,w/2,195);
+
+  const statY=230;
+  ctx.fillText('LEVEL',150,statY);
+  ctx.font='900 36px Nunito, sans-serif';
+  ctx.fillStyle='#a78bfa';
+  ctx.fillText(String(finalLevel),150,statY+40);
+
+  ctx.font='700 14px Nunito, sans-serif';
+  ctx.fillStyle='#94a1b2';
+  ctx.fillText('SCORE',300,statY);
+  ctx.font='900 36px Nunito, sans-serif';
+  ctx.fillStyle='#22d3ee';
+  ctx.fillText(String(score),300,statY+40);
+
+  ctx.font='700 14px Nunito, sans-serif';
+  ctx.fillStyle='#94a1b2';
+  ctx.fillText('LONGEST',450,statY);
+  ctx.font='900 36px Nunito, sans-serif';
+  ctx.fillStyle='#22c55e';
+  ctx.fillText(longest+' steps',450,statY+40);
+
+  ctx.font='800 15px Nunito, sans-serif';
+  ctx.fillStyle='#a78bfa88';
+  ctx.fillText('Can you beat my memory? 🧠',w/2,345);
+  ctx.font='700 12px Nunito, sans-serif';
+  ctx.fillStyle='#94a1b2';
+  ctx.fillText(window.location.href.replace(/\/$/,''),w/2,372);
+
+  const img=$('share-preview');
+  img.src=canvas.toDataURL('image/png');
+  img.style.display='block';
+}
+
+// Save img
+$('btn-save-img').onclick=()=>{
+  const link=document.createElement('a');
+  link.download='rusty-says-result.png';
+  link.href=$('share-canvas').toDataURL('image/png');
+  link.click();
+  $('btn-save-img').innerHTML='✅ Saved!';
+  setTimeout(()=>$('btn-save-img').innerHTML='📸 Save Image',2000);
+};
+
+// Copy text
+$('btn-copy-text').onclick=()=>{
+  const finalLevel=level-1;
+  const rank=RANKS.find(r=>finalLevel>=r.min)||RANKS[RANKS.length-1];
+
+  let text=`🧠 Rusty Says\n\n`;
+  text+=`${rank.emoji} ${rank.title}\n`;
+  text+=`Level: ${finalLevel} | Score: ${score}\n`;
+  text+=`Longest Sequence: ${longestSequence} steps\n`;
+  text+=`Grid: ${gridSize}×${gridSize}\n\n`;
+  text+=`Can you beat my memory?\n${window.location.href}`;
+
+  navigator.clipboard.writeText(text).then(()=>{
+    $('btn-copy-text').innerHTML='✅ Copied!';
+    setTimeout(()=>$('btn-copy-text').innerHTML='📋 Copy Result',2000);
+  }).catch(()=>{});
+};
+
+// Navigation
+$('btn-start').onclick=()=>startGame();
+$('btn-again').onclick=()=>{showBest();startGame()};
+$('btn-home').onclick=()=>{showBest();showScreen('screen-home')};
+
+})();
+</script>
+</body>
+</html>
