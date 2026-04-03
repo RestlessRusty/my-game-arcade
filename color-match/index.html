@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-19MTMYDQ3S"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-19MTMYDQ3S');
+</script>
+<link rel="icon" type="image/png" href="/my-game-arcade/favicon.png">
+<title>Color Match 🎨</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Nunito',sans-serif;
+  min-height:100vh;
+  background:linear-gradient(135deg,#0a0a1a,#1a1a3e,#0f0f2e);
+  color:#fff;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  overflow-x:hidden;
+  overflow-y:auto;
+  user-select:none;
+  -webkit-user-select:none;
+}
+
+.container{
+  position:relative;z-index:1;width:100%;max-width:520px;
+  padding:40px 20px;display:flex;flex-direction:column;align-items:center;
+}
+.screen{display:none;width:100%;animation:fadeIn .4s ease}
+.screen.active{display:flex;flex-direction:column;align-items:center}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+@keyframes countdown{0%{transform:scale(1.4);opacity:1}100%{transform:scale(.8);opacity:.3}}
+@keyframes flashGreen{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}100%{box-shadow:0 0 0 20px rgba(34,197,94,0)}}
+@keyframes flashRed{0%{box-shadow:0 0 0 0 rgba(239,68,68,.6)}100%{box-shadow:0 0 0 20px rgba(239,68,68,0)}}
+@keyframes timerPulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+
+.logo{font-size:2.2rem;font-weight:900;text-align:center;line-height:1.15;margin-bottom:8px;background:linear-gradient(135deg,#a855f7,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{font-size:.95rem;color:#94a1b2;text-align:center;margin-bottom:36px}
+
+.card{background:rgba(255,255,255,.06);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:32px 28px;width:100%;margin-bottom:18px;box-shadow:0 8px 32px rgba(0,0,0,.25)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 32px;border:none;border-radius:14px;font-family:inherit;font-size:1rem;font-weight:800;cursor:pointer;transition:all .2s;width:100%}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;box-shadow:0 4px 20px rgba(168,85,247,.4)}
+.btn-primary:hover{box-shadow:0 6px 28px rgba(168,85,247,.55)}
+.btn-outline{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.2)}
+.btn-outline:hover{border-color:#a855f7;color:#a855f7}
+.btn-share{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;box-shadow:0 4px 20px rgba(139,92,246,.3)}
+.btn-share:hover{box-shadow:0 6px 28px rgba(139,92,246,.5)}
+.btn+.btn{margin-top:12px}
+
+.instructions{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 20px;margin:0 0 18px;width:100%}
+.instructions h3{font-size:.85rem;color:#a855f7;margin-bottom:8px;text-transform:uppercase;letter-spacing:.1em}
+.instructions p{font-size:.82rem;color:#94a1b2;line-height:1.6}
+.instructions strong{color:#fff}
+
+.stroop-demo{
+  text-align:center;padding:18px;margin:12px 0;
+  background:rgba(255,255,255,.03);border-radius:14px;
+  border:1px solid rgba(255,255,255,.06);
+}
+.stroop-demo .demo-word{font-size:2rem;font-weight:900;margin-bottom:6px}
+.stroop-demo .demo-hint{font-size:.78rem;color:#94a1b2}
+
+/* Mode picker */
+.mode-picker{display:flex;gap:8px;margin:12px 0;width:100%}
+.mode-pick{
+  flex:1;padding:16px 12px;border:2px solid rgba(255,255,255,.12);border-radius:14px;
+  background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-weight:700;
+  font-size:.85rem;cursor:pointer;transition:all .2s;text-align:center;
+}
+.mode-pick:hover{border-color:#a855f7}
+.mode-pick.active{background:rgba(168,85,247,.15);border-color:#a855f7}
+.mode-pick .mode-emoji{font-size:1.5rem;display:block;margin-bottom:4px}
+.mode-pick .mode-name{font-weight:800;font-size:.9rem}
+.mode-pick .mode-desc{font-size:.7rem;color:#94a1b2;margin-top:2px}
+
+.best-score{text-align:center;margin:12px 0;font-size:.85rem;color:#94a1b2;font-weight:700}
+.best-score span{color:#a855f7;font-weight:900;font-size:1rem}
+
+/* ══════ GAME HUD ══════ */
+.game-hud{
+  display:flex;justify-content:space-between;align-items:center;
+  width:100%;padding:12px 0;margin-bottom:8px;
+}
+.hud-item{text-align:center}
+.hud-label{font-size:.65rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.hud-value{font-size:1.4rem;font-weight:900}
+.hud-value.score-val{color:#a855f7}
+.hud-value.timer-val{color:#facc15}
+.hud-value.timer-val.danger{color:#ef4444;animation:timerPulse .5s ease infinite}
+.hud-value.streak-val{color:#22c55e}
+.hud-value.lives-val{color:#ef4444}
+
+.timer-bar{
+  width:100%;height:6px;border-radius:3px;
+  background:rgba(255,255,255,.1);margin-bottom:16px;overflow:hidden;
+}
+.timer-bar-fill{
+  height:100%;border-radius:3px;
+  background:linear-gradient(90deg,#a855f7,#facc15);
+  transition:width .1s linear;
+}
+.timer-bar-fill.danger{background:linear-gradient(90deg,#ef4444,#f97316)}
+
+/* ══════ GAME ZONE ══════ */
+.color-word-area{
+  width:100%;min-height:180px;border-radius:24px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  margin-bottom:20px;position:relative;overflow:hidden;
+  transition:all .15s;
+}
+.color-word-area.flash-correct{animation:flashGreen .4s ease}
+.color-word-area.flash-wrong{animation:flashRed .4s ease}
+
+.color-word{font-size:3.5rem;font-weight:900;transition:all .2s;animation:popIn .3s ease}
+.color-word-hint{font-size:.8rem;color:#94a1b2;margin-top:8px;font-weight:600}
+
+.color-buttons{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  width:100%;margin-bottom:12px;
+}
+.color-btn{
+  padding:18px 12px;border:2px solid rgba(255,255,255,.12);border-radius:16px;
+  background:rgba(255,255,255,.06);font-family:inherit;font-weight:800;
+  font-size:1rem;cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  -webkit-tap-highlight-color:transparent;
+}
+.color-btn:active{transform:scale(.95)}
+.color-btn:hover{border-color:rgba(255,255,255,.3)}
+.color-btn .color-dot{
+  width:16px;height:16px;border-radius:50%;flex-shrink:0;
+}
+.color-btn.correct-flash{border-color:#22c55e;background:rgba(34,197,94,.15)}
+.color-btn.wrong-flash{border-color:#ef4444;background:rgba(239,68,68,.15);animation:shake .3s ease}
+
+/* Countdown overlay */
+.countdown-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(10,10,26,.9);display:flex;align-items:center;justify-content:center;
+  z-index:100;
+}
+.countdown-num{font-size:8rem;font-weight:900;color:#a855f7;animation:countdown .8s ease}
+.countdown-go{font-size:4rem;font-weight:900;color:#22c55e;animation:popIn .4s ease}
+
+/* ══════ RESULTS ══════ */
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin:16px 0}
+.results-grid.three-col{grid-template-columns:1fr 1fr 1fr}
+.result-box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px 12px;text-align:center}
+.result-box .label{font-size:.7rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.result-box .value{font-size:1.5rem;font-weight:900;background:linear-gradient(135deg,#a855f7,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.result-box .value.green{background:linear-gradient(135deg,#22c55e,#16a34a);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.result-box .value.yellow{background:linear-gradient(135deg,#facc15,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+.rank-badge{text-align:center;padding:20px;border-radius:16px;margin:12px 0;animation:popIn .5s ease;width:100%}
+.rank-emoji{font-size:3rem;margin-bottom:8px}
+.rank-title{font-size:1.4rem;font-weight:900}
+.rank-desc{font-size:.85rem;color:#94a1b2;margin-top:4px;font-weight:600}
+
+.rank-badge.beginner{background:rgba(148,161,178,.1);border:2px solid rgba(148,161,178,.2)}
+.rank-badge.beginner .rank-title{color:#94a1b2}
+.rank-badge.sharp{background:rgba(59,130,246,.1);border:2px solid rgba(59,130,246,.2)}
+.rank-badge.sharp .rank-title{color:#60a5fa}
+.rank-badge.focused{background:rgba(34,197,94,.1);border:2px solid rgba(34,197,94,.2)}
+.rank-badge.focused .rank-title{color:#22c55e}
+.rank-badge.stroop-master{background:rgba(250,204,21,.1);border:2px solid rgba(250,204,21,.2)}
+.rank-badge.stroop-master .rank-title{color:#facc15}
+.rank-badge.superhuman{background:rgba(168,85,247,.1);border:2px solid rgba(168,85,247,.2)}
+.rank-badge.superhuman .rank-title{color:#a855f7}
+
+.new-best{text-align:center;font-size:1rem;font-weight:800;color:#22c55e;margin:8px 0;animation:popIn .5s ease}
+
+.fun-fact{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 18px;margin:12px 0;width:100%;text-align:center;font-size:.82rem;color:#94a1b2;line-height:1.5}
+.fun-fact strong{color:#a855f7}
+
+.share-section{width:100%;margin:16px 0;text-align:center}
+.share-preview{width:100%;border-radius:16px;margin-bottom:12px;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.share-buttons{display:flex;gap:8px}
+.share-buttons .btn{flex:1}
+
+@media(max-width:480px){
+  .logo{font-size:1.7rem}
+  .color-word{font-size:2.8rem}
+  .card{padding:24px 20px}
+  .results-grid .value{font-size:1.3rem}
+  .color-btn{padding:14px 10px;font-size:.9rem}
+  .countdown-num{font-size:6rem}
+}
+</style>
+</head>
+<body>
+
+<a href="../" id="arcade-home-btn" style="position:fixed;top:16px;left:16px;z-index:999;background:rgba(255,255,255,.06);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:10px 16px;color:#fff;text-decoration:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:.85rem;display:flex;align-items:center;gap:6px;transition:all .3s;box-shadow:0 4px 15px rgba(0,0,0,.2)">🏠 Arcade</a>
+<style>#arcade-home-btn:hover{background:rgba(255,255,255,.12);transform:translateY(-2px)}</style>
+
+<div class="container">
+
+<!-- ══════ HOME SCREEN ══════ -->
+<div class="screen active" id="screen-home">
+<div class="logo">Color<br>Match 🎨</div>
+<p class="subtitle">Can your brain beat the Stroop Effect?</p>
+
+<div class="stroop-demo">
+  <div class="demo-word" style="color:#3b82f6">RED</div>
+  <div class="demo-hint">The word says RED but the color is <strong style="color:#3b82f6">BLUE</strong> — tap <strong style="color:#3b82f6">BLUE</strong>!</div>
+</div>
+
+<div class="instructions">
+<h3>📖 How to play</h3>
+<p>A color word appears in a <strong>different color</strong>. Tap the button matching the <strong>color of the text</strong>, NOT what the word says. It's harder than you think!</p>
+</div>
+
+<div class="card">
+<label style="font-weight:700;font-size:.85rem;color:#ffffffcc;display:block;margin-bottom:8px">Game Mode</label>
+<div class="mode-picker">
+<button class="mode-pick active" data-mode="timeattack">
+  <span class="mode-emoji">⏱️</span>
+  <span class="mode-name">Time Attack</span>
+  <span class="mode-desc">30 seconds — go!</span>
+</button>
+<button class="mode-pick" data-mode="survival">
+  <span class="mode-emoji">❤️</span>
+  <span class="mode-name">Survival</span>
+  <span class="mode-desc">3 lives, don't miss</span>
+</button>
+</div>
+</div>
+
+<div class="best-score" id="best-score-display"></div>
+<button class="btn btn-primary" id="btn-start">🎨 Start Game</button>
+</div>
+
+<!-- ══════ GAME SCREEN ══════ -->
+<div class="screen" id="screen-game">
+
+<div class="game-hud" id="game-hud">
+  <div class="hud-item">
+    <div class="hud-label">Score</div>
+    <div class="hud-value score-val" id="hud-score">0</div>
+  </div>
+  <div class="hud-item" id="hud-timer-wrap">
+    <div class="hud-label">Time</div>
+    <div class="hud-value timer-val" id="hud-timer">30</div>
+  </div>
+  <div class="hud-item" id="hud-lives-wrap" style="display:none">
+    <div class="hud-label">Lives</div>
+    <div class="hud-value lives-val" id="hud-lives">❤️❤️❤️</div>
+  </div>
+  <div class="hud-item">
+    <div class="hud-label">Streak</div>
+    <div class="hud-value streak-val" id="hud-streak">0</div>
+  </div>
+</div>
+
+<div class="timer-bar" id="timer-bar-wrap">
+  <div class="timer-bar-fill" id="timer-bar-fill" style="width:100%"></div>
+</div>
+
+<div class="color-word-area" id="color-word-area">
+  <div class="color-word" id="color-word">RED</div>
+  <div class="color-word-hint">Tap the <strong>color</strong> of the text!</div>
+</div>
+
+<div class="color-buttons" id="color-buttons"></div>
+</div>
+
+<!-- ══════ RESULTS SCREEN ══════ -->
+<div class="screen" id="screen-results">
+<div class="logo">Results 🎨</div>
+
+<div class="rank-badge" id="rank-badge">
+<div class="rank-emoji" id="rank-emoji">🎨</div>
+<div class="rank-title" id="rank-title">Color Pro</div>
+<div class="rank-desc" id="rank-desc">Nice work!</div>
+</div>
+
+<div class="new-best" id="new-best" style="display:none">🏆 New Personal Best!</div>
+
+<div class="results-grid" id="results-grid"></div>
+
+<div class="fun-fact" id="fun-fact"></div>
+
+<div class="share-section">
+<canvas id="share-canvas" style="display:none"></canvas>
+<img id="share-preview" class="share-preview" style="display:none" alt="Result card"/>
+<div class="share-buttons">
+<button class="btn btn-share" id="btn-save-img">📸 Save Image</button>
+<button class="btn btn-outline" id="btn-copy-text">📋 Copy Result</button>
+</div>
+</div>
+
+<button class="btn btn-primary" id="btn-again">🔄 Play Again</button>
+<button class="btn btn-outline" id="btn-home">🏠 Back to Menu</button>
+</div>
+
+<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
+            border-radius:14px;padding:16px 20px;margin:20px 0;
+            text-align:center;width:100%;">
+  <p style="color:#94a1b2;font-size:0.85rem;margin-bottom:10px;">Enjoying the game? 🎉</p>
+  <a href="https://ko-fi.com/restlessrusty" target="_blank"
+     style="color:#7f5af0;font-weight:700;text-decoration:none;">
+    ☕ Buy me a coffee to make more games!
+  </a>
+</div>
+</div>
+
+<!-- Countdown overlay -->
+<div class="countdown-overlay" id="countdown-overlay" style="display:none">
+  <div id="countdown-content"></div>
+</div>
+
+<script>
+(function(){
+
+// ══════════════════════════════════
+// CONSTANTS
+// ══════════════════════════════════
+const COLORS=[
+  {name:'Red',    hex:'#ef4444'},
+  {name:'Blue',   hex:'#3b82f6'},
+  {name:'Green',  hex:'#22c55e'},
+  {name:'Yellow', hex:'#facc15'},
+  {name:'Purple', hex:'#a855f7'},
+  {name:'Orange', hex:'#f97316'},
+];
+
+const RANKS_TIME=[
+  {min:30,emoji:'🧠',title:'Stroop Superhuman',desc:'Your brain is immune to the Stroop Effect!',cls:'superhuman'},
+  {min:22,emoji:'⚡',title:'Stroop Master',desc:'Incredible focus and speed!',cls:'stroop-master'},
+  {min:15,emoji:'🎯',title:'Focused Mind',desc:'Great job — well above average!',cls:'focused'},
+  {min:8,emoji:'👁️',title:'Sharp Eyes',desc:'Solid performance. Keep practicing!',cls:'sharp'},
+  {min:0,emoji:'🌱',title:'Getting Started',desc:'The Stroop Effect is tricky! Try again.',cls:'beginner'},
+];
+
+const RANKS_SURVIVAL=[
+  {min:40,emoji:'🧠',title:'Stroop Superhuman',desc:'Unstoppable! Your brain defies the effect!',cls:'superhuman'},
+  {min:25,emoji:'⚡',title:'Stroop Master',desc:'Deep focus and lightning reflexes!',cls:'stroop-master'},
+  {min:15,emoji:'🎯',title:'Focused Mind',desc:'Impressive run — great concentration!',cls:'focused'},
+  {min:8,emoji:'👁️',title:'Sharp Eyes',desc:'Nice effort! The effect gets everyone.',cls:'sharp'},
+  {min:0,emoji:'🌱',title:'Getting Started',desc:"Don't worry, practice beats the Stroop Effect!",cls:'beginner'},
+];
+
+const FUN_FACTS=[
+  "The <strong>Stroop Effect</strong> was discovered by John Ridley Stroop in <strong>1935</strong>",
+  "The Stroop Effect occurs because reading is <strong>more automatic</strong> than naming colors",
+  "Children who can't read yet are <strong>immune</strong> to the Stroop Effect!",
+  "The Stroop test is used clinically to measure <strong>brain damage</strong> and <strong>ADHD</strong>",
+  "Bilingual people experience the Stroop Effect in <strong>both languages</strong>",
+  "Your brain processes the word <strong>60ms faster</strong> than the color — that's the conflict",
+  "Practice can reduce your Stroop interference by up to <strong>40%</strong>",
+  "The Stroop Effect is stronger when you're <strong>tired or stressed</strong>",
+  "It takes your brain about <strong>200ms longer</strong> to name mismatched colors vs matched ones",
+  "Meditators show <strong>significantly less</strong> Stroop interference than non-meditators",
+  "The Stroop test is one of the most <strong>replicated</strong> experiments in psychology",
+  "Video game players show <strong>25% less</strong> Stroop interference than non-gamers",
+  "The Stroop Effect works with <strong>shapes, numbers, and emotions</strong> too, not just colors",
+  "Your <strong>anterior cingulate cortex</strong> is the brain region that resolves Stroop conflicts",
+  "Caffeine can <strong>reduce</strong> Stroop interference by improving attentional control",
+  "The Stroop Effect is stronger for <strong>common color words</strong> than rare ones",
+  "Elderly people show <strong>more</strong> Stroop interference but can still improve with training",
+  "The reverse Stroop (reading the word, ignoring color) is <strong>much easier</strong> — proving reading dominance",
+];
+
+// ══════════════════════════════════
+// STATE
+// ══════════════════════════════════
+let mode='timeattack';
+let score=0;
+let streak=0;
+let bestStreak=0;
+let lives=3;
+let totalAnswered=0;
+let totalCorrect=0;
+let responseTimes=[];
+let roundStart=0;
+let gameTimer=null;
+let timeLeft=30;
+let currentCorrectColor=null;
+let inputLocked=false;
+let difficultyLevel=0; // increases over time
+let bestScores={
+  timeattack:parseInt(localStorage.getItem('cm_best_ta'))||0,
+  survival:parseInt(localStorage.getItem('cm_best_sv'))||0
+};
+
+const $=id=>document.getElementById(id);
+const screens=document.querySelectorAll('.screen');
+function showScreen(id){
+  screens.forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ══════════════════════════════════
+// HOME SCREEN
+// ══════════════════════════════════
+function showBest(){
+  const el=$('best-score-display');
+  const b=bestScores[mode];
+  if(b>0){
+    const label=mode==='timeattack'?'points':'rounds';
+    el.innerHTML=`🏆 Personal Best (${mode==='timeattack'?'Time Attack':'Survival'}): <span>${b} ${label}</span>`;
+  }else{
+    el.innerHTML='No games played yet — set your first record!';
+  }
+}
+showBest();
+
+// Mode picker
+document.querySelectorAll('.mode-pick').forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll('.mode-pick').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    mode=btn.dataset.mode;
+    showBest();
+  };
+});
+
+// Animate demo
+let demoInterval;
+function startDemoAnim(){
+  const demoWord=document.querySelector('.demo-word');
+  const demoHint=document.querySelector('.demo-hint');
+  const combos=[
+    {word:'RED',color:COLORS[1],answer:'BLUE'},
+    {word:'GREEN',color:COLORS[4],answer:'PURPLE'},
+    {word:'YELLOW',color:COLORS[0],answer:'RED'},
+    {word:'BLUE',color:COLORS[3],answer:'YELLOW'},
+    {word:'PURPLE',color:COLORS[2],answer:'GREEN'},
+  ];
+  let idx=0;
+  function cycle(){
+    const c=combos[idx%combos.length];
+    demoWord.textContent=c.word;
+    demoWord.style.color=c.color.hex;
+    demoHint.innerHTML=`The word says ${c.word} but the color is <strong style="color:${c.color.hex}">${c.answer}</strong> — tap <strong style="color:${c.color.hex}">${c.answer}</strong>!`;
+    idx++;
+  }
+  cycle();
+  demoInterval=setInterval(cycle,2500);
+}
+startDemoAnim();
+
+// ══════════════════════════════════
+// COUNTDOWN & START
+// ══════════════════════════════════
+function doCountdown(cb){
+  const overlay=$('countdown-overlay');
+  const content=$('countdown-content');
+  overlay.style.display='flex';
+  let count=3;
+  function tick(){
+    if(count>0){
+      content.innerHTML=`<div class="countdown-num">${count}</div>`;
+      count--;
+      setTimeout(tick,800);
+    }else{
+      content.innerHTML=`<div class="countdown-go">GO!</div>`;
+      setTimeout(()=>{
+        overlay.style.display='none';
+        cb();
+      },500);
+    }
+  }
+  tick();
+}
+
+function startGame(){
+  if(demoInterval)clearInterval(demoInterval);
+  score=0;streak=0;bestStreak=0;lives=3;
+  totalAnswered=0;totalCorrect=0;responseTimes=[];
+  timeLeft=30;difficultyLevel=0;inputLocked=false;
+
+  showScreen('screen-game');
+  setupHUD();
+
+  doCountdown(()=>{
+    if(mode==='timeattack')startTimer();
+    nextRound();
+  });
+}
+
+function setupHUD(){
+  $('hud-score').textContent='0';
+  $('hud-streak').textContent='0';
+  if(mode==='timeattack'){
+    $('hud-timer-wrap').style.display='';
+    $('hud-lives-wrap').style.display='none';
+    $('hud-timer').textContent='30';
+    $('hud-timer').className='hud-value timer-val';
+    $('timer-bar-wrap').style.display='';
+    $('timer-bar-fill').style.width='100%';
+    $('timer-bar-fill').className='timer-bar-fill';
+  }else{
+    $('hud-timer-wrap').style.display='none';
+    $('hud-lives-wrap').style.display='';
+    $('hud-lives').textContent='❤️❤️❤️';
+    $('timer-bar-wrap').style.display='none';
+  }
+}
+
+// ══════════════════════════════════
+// TIMER (Time Attack)
+// ══════════════════════════════════
+function startTimer(){
+  const startMs=performance.now();
+  const totalMs=30000;
+  function tick(){
+    const elapsed=performance.now()-startMs;
+    const remaining=Math.max(0,totalMs-elapsed);
+    timeLeft=Math.ceil(remaining/1000);
+    const pct=(remaining/totalMs)*100;
+
+    $('hud-timer').textContent=timeLeft;
+    $('timer-bar-fill').style.width=pct+'%';
+
+    if(timeLeft<=5){
+      $('hud-timer').className='hud-value timer-val danger';
+      $('timer-bar-fill').className='timer-bar-fill danger';
+    }
+
+    if(remaining<=0){
+      endGame();
+      return;
+    }
+    gameTimer=requestAnimationFrame(tick);
+  }
+  gameTimer=requestAnimationFrame(tick);
+}
+
+// ══════════════════════════════════
+// GENERATE ROUND
+// ══════════════════════════════════
+function nextRound(){
+  inputLocked=false;
+
+  // Difficulty: more options over time
+  let numOptions=4;
+  if(mode==='survival'){
+    if(totalAnswered>=15)numOptions=5;
+    if(totalAnswered>=30)numOptions=6;
+  }else{
+    if(score>=15)numOptions=5;
+    if(score>=30)numOptions=6;
+  }
+
+  // Pick colors for options
+  const shuffled=[...COLORS].sort(()=>Math.random()-.5);
+  const options=shuffled.slice(0,numOptions);
+
+  // Pick word color (the correct answer) from options
+  const correctIdx=Math.floor(Math.random()*options.length);
+  const correctColor=options[correctIdx];
+
+  // Pick word text — must be DIFFERENT from correct color (Stroop!)
+  // Occasionally (20%) make them match to keep player on toes
+  let wordText;
+  const matchChance=Math.random();
+  if(matchChance<0.2){
+    wordText=correctColor.name; // matching — easy
+  }else{
+    const others=options.filter(c=>c.name!==correctColor.name);
+    wordText=others[Math.floor(Math.random()*others.length)].name;
+  }
+
+  currentCorrectColor=correctColor;
+
+  // Display word
+  const wordEl=$('color-word');
+  wordEl.textContent=wordText.toUpperCase();
+  wordEl.style.color=correctColor.hex;
+  wordEl.style.animation='none';
+  wordEl.offsetHeight; // reflow
+  wordEl.style.animation='popIn .3s ease';
+
+  // Buttons
+  const btnContainer=$('color-buttons');
+  btnContainer.innerHTML='';
+  // Shuffle options for button order
+  const btnOrder=[...options].sort(()=>Math.random()-.5);
+  btnOrder.forEach(color=>{
+    const btn=document.createElement('button');
+    btn.className='color-btn';
+    btn.innerHTML=`<span class="color-dot" style="background:${color.hex}"></span><span style="color:${color.hex}">${color.name}</span>`;
+    btn.dataset.color=color.name;
+    btn.addEventListener('click',()=>handleAnswer(btn,color));
+    btnContainer.appendChild(btn);
+  });
+
+  // Update grid columns
+  if(numOptions<=4){
+    btnContainer.style.gridTemplateColumns='1fr 1fr';
+  }else if(numOptions===5){
+    btnContainer.style.gridTemplateColumns='1fr 1fr 1fr';
+  }else{
+    btnContainer.style.gridTemplateColumns='1fr 1fr 1fr';
+  }
+
+  roundStart=performance.now();
+}
+
+// ══════════════════════════════════
+// HANDLE ANSWER
+// ══════════════════════════════════
+function handleAnswer(btn,chosenColor){
+  if(inputLocked)return;
+  inputLocked=true;
+
+  const rt=Math.round(performance.now()-roundStart);
+  totalAnswered++;
+
+  const correct=chosenColor.name===currentCorrectColor.name;
+  const area=$('color-word-area');
+
+  if(correct){
+    totalCorrect++;
+    responseTimes.push(rt);
+    streak++;
+    if(streak>bestStreak)bestStreak=streak;
+
+    // Score
+    let points=1;
+    if(rt<800)points=2; // speed bonus
+    if(mode==='timeattack')score+=points;
+    else score++;
+
+    btn.classList.add('correct-flash');
+    area.classList.add('flash-correct');
+
+    $('hud-score').textContent=score;
+    $('hud-streak').textContent=streak;
+
+    setTimeout(()=>{
+      btn.classList.remove('correct-flash');
+      area.classList.remove('flash-correct');
+      nextRound();
+    },250);
+
+  }else{
+    streak=0;
+    $('hud-streak').textContent='0';
+
+    btn.classList.add('wrong-flash');
+    area.classList.add('flash-wrong');
+
+    // Highlight correct button
+    const allBtns=document.querySelectorAll('.color-btn');
+    allBtns.forEach(b=>{
+      if(b.dataset.color===currentCorrectColor.name)b.classList.add('correct-flash');
+    });
+
+    if(mode==='timeattack'){
+      score=Math.max(0,score-1);
+      $('hud-score').textContent=score;
+    }else{
+      lives--;
+      const hearts='❤️'.repeat(Math.max(0,lives))+'🖤'.repeat(3-Math.max(0,lives));
+      $('hud-lives').textContent=hearts;
+    }
+
+    setTimeout(()=>{
+      btn.classList.remove('wrong-flash');
+      area.classList.remove('flash-wrong');
+      allBtns.forEach(b=>b.classList.remove('correct-flash'));
+
+      if(mode==='survival'&&lives<=0){
+        endGame();
+      }else{
+        nextRound();
+      }
+    },600);
+  }
+}
+
+// ══════════════════════════════════
+// END GAME
+// ══════════════════════════════════
+function endGame(){
+  if(gameTimer)cancelAnimationFrame(gameTimer);
+  gameTimer=null;
+  showResults();
+}
+
+// ══════════════════════════════════
+// RESULTS
+// ══════════════════════════════════
+function showResults(){
+  const accuracy=totalAnswered>0?Math.round((totalCorrect/totalAnswered)*100):0;
+  const avgRT=responseTimes.length>0?Math.round(responseTimes.reduce((a,b)=>a+b,0)/responseTimes.length):0;
+  const bestRT=responseTimes.length>0?Math.min(...responseTimes):0;
+
+  // Grid
+  const grid=$('results-grid');
+  if(mode==='timeattack'){
+    grid.className='results-grid three-col';
+    grid.innerHTML=`
+      <div class="result-box"><div class="label">Score</div><div class="value">${score}</div></div>
+      <div class="result-box"><div class="label">Accuracy</div><div class="value green">${accuracy}%</div></div>
+      <div class="result-box"><div class="label">Best Streak</div><div class="value yellow">${bestStreak}🔥</div></div>
+      <div class="result-box"><div class="label">Answered</div><div class="value">${totalAnswered}</div></div>
+      <div class="result-box"><div class="label">Avg Speed</div><div class="value green">${avgRT}ms</div></div>
+      <div class="result-box"><div class="label">Fastest</div><div class="value yellow">${bestRT?bestRT+'ms':'—'}</div></div>
+    `;
+  }else{
+    grid.className='results-grid three-col';
+    grid.innerHTML=`
+      <div class="result-box"><div class="label">Rounds</div><div class="value">${score}</div></div>
+      <div class="result-box"><div class="label">Accuracy</div><div class="value green">${accuracy}%</div></div>
+      <div class="result-box"><div class="label">Best Streak</div><div class="value yellow">${bestStreak}🔥</div></div>
+      <div class="result-box"><div class="label">Answered</div><div class="value">${totalAnswered}</div></div>
+      <div class="result-box"><div class="label">Avg Speed</div><div class="value green">${avgRT}ms</div></div>
+      <div class="result-box"><div class="label">Fastest</div><div class="value yellow">${bestRT?bestRT+'ms':'—'}</div></div>
+    `;
+  }
+
+  // Rank
+  const ranks=mode==='timeattack'?RANKS_TIME:RANKS_SURVIVAL;
+  const rank=ranks.find(r=>score>=r.min)||ranks[ranks.length-1];
+  $('rank-emoji').textContent=rank.emoji;
+  $('rank-title').textContent=rank.title;
+  $('rank-desc').textContent=rank.desc;
+  $('rank-badge').className='rank-badge '+rank.cls;
+
+  // New best?
+  const key=mode==='timeattack'?'cm_best_ta':'cm_best_sv';
+  const nb=$('new-best');
+  if(score>bestScores[mode]){
+    bestScores[mode]=score;
+    localStorage.setItem(key,score);
+    nb.style.display='block';
+  }else{
+    nb.style.display='none';
+  }
+
+  // Fun fact
+  $('fun-fact').innerHTML='💡 '+FUN_FACTS[Math.floor(Math.random()*FUN_FACTS.length)];
+
+  // Share card
+  generateShareCard(score,accuracy,bestStreak,avgRT,rank);
+
+  showScreen('screen-results');
+}
+
+// ══════════════════════════════════
+// SHARE CARD
+// ══════════════════════════════════
+function generateShareCard(score,accuracy,bestStreak,avgRT,rank){
+  const canvas=$('share-canvas');
+  const ctx=canvas.getContext('2d');
+  const w=600,h=400;
+  canvas.width=w;canvas.height=h;
+
+  // Bg
+  const grad=ctx.createLinearGradient(0,0,w,h);
+  grad.addColorStop(0,'#0f0c29');
+  grad.addColorStop(0.5,'#1a1a3e');
+  grad.addColorStop(1,'#0f0f2e');
+  ctx.fillStyle=grad;
+  ctx.fillRect(0,0,w,h);
+
+  // Deco circles
+  ctx.globalAlpha=0.08;
+  ctx.fillStyle='#a855f7';
+  ctx.beginPath();ctx.arc(500,70,120,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#3b82f6';
+  ctx.beginPath();ctx.arc(80,350,100,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=1;
+
+  // Title
+  ctx.font='900 28px Nunito, sans-serif';
+  ctx.fillStyle='#a855f7';
+  ctx.textAlign='center';
+  ctx.fillText('🎨 Color Match — '+(mode==='timeattack'?'Time Attack':'Survival'),w/2,50);
+
+  // Rank
+  ctx.font='64px serif';
+  ctx.fillText(rank.emoji,w/2,130);
+  ctx.font='900 26px Nunito, sans-serif';
+  ctx.fillStyle='#fff';
+  ctx.fillText(rank.title,w/2,170);
+
+  // Stats
+  const statY=220;
+  ctx.font='700 16px Nunito, sans-serif';
+  ctx.fillStyle='#94a1b2';
+  ctx.fillText(mode==='timeattack'?'SCORE':'ROUNDS',120,statY);
+  ctx.font='900 36px Nunito, sans-serif';
+  ctx.fillStyle='#a855f7';
+  ctx.fillText(String(score),120,statY+40);
+
+  ctx.font='700 16px Nunito, sans-serif';
+  ctx.fillStyle='#94a1b2';
+  ctx.fillText('ACCURACY',260,statY);
+  ctx.font='900 36px Nunito, sans-serif';
+  ctx.fillStyle='#22c55e';
+  ctx.fillText(accuracy+'%',260,statY+40);
+
+  ctx.font='700 16px Nunito, sans-serif';
+  ctx.fillStyle='#94a1b2';
+  ctx.fillText('STREAK',400,statY);
+  ctx.font='900 36px Nunito, sans-serif';
+  ctx.fillStyle='#facc15';
+  ctx.fillText(bestStreak+'🔥',400,statY+40);
+
+  ctx.font='700 16px Nunito, sans-serif';
+  ctx.fillStyle='#94a1b2';
+  ctx.fillText('AVG SPEED',540,statY);
+  ctx.font='900 36px Nunito, sans-serif';
+  ctx.fillStyle='#3b82f6';
+  ctx.fillText(avgRT+'ms',540,statY+40);
+
+  // URL
+  ctx.font='800 15px Nunito, sans-serif';
+  ctx.fillStyle='#a855f788';
+  ctx.fillText('Can you beat the Stroop Effect? 🧠',w/2,340);
+  ctx.font='700 13px Nunito, sans-serif';
+  ctx.fillStyle='#94a1b2';
+  ctx.fillText(window.location.href.replace(/\/$/,''),w/2,370);
+
+  const img=$('share-preview');
+  img.src=canvas.toDataURL('image/png');
+  img.style.display='block';
+}
+
+// Save img
+$('btn-save-img').onclick=()=>{
+  const link=document.createElement('a');
+  link.download='color-match-result.png';
+  link.href=$('share-canvas').toDataURL('image/png');
+  link.click();
+  $('btn-save-img').innerHTML='✅ Saved!';
+  setTimeout(()=>$('btn-save-img').innerHTML='📸 Save Image',2000);
+};
+
+// Copy text
+$('btn-copy-text').onclick=()=>{
+  const accuracy=totalAnswered>0?Math.round((totalCorrect/totalAnswered)*100):0;
+  const avgRT=responseTimes.length>0?Math.round(responseTimes.reduce((a,b)=>a+b,0)/responseTimes.length):0;
+  const ranks=mode==='timeattack'?RANKS_TIME:RANKS_SURVIVAL;
+  const rank=ranks.find(r=>score>=r.min)||ranks[ranks.length-1];
+
+  let text='🎨 Color Match — '+(mode==='timeattack'?'Time Attack':'Survival')+'\n\n';
+  text+=`${rank.emoji} ${rank.title}\n`;
+  text+=`Score: ${score} | Accuracy: ${accuracy}%\n`;
+  text+=`Best Streak: ${bestStreak}🔥 | Avg Speed: ${avgRT}ms\n\n`;
+  text+=`Can you beat the Stroop Effect?\n${window.location.href}`;
+
+  navigator.clipboard.writeText(text).then(()=>{
+    $('btn-copy-text').innerHTML='✅ Copied!';
+    setTimeout(()=>$('btn-copy-text').innerHTML='📋 Copy Result',2000);
+  }).catch(()=>{});
+};
+
+// Navigation
+$('btn-start').onclick=()=>startGame();
+$('btn-again').onclick=()=>{showBest();startGame()};
+$('btn-home').onclick=()=>{
+  showBest();
+  startDemoAnim();
+  showScreen('screen-home');
+};
+
+})();
+</script>
+</body>
+</html>
