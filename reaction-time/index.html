@@ -18,9 +18,30 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient(135deg,#0a0a1a,#1a1a3e,#0f0f2e);color:#fff;display:flex;justify-content:center;align-items:center;overflow:hidden;user-select:none;-webkit-user-select:none}
+body{
+  font-family:'Nunito',sans-serif;
+  min-height:100vh;
+  background:linear-gradient(135deg,#0a0a1a,#1a1a3e,#0f0f2e);
+  color:#fff;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  overflow-x:hidden;
+  overflow-y:auto;
+  user-select:none;
+  -webkit-user-select:none;
+}
 
-.container{position:relative;z-index:1;width:100%;max-width:520px;padding:20px;display:flex;flex-direction:column;align-items:center;min-height:100vh;justify-content:center}
+.container{
+  position:relative;
+  z-index:1;
+  width:100%;
+  max-width:520px;
+  padding:40px 20px 40px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
 .screen{display:none;width:100%;animation:fadeIn .4s ease}
 .screen.active{display:flex;flex-direction:column;align-items:center}
 @keyframes fadeIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
@@ -133,6 +154,9 @@ body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient
 .error-msg{background:rgba(225,97,98,.15);color:#e16162;padding:12px 18px;border-radius:12px;font-size:.85rem;font-weight:700;text-align:center;margin:12px 0;display:none}
 .error-msg.show{display:block;animation:fadeIn .3s ease}
 
+/* Scroll to top on results */
+.screen-scroll-top{scroll-margin-top:20px}
+
 @media(max-width:480px){
   .logo{font-size:1.7rem}
   .game-zone{height:350px}
@@ -145,7 +169,7 @@ body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient
 </head>
 <body>
 
-<a href="../" id="arcade-home-btn" style="position:fixed;top:16px;left:16px;z-index:999;background:rgba(255,255,255,.06);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:10px 16px;color:#fff;text-decoration:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:.85rem;display:flex;align-items:center;gap:6px;transition:all .3s;box-shadow:0 4px 15px rgba(0,0,0,.2)">🏠 Arcade</a>
+<a href="../" id="arcade-home-btn" style="position:fixed;top:16px;left:16px;z-index:999;background:rgba(255,255,255,.06);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:10px 16px;color:#fff;text-decoration:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:.85rem;display:flex;align-items:center;gap:6px;transition:all .3s;box-shadow:0 4px 15px rgba(0,0,0,.2)">🏠 Back to the Arcade</a>
 <style>#arcade-home-btn:hover{background:rgba(255,255,255,.12);transform:translateY(-2px)}</style>
 
 <div class="container">
@@ -289,7 +313,12 @@ let allTimeBest=parseInt(localStorage.getItem('rt_best'))||null;
 
 const $=id=>document.getElementById(id);
 const screens=document.querySelectorAll('.screen');
-function showScreen(id){screens.forEach(s=>s.classList.remove('active'));$(id).classList.add('active')}
+function showScreen(id){
+  screens.forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+  // Scroll to top when switching screens
+  window.scrollTo({top:0,behavior:'smooth'});
+}
 
 // Show best score
 function showBest(){
