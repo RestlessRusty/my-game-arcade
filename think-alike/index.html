@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Do We Think Alike?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Nunito',sans-serif;min-height:100vh;
+  background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);
+  color:#fff;display:flex;justify-content:center;align-items:center;overflow-x:hidden;
+}
+.bg-blob{position:fixed;border-radius:50%;filter:blur(100px);opacity:.35;pointer-events:none;z-index:0}
+.bg-blob.a{width:500px;height:500px;background:#7f5af0;top:-120px;left:-100px;animation:fA 18s ease-in-out infinite}
+.bg-blob.b{width:400px;height:400px;background:#2cb67d;bottom:-80px;right:-80px;animation:fB 22s ease-in-out infinite}
+.bg-blob.c{width:300px;height:300px;background:#e16162;top:50%;left:55%;animation:fC 20s ease-in-out infinite}
+@keyframes fA{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,80px)}}
+@keyframes fB{0%,100%{transform:translate(0,0)}50%{transform:translate(-50px,-60px)}}
+@keyframes fC{0%,100%{transform:translate(0,0)}50%{transform:translate(-40px,50px)}}
+
+.container{position:relative;z-index:1;width:100%;max-width:520px;padding:20px;display:flex;flex-direction:column;align-items:center;min-height:100vh;justify-content:center}
+
+.screen{display:none;width:100%;animation:fadeIn .4s ease}
+.screen.active{display:flex;flex-direction:column;align-items:center}
+@keyframes fadeIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+
+.logo{font-size:2.2rem;font-weight:900;text-align:center;line-height:1.15;margin-bottom:8px;background:linear-gradient(135deg,#7f5af0,#2cb67d);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{font-size:.95rem;color:#94a1b2;text-align:center;margin-bottom:36px}
+
+.card{background:rgba(255,255,255,.06);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:32px 28px;width:100%;margin-bottom:18px;box-shadow:0 8px 32px rgba(0,0,0,.25)}
+
+label{font-weight:700;font-size:.85rem;margin-bottom:6px;display:block;color:#ffffffcc}
+input[type="text"]{width:100%;padding:14px 18px;border:2px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.07);color:#fff;font-size:1rem;font-family:inherit;font-weight:600;outline:none;transition:border .2s}
+input[type="text"]:focus{border-color:#7f5af0}
+input[type="text"]::placeholder{color:#ffffff44}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 32px;border:none;border-radius:14px;font-family:inherit;font-size:1rem;font-weight:800;cursor:pointer;transition:all .2s;width:100%}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,#7f5af0,#6236d6);color:#fff;box-shadow:0 4px 20px rgba(127,90,240,.4)}
+.btn-primary:hover{box-shadow:0 6px 28px rgba(127,90,240,.55)}
+.btn-secondary{background:linear-gradient(135deg,#2cb67d,#1f9a65);color:#fff;box-shadow:0 4px 20px rgba(44,182,125,.3)}
+.btn-secondary:hover{box-shadow:0 6px 28px rgba(44,182,125,.5)}
+.btn-outline{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.2)}
+.btn-outline:hover{border-color:#7f5af0;color:#7f5af0}
+.btn+.btn{margin-top:12px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+.code-display{font-size:2.4rem;font-weight:900;letter-spacing:.3em;text-align:center;padding:18px;background:rgba(127,90,240,.15);border:2px dashed rgba(127,90,240,.4);border-radius:16px;margin:18px 0;color:#c4b5fd;user-select:all}
+
+.status{text-align:center;color:#94a1b2;font-size:.9rem;margin:12px 0;display:flex;align-items:center;justify-content:center;gap:8px}
+.dot-pulse{width:8px;height:8px;border-radius:50%;background:#7f5af0;animation:pulse 1.2s ease-in-out infinite}
+
+.round-header{text-align:center;margin-bottom:22px}
+.round-label{font-size:.8rem;font-weight:700;color:#7f5af0;text-transform:uppercase;letter-spacing:.15em}
+.round-number{font-size:1rem;color:#94a1b2;font-weight:600}
+
+.prompt-container{text-align:center;margin:8px 0 24px}
+.category-badge{display:inline-block;padding:4px 14px;border-radius:20px;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px}
+.category-badge.noun{background:rgba(225,97,98,.2);color:#e16162}
+.category-badge.adjective{background:rgba(44,182,125,.2);color:#2cb67d}
+.category-badge.verb{background:rgba(127,90,240,.2);color:#7f5af0}
+.prompt-word{font-size:3rem;font-weight:900;background:linear-gradient(135deg,#fff,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-transform:uppercase;letter-spacing:.05em;animation:popIn .5s cubic-bezier(.17,.67,.29,1.27)}
+
+.timer-bar-container{width:100%;height:6px;border-radius:3px;background:rgba(255,255,255,.1);margin:12px 0 20px;overflow:hidden}
+.timer-bar{height:100%;border-radius:3px;background:linear-gradient(90deg,#2cb67d,#7f5af0);transition:width .3s linear}
+.timer-text{text-align:center;font-size:.85rem;color:#94a1b2;font-weight:700;font-variant-numeric:tabular-nums}
+
+.scoreboard{display:flex;justify-content:center;gap:30px;margin:16px 0}
+.score-item{text-align:center}
+.score-name{font-size:.8rem;color:#94a1b2;font-weight:600;margin-bottom:2px}
+.score-value{font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,#7f5af0,#2cb67d);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+.reveal-container{display:flex;gap:16px;margin:20px 0;width:100%}
+.reveal-card{flex:1;padding:20px 16px;border-radius:16px;text-align:center;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.08);animation:slideUp .5s ease}
+.reveal-card .player-name{font-size:.75rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.1em}
+.reveal-card .player-answer{font-size:1.5rem;font-weight:900;margin-top:8px;word-break:break-word}
+
+.match-result{text-align:center;padding:18px;border-radius:16px;font-size:1.3rem;font-weight:800;margin:10px 0 20px;animation:popIn .6s cubic-bezier(.17,.67,.29,1.27)}
+.match-result.yes{background:rgba(44,182,125,.15);color:#2cb67d;border:2px solid rgba(44,182,125,.3)}
+.match-result.no{background:rgba(225,97,98,.15);color:#e16162;border:2px solid rgba(225,97,98,.3)}
+
+.final-score{font-size:4rem;font-weight:900;text-align:center;background:linear-gradient(135deg,#7f5af0,#2cb67d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:10px 0}
+.final-label{text-align:center;font-size:1rem;color:#94a1b2;font-weight:700}
+.emoji-rain{font-size:2.5rem;text-align:center;margin:10px 0;animation:popIn .5s ease}
+
+.error-msg{background:rgba(225,97,98,.15);color:#e16162;padding:12px 18px;border-radius:12px;font-size:.85rem;font-weight:700;text-align:center;margin:12px 0;display:none}
+.error-msg.show{display:block;animation:fadeIn .3s ease}
+
+.divider{display:flex;align-items:center;gap:14px;margin:20px 0;width:100%;color:#94a1b2;font-size:.8rem;font-weight:700}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.1)}
+.gap-sm{height:10px}
+
+.instructions{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 20px;margin:0 0 18px;width:100%}
+.instructions h3{font-size:.85rem;color:#7f5af0;margin-bottom:8px;text-transform:uppercase;letter-spacing:.1em}
+.instructions p{font-size:.82rem;color:#94a1b2;line-height:1.6}
+.instructions strong{color:#fff}
+
+@media(max-width:480px){
+  .logo{font-size:1.7rem}
+  .prompt-word{font-size:2.2rem}
+  .card{padding:24px 20px}
+  .code-display{font-size:1.8rem;letter-spacing:.2em}
+  .reveal-container{gap:10px}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-blob a"></div>
+<div class="bg-blob b"></div>
+<div class="bg-blob c"></div>
+
+<div class="container">
+
+  <!-- HOME -->
+  <div class="screen active" id="screen-home">
+    <div class="logo">Do We Think<br>Alike? 🧠</div>
+    <p class="subtitle">See if you and a friend share the same wavelength</p>
+    <div class="instructions">
+      <h3>📖 How to play</h3>
+      <p>Each round shows a word (noun, verb or adjective). Both players type <strong>one word</strong> they associate with it. If you both write the <strong>same word</strong> — you think alike! 🎉</p>
+    </div>
+    <div class="card">
+      <label for="input-name">Your Name</label>
+      <input type="text" id="input-name" placeholder="Enter your name…" maxlength="20" autocomplete="off" />
+    </div>
+    <button class="btn btn-primary" id="btn-create">✨ Create Game</button>
+    <div class="divider">OR</div>
+    <div class="card">
+      <label for="input-code">Invite Code</label>
+      <input type="text" id="input-code" placeholder="e.g. A3BX9K" maxlength="6" autocomplete="off" style="text-transform:uppercase;letter-spacing:.15em;text-align:center" />
+    </div>
+    <button class="btn btn-secondary" id="btn-join">🤝 Join Game</button>
+    <div class="error-msg" id="home-error"></div>
+  </div>
+
+  <!-- LOBBY -->
+  <div class="screen" id="screen-lobby">
+    <div class="logo">Do We Think<br>Alike? 🧠</div>
+    <p class="subtitle">Share this code with a friend</p>
+    <div class="card" style="text-align:center">
+      <label>Invite Code</label>
+      <div class="code-display" id="lobby-code"></div>
+      <button class="btn btn-outline" id="btn-copy" style="margin-top:12px;width:auto;padding:10px 24px;display:inline-flex">📋 Copy Code</button>
+    </div>
+    <div class="status"><div class="dot-pulse"></div><span id="lobby-status">Waiting for opponent…</span></div>
+  </div>
+
+  <!-- CONNECTING -->
+  <div class="screen" id="screen-connecting">
+    <div class="logo">Connecting… ⏳</div>
+    <div class="status"><div class="dot-pulse"></div><span id="connecting-status">Please wait…</span></div>
+    <div class="error-msg" id="connecting-error"></div>
+  </div>
+
+  <!-- PLAY -->
+  <div class="screen" id="screen-play">
+    <div class="round-header">
+      <div class="round-label">Round</div>
+      <div class="round-number" id="round-info">1 / 5</div>
+    </div>
+    <div class="scoreboard" id="scoreboard"></div>
+    <div class="card">
+      <div class="prompt-container">
+        <div class="category-badge noun" id="category-badge">noun</div>
+        <div class="prompt-word" id="prompt-word">BEACH</div>
+      </div>
+      <div class="timer-text" id="timer-text">30s</div>
+      <div class="timer-bar-container"><div class="timer-bar" id="timer-bar" style="width:100%"></div></div>
+      <label for="input-answer">Your Word</label>
+      <input type="text" id="input-answer" placeholder="Type one word…" maxlength="30" autocomplete="off" />
+      <div class="gap-sm"></div>
+      <button class="btn btn-primary" id="btn-submit">🚀 Submit</button>
+      <div class="status" id="play-status" style="display:none"><div class="dot-pulse"></div><span id="play-status-text">Waiting for opponent…</span></div>
+    </div>
+  </div>
+
+  <!-- REVEAL -->
+  <div class="screen" id="screen-reveal">
+    <div class="round-header">
+      <div class="round-label" id="reveal-round-label">Round 1 Result</div>
+    </div>
+    <div class="prompt-container">
+      <div class="category-badge noun" id="reveal-badge">noun</div>
+      <div class="prompt-word" id="reveal-word" style="font-size:2rem">BEACH</div>
+    </div>
+    <div class="reveal-container" id="reveal-answers"></div>
+    <div class="match-result" id="match-result"></div>
+    <div class="scoreboard" id="reveal-scoreboard"></div>
+    <button class="btn btn-primary" id="btn-next-round">➡️ Next Round</button>
+    <div class="status" id="reveal-status" style="display:none"><div class="dot-pulse"></div><span id="reveal-status-text">Waiting…</span></div>
+  </div>
+
+  <!-- FINAL -->
+  <div class="screen" id="screen-final">
+    <div class="logo">Game Over! 🎉</div>
+    <div class="emoji-rain" id="emoji-rain"></div>
+    <div class="card" style="text-align:center">
+      <div class="final-label">You matched on</div>
+      <div class="final-score" id="final-matches">0 / 5</div>
+      <div class="final-label" id="final-msg">rounds</div>
+    </div>
+    <div class="scoreboard" id="final-scoreboard"></div>
+    <button class="btn btn-primary" id="btn-play-again">🔄 Play Again</button>
+    <button class="btn btn-outline" id="btn-home">🏠 Back to Home</button>
+    <div class="status" id="final-status" style="display:none"><div class="dot-pulse"></div><span id="final-status-text">Waiting…</span></div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  // ── WORD BANK ───────────────────────────────────────────
+  const WORDS = {
+    noun: ['beach','moon','fire','rain','gold','star','ocean','mountain','book','cloud','shadow','rose','diamond','thunder','ice','sun','river','tree','stone','wind','dream','flower','light','snow','heart','music','night','bridge','castle','forest','honey','rocket','pirate','robot','dragon','candy','ghost','garden','island','storm','crystal','velvet','silver','mirror','tower','planet','jungle','desert','magic','sword','crown','pearl','flame','frost','wolf','eagle','lion','whale','phoenix','maze','puzzle','riddle','secret','voyage','spirit','legend','myth','horizon','dawn','comet','arrow','shield','throne','anchor','lantern','compass','harbor','serpent','key','gate'],
+    adjective: ['dark','sweet','cold','hot','wild','soft','bright','deep','fast','slow','heavy','sharp','smooth','fresh','bitter','loud','quiet','brave','gentle','fierce','tiny','giant','ancient','modern','sacred','frozen','burning','golden','mystic','lazy','crazy','happy','angry','silly','spicy','cool','warm','fancy','plain','hollow','solid','rapid','silent','vivid','pale','bold','humble','proud','wicked','shiny'],
+    verb: ['break','fly','run','fall','sing','burn','dance','jump','swim','fight','dream','grow','hide','shine','crash','climb','drift','bloom','freeze','melt','whisper','shout','twist','spin','race','chase','hunt','build','crush','spark','float','sink','rise','drop','roll','slide','bounce','flip','catch','throw']
+  };
+
+  const TOTAL_ROUNDS = 5;
+  const ROUND_TIME = 30;
+  const PEER_PREFIX = 'dwta2024z';
+
+  // ── STATE ────────────────────────────────────────────────
+  let peer = null;
+  let conn = null;
+  let isHost = false;
+  let myName = '';
+  let opponentName = '';
+  let gameCode = '';
+  let rounds = [];
+  let currentRound = 0;
+  let myScore = 0;
+  let oppScore = 0;
+  let myAnswer = null;
+  let oppAnswer = null;
+  let submitted = false;
+  let timerInterval = null;
+  let timeLeft = ROUND_TIME;
+  let roundActive = false;
+  let waitingNextReady = false;
+  let nextReadyCount = 0;
+
+  // ── HELPERS ──────────────────────────────────────────────
+  const $ = id => document.getElementById(id);
+  const screens = document.querySelectorAll('.screen');
+
+  function showScreen(id) {
+    screens.forEach(s => s.classList.remove('active'));
+    $(id).classList.add('active');
+  }
+
+  function showError(id, msg) {
+    const el = $(id);
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 5000);
+  }
+
+  function esc(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function genCode() {
+    const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let r = '';
+    for (let i = 0; i < 6; i++) r += c[Math.floor(Math.random() * c.length)];
+    return r;
+  }
+
+  function buildRounds() {
+    const cats = Object.keys(WORDS);
+    const r = [], used = new Set();
+    while (r.length < TOTAL_ROUNDS) {
+      const cat = cats[Math.floor(Math.random() * cats.length)];
+      const w = WORDS[cat][Math.floor(Math.random() * WORDS[cat].length)];
+      if (!used.has(w)) { used.add(w); r.push({ word: w, category: cat }); }
+    }
+    return r;
+  }
+
+  function renderScoreboard(id) {
+    $(id).innerHTML = `
+      <div class="score-item"><div class="score-name">${esc(myName)}</div><div class="score-value">${myScore}</div></div>
+      <div class="score-item"><div class="score-name">${esc(opponentName)}</div><div class="score-value">${oppScore}</div></div>`;
+  }
+
+  // ── SEND ─────────────────────────────────────────────────
+  function send(obj) {
+    if (conn && conn.open) conn.send(JSON.stringify(obj));
+  }
+
+  // ── ROUND MANAGEMENT ────────────────────────────────────
+  function beginRound() {
+    // Reset per-round state
+    myAnswer = null;
+    oppAnswer = null;
+    submitted = false;
+    roundActive = true;
+    waitingNextReady = false;
+    nextReadyCount = 0;
+
+    const round = rounds[currentRound];
+
+    // Update UI
+    $('round-info').textContent = `${currentRound + 1} / ${TOTAL_ROUNDS}`;
+    $('category-badge').textContent = round.category;
+    $('category-badge').className = 'category-badge ' + round.category;
+    $('prompt-word').textContent = round.word.toUpperCase();
+    renderScoreboard('scoreboard');
+
+    $('input-answer').value = '';
+    $('input-answer').disabled = false;
+    $('btn-submit').disabled = false;
+    $('btn-submit').innerHTML = '🚀 Submit';
+    $('play-status').style.display = 'none';
+
+    // Timer
+    timeLeft = ROUND_TIME;
+    $('timer-text').textContent = ROUND_TIME + 's';
+    $('timer-bar').style.width = '100%';
+    $('timer-bar').style.background = 'linear-gradient(90deg,#2cb67d,#7f5af0)';
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      if (timeLeft < 0) timeLeft = 0;
+      $('timer-text').textContent = timeLeft + 's';
+      $('timer-bar').style.width = ((timeLeft / ROUND_TIME) * 100) + '%';
+      if (timeLeft <= 5) $('timer-bar').style.background = 'linear-gradient(90deg,#e16162,#e16162)';
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        if (!submitted) doSubmit('');
+      }
+    }, 1000);
+
+    showScreen('screen-play');
+    setTimeout(() => $('input-answer').focus(), 300);
+  }
+
+  function doSubmit(answer) {
+    if (submitted) return;
+    submitted = true;
+    roundActive = false;
+    clearInterval(timerInterval);
+
+    myAnswer = answer.trim().toLowerCase();
+    send({ type: 'answer', answer: myAnswer, round: currentRound });
+
+    $('input-answer').disabled = true;
+    $('btn-submit').disabled = true;
+    $('btn-submit').innerHTML = myAnswer ? '✅ Submitted!' : '⏰ Time\'s up!';
+
+    tryReveal();
+  }
+
+  function tryReveal() {
+    if (myAnswer === null || oppAnswer === null) {
+      // Still waiting
+      $('play-status').style.display = 'flex';
+      $('play-status-text').textContent = oppAnswer !== null ? 'Processing…' : 'Waiting for opponent…';
+      return;
+    }
+
+    // Both answered — show reveal
+    clearInterval(timerInterval);
+
+    const match = myAnswer !== '' && oppAnswer !== '' && myAnswer === oppAnswer;
+    if (match) { myScore++; oppScore++; }
+
+    const roundNum = currentRound + 1;
+    const round = rounds[currentRound];
+
+    // Move to next round index
+    currentRound++;
+
+    // Show reveal screen
+    $('reveal-round-label').textContent = `Round ${roundNum} Result`;
+    $('reveal-badge').textContent = round.category;
+    $('reveal-badge').className = 'category-badge ' + round.category;
+    $('reveal-word').textContent = round.word.toUpperCase();
+
+    $('reveal-answers').innerHTML = `
+      <div class="reveal-card">
+        <div class="player-name">${esc(myName)}</div>
+        <div class="player-answer">${esc(myAnswer || '(no answer)')}</div>
+      </div>
+      <div class="reveal-card">
+        <div class="player-name">${esc(opponentName)}</div>
+        <div class="player-answer">${esc(oppAnswer || '(no answer)')}</div>
+      </div>`;
+
+    const mr = $('match-result');
+    if (match) {
+      mr.className = 'match-result yes';
+      mr.innerHTML = '🎉 You think alike! +1';
+    } else {
+      mr.className = 'match-result no';
+      mr.innerHTML = '😅 Not this time!';
+    }
+
+    renderScoreboard('reveal-scoreboard');
+
+    const isLast = currentRound >= TOTAL_ROUNDS;
+    const btn = $('btn-next-round');
+    btn.innerHTML = isLast ? '🏆 See Results' : '➡️ Next Round';
+    btn.disabled = false;
+    $('reveal-status').style.display = 'none';
+
+    showScreen('screen-reveal');
+  }
+
+  function showFinal() {
+    clearInterval(timerInterval);
+    const m = myScore;
+    $('final-matches').textContent = `${m} / ${TOTAL_ROUNDS}`;
+    let emoji, msg;
+    if (m === TOTAL_ROUNDS) { emoji = '🧠🧠🧠🧠🧠'; msg = "Perfect sync! You're telepathic!"; }
+    else if (m >= 4) { emoji = '🔥🔥🔥🔥'; msg = 'Almost telepathic!'; }
+    else if (m >= 3) { emoji = '✨✨✨'; msg = 'Great minds think alike!'; }
+    else if (m >= 2) { emoji = '👍👍'; msg = 'Not bad, some overlap!'; }
+    else if (m >= 1) { emoji = '🤔'; msg = 'At least you got one!'; }
+    else { emoji = '😂'; msg = 'Total opposites!'; }
+    $('emoji-rain').textContent = emoji;
+    $('final-msg').textContent = msg;
+    renderScoreboard('final-scoreboard');
+    $('final-status').style.display = 'none';
+    $('btn-play-again').disabled = false;
+    $('btn-play-again').innerHTML = '🔄 Play Again';
+    showScreen('screen-final');
+  }
+
+  // ── MESSAGE HANDLER ──────────────────────────────────────
+  function onMessage(raw) {
+    let data;
+    try { data = JSON.parse(raw); } catch { return; }
+
+    switch (data.type) {
+
+      // Handshake
+      case 'hello':
+        opponentName = data.name;
+        if (isHost) {
+          send({ type: 'hello-ack', name: myName });
+          // Host generates rounds and sends start
+          setTimeout(() => {
+            rounds = buildRounds();
+            currentRound = 0;
+            myScore = 0; oppScore = 0;
+            send({ type: 'start', rounds: rounds });
+            beginRound();
+          }, 1500);
+        }
+        break;
+
+      case 'hello-ack':
+        opponentName = data.name;
+        $('connecting-status').textContent = `Connected with ${opponentName}!`;
+        break;
+
+      // Host sends start with rounds array
+      case 'start':
+        rounds = data.rounds;
+        currentRound = 0;
+        myScore = 0; oppScore = 0;
+        beginRound();
+        break;
+
+      // Opponent submitted answer
+      case 'answer':
+        // Make sure it's for the current round
+        if (data.round === (submitted ? currentRound - (myAnswer !== null && oppAnswer !== null ? 0 : 0) : currentRound)) {
+          oppAnswer = data.answer;
+          if (submitted) {
+            tryReveal();
+          } else {
+            $('play-status').style.display = 'flex';
+            $('play-status-text').textContent = 'Opponent has answered!';
+          }
+        }
+        break;
+
+      // Opponent ready for next round
+      case 'next-ready':
+        nextReadyCount++;
+        if (isHost && nextReadyCount >= 1 && waitingNextReady) {
+          // Both ready, start next round
+          if (currentRound < TOTAL_ROUNDS) {
+            send({ type: 'next-go' });
+            beginRound();
+          } else {
+            send({ type: 'final' });
+            showFinal();
+          }
+        }
+        break;
+
+      // Host says go to next round
+      case 'next-go':
+        beginRound();
+        break;
+
+      // Show final screen
+      case 'final':
+        showFinal();
+        break;
+
+      // Replay
+      case 'replay-start':
+        rounds = data.rounds;
+        currentRound = 0;
+        myScore = 0; oppScore = 0;
+        beginRound();
+        break;
+
+      case 'replay-request':
+        $('final-status').style.display = 'flex';
+        $('final-status-text').textContent = 'Opponent wants to play again!';
+        break;
+
+      case 'disconnected':
+        alert('Opponent disconnected 😢');
+        cleanup();
+        showScreen('screen-home');
+        break;
+    }
+  }
+
+  // ── PEER SETUP ───────────────────────────────────────────
+  function createGame() {
+    gameCode = genCode();
+    const peerId = PEER_PREFIX + gameCode;
+
+    showScreen('screen-connecting');
+    $('connecting-status').textContent = 'Setting up game…';
+
+    peer = new Peer(peerId);
+
+    peer.on('open', () => {
+      $('lobby-code').textContent = gameCode;
+      showScreen('screen-lobby');
+      $('lobby-status').textContent = 'Waiting for opponent…';
+
+      peer.on('connection', c => {
+        if (conn) { c.close(); return; }
+        conn = c;
+        $('lobby-status').textContent = 'Someone is connecting…';
+        wireConnection();
+      });
+    });
+
+    peer.on('error', err => {
+      if (err.type === 'unavailable-id') {
+        peer.destroy();
+        createGame();
+      } else {
+        showScreen('screen-home');
+        showError('home-error', 'Error: ' + err.type);
+      }
+    });
+  }
+
+  function joinGameWithCode(code) {
+    const peerId = PEER_PREFIX + 'g' + genCode();
+
+    showScreen('screen-connecting');
+    $('connecting-status').textContent = 'Connecting…';
+
+    peer = new Peer(peerId);
+
+    peer.on('open', () => {
+      $('connecting-status').textContent = 'Joining game…';
+      conn = peer.connect(PEER_PREFIX + code, { reliable: true });
+      wireConnection();
+    });
+
+    peer.on('error', err => {
+      if (err.type === 'peer-unavailable') {
+        showScreen('screen-home');
+        showError('home-error', 'Game not found. Check the code.');
+      } else {
+        showScreen('screen-home');
+        showError('home-error', 'Error: ' + err.type);
+      }
+    });
+  }
+
+  function wireConnection() {
+    conn.on('open', () => {
+      send({ type: 'hello', name: myName });
+    });
+    conn.on('data', onMessage);
+    conn.on('close', () => {
+      alert('Opponent disconnected 😢');
+      cleanup();
+      showScreen('screen-home');
+    });
+  }
+
+  function cleanup() {
+    clearInterval(timerInterval);
+    roundActive = false;
+    if (conn) { try { conn.close(); } catch {} conn = null; }
+    if (peer) { try { peer.destroy(); } catch {} peer = null; }
+    isHost = false;
+    myScore = 0; oppScore = 0;
+    currentRound = 0; rounds = [];
+    myAnswer = null; oppAnswer = null;
+    submitted = false;
+  }
+
+  // ── UI EVENTS ────────────────────────────────────────────
+  $('btn-create').onclick = () => {
+    const name = $('input-name').value.trim();
+    if (!name) return showError('home-error', 'Please enter your name');
+    myName = name;
+    isHost = true;
+    createGame();
+  };
+
+  $('btn-join').onclick = () => {
+    const name = $('input-name').value.trim();
+    const code = $('input-code').value.trim().toUpperCase();
+    if (!name) return showError('home-error', 'Please enter your name');
+    if (!code || code.length < 4) return showError('home-error', 'Enter a valid invite code');
+    myName = name;
+    isHost = false;
+    gameCode = code;
+    joinGameWithCode(code);
+  };
+
+  $('btn-copy').onclick = () => {
+    navigator.clipboard.writeText(gameCode).then(() => {
+      $('btn-copy').innerHTML = '✅ Copied!';
+      setTimeout(() => $('btn-copy').innerHTML = '📋 Copy Code', 2000);
+    }).catch(() => {});
+  };
+
+  $('btn-submit').onclick = () => {
+    const val = $('input-answer').value.trim();
+    if (!val) return;
+    if (val.includes(' ')) {
+      $('input-answer').style.borderColor = '#e16162';
+      setTimeout(() => $('input-answer').style.borderColor = '', 1500);
+      return;
+    }
+    doSubmit(val);
+  };
+
+  $('btn-next-round').onclick = () => {
+    const btn = $('btn-next-round');
+    btn.disabled = true;
+
+    const isLast = currentRound >= TOTAL_ROUNDS;
+
+    if (isHost) {
+      // Host waits for guest to also be ready
+      waitingNextReady = true;
+      nextReadyCount = 0;
+      btn.innerHTML = '⏳ Waiting for opponent…';
+      $('reveal-status').style.display = 'flex';
+      $('reveal-status-text').textContent = 'Waiting for opponent…';
+
+      // Also send our readiness so guest knows
+      send({ type: 'host-ready' });
+
+      // Check if guest already sent next-ready
+      // (handled in onMessage next-ready case)
+    } else {
+      // Guest tells host we're ready
+      send({ type: 'next-ready' });
+      btn.innerHTML = '⏳ Waiting for host…';
+      $('reveal-status').style.display = 'flex';
+      $('reveal-status-text').textContent = 'Waiting for host…';
+    }
+  };
+
+  // Handle host-ready on guest side (add to message handler)
+  const origOnMessage = onMessage;
+  // We'll patch it inline — actually let me just add to the switch:
+  // We need to handle 'host-ready' — let's override onMessage
+
+  // Cleaner: just patch the switch inside onMessage.
+  // Since we can't easily do that, let's use a wrapper:
+
+  function onMessagePatched(raw) {
+    let data;
+    try { data = JSON.parse(raw); } catch { return origOnMessage(raw); }
+
+    if (data.type === 'host-ready') {
+      // Host clicked next, now if we also click, send next-ready
+      // This is just informational for the guest UI
+      // If guest already clicked, the next-ready was already sent
+      return;
+    }
+
+    // For the answer message, fix the round tracking
+    if (data.type === 'answer') {
+      // Always accept the opponent's answer for the current round
+      oppAnswer = data.answer;
+      if (submitted) {
+        tryReveal();
+      } else {
+        $('play-status').style.display = 'flex';
+        $('play-status-text').textContent = 'Opponent has answered!';
+      }
+      return;
+    }
+
+    origOnMessage(raw);
+  }
+
+  // Actually this dual-function approach is messy. Let me just put everything into one handler.
+  // Replace wireConnection to use the patched version:
+
+  function wireConnectionFinal() {
+    conn.on('open', () => {
+      send({ type: 'hello', name: myName });
+    });
+    conn.on('data', (raw) => {
+      let data;
+      try { data = JSON.parse(raw); } catch { return; }
+
+      switch (data.type) {
+        case 'hello':
+          opponentName = data.name;
+          if (isHost) {
+            send({ type: 'hello-ack', name: myName });
+            $('lobby-status').textContent = `${opponentName} joined! Starting…`;
+            setTimeout(() => {
+              rounds = buildRounds();
+              currentRound = 0;
+              myScore = 0; oppScore = 0;
+              send({ type: 'start', rounds });
+              beginRound();
+            }, 1500);
+          }
+          break;
+
+        case 'hello-ack':
+          opponentName = data.name;
+          $('connecting-status').textContent = `Connected with ${opponentName}!`;
+          break;
+
+        case 'start':
+          rounds = data.rounds;
+          currentRound = 0;
+          myScore = 0; oppScore = 0;
+          beginRound();
+          break;
+
+        case 'answer':
+          oppAnswer = data.answer;
+          if (submitted) {
+            tryReveal();
+          } else {
+            $('play-status').style.display = 'flex';
+            $('play-status-text').textContent = 'Opponent has answered!';
+          }
+          break;
+
+        case 'host-ready':
+          // informational only
+          break;
+
+        case 'next-ready':
+          if (isHost) {
+            if (waitingNextReady) {
+              // Host was waiting, now both ready
+              if (currentRound < TOTAL_ROUNDS) {
+                send({ type: 'next-go' });
+                beginRound();
+              } else {
+                send({ type: 'final' });
+                showFinal();
+              }
+            } else {
+              // Guest ready before host clicked — store it
+              nextReadyCount++;
+            }
+          }
+          break;
+
+        case 'next-go':
+          beginRound();
+          break;
+
+        case 'final':
+          showFinal();
+          break;
+
+        case 'replay-start':
+          rounds = data.rounds;
+          currentRound = 0;
+          myScore = 0; oppScore = 0;
+          beginRound();
+          break;
+
+        case 'replay-request':
+          $('final-status').style.display = 'flex';
+          $('final-status-text').textContent = 'Opponent wants to play again!';
+          break;
+      }
+    });
+    conn.on('close', () => {
+      alert('Opponent disconnected 😢');
+      cleanup();
+      showScreen('screen-home');
+    });
+  }
+
+  // Override wireConnection
+  // (Replace the original wireConnection references in createGame / joinGame)
+  // Since we already defined wireConnection above and it's called in those functions,
+  // let's just reassign:
+  // Actually the simplest fix: just override the variable
+
+  // Let me fix this properly by re-defining the peer setup functions to use the final handler:
+
+  // OVERRIDE createGame
+  $('btn-create').onclick = () => {
+    const name = $('input-name').value.trim();
+    if (!name) return showError('home-error', 'Please enter your name');
+    myName = name;
+    isHost = true;
+    gameCode = genCode();
+    const peerId = PEER_PREFIX + gameCode;
+
+    showScreen('screen-connecting');
+    $('connecting-status').textContent = 'Setting up game…';
+
+    peer = new Peer(peerId);
+    peer.on('open', () => {
+      $('lobby-code').textContent = gameCode;
+      showScreen('screen-lobby');
+      peer.on('connection', c => {
+        if (conn) { c.close(); return; }
+        conn = c;
+        $('lobby-status').textContent = 'Connecting…';
+        wireConnectionFinal();
+      });
+    });
+    peer.on('error', err => {
+      if (err.type === 'unavailable-id') { peer.destroy(); $('btn-create').click(); }
+      else { showScreen('screen-home'); showError('home-error', 'Error: ' + err.type); }
+    });
+  };
+
+  $('btn-join').onclick = () => {
+    const name = $('input-name').value.trim();
+    const code = $('input-code').value.trim().toUpperCase();
+    if (!name) return showError('home-error', 'Please enter your name');
+    if (!code || code.length < 4) return showError('home-error', 'Enter a valid invite code');
+    myName = name;
+    isHost = false;
+    gameCode = code;
+
+    const peerId = PEER_PREFIX + 'g' + genCode();
+    showScreen('screen-connecting');
+    $('connecting-status').textContent = 'Connecting…';
+
+    peer = new Peer(peerId);
+    peer.on('open', () => {
+      $('connecting-status').textContent = 'Joining game…';
+      conn = peer.connect(PEER_PREFIX + code, { reliable: true });
+      wireConnectionFinal();
+    });
+    peer.on('error', err => {
+      if (err.type === 'peer-unavailable') {
+        showScreen('screen-home');
+        showError('home-error', 'Game not found. Check the code.');
+      } else {
+        showScreen('screen-home');
+        showError('home-error', 'Error: ' + err.type);
+      }
+    });
+  };
+
+  // Fix the next-round button for the host with pre-stored guest ready
+  const origNextRoundClick = $('btn-next-round').onclick;
+  $('btn-next-round').onclick = () => {
+    const btn = $('btn-next-round');
+    btn.disabled = true;
+    const isLast = currentRound >= TOTAL_ROUNDS;
+
+    if (isHost) {
+      if (nextReadyCount > 0) {
+        // Guest already clicked ready
+        nextReadyCount = 0;
+        waitingNextReady = false;
+        if (isLast) {
+          send({ type: 'final' });
+          showFinal();
+        } else {
+          send({ type: 'next-go' });
+          beginRound();
+        }
+      } else {
+        waitingNextReady = true;
+        send({ type: 'host-ready' });
+        btn.innerHTML = '⏳ Waiting for opponent…';
+        $('reveal-status').style.display = 'flex';
+        $('reveal-status-text').textContent = 'Waiting for opponent…';
+      }
+    } else {
+      send({ type: 'next-ready' });
+      if (isLast) {
+        showFinal();
+      } else {
+        btn.innerHTML = '⏳ Waiting for host…';
+        $('reveal-status').style.display = 'flex';
+        $('reveal-status-text').textContent = 'Waiting for host…';
+      }
+    }
+  };
+
+  $('btn-play-again').onclick = () => {
+    $('btn-play-again').disabled = true;
+    $('btn-play-again').innerHTML = '⏳ Waiting…';
+    $('final-status').style.display = 'flex';
+
+    if (isHost) {
+      rounds = buildRounds();
+      currentRound = 0;
+      myScore = 0; oppScore = 0;
+      send({ type: 'replay-start', rounds });
+      beginRound();
+    } else {
+      send({ type: 'replay-request' });
+      $('final-status-text').textContent = 'Waiting for host to restart…';
+    }
+  };
+
+  $('btn-home').onclick = () => {
+    cleanup();
+    $('input-name').value = myName;
+    $('input-code').value = '';
+    showScreen('screen-home');
+  };
+
+  // Keyboard shortcuts
+  $('input-name').onkeydown = e => { if (e.key === 'Enter') $('btn-create').click(); };
+  $('input-code').onkeydown = e => { if (e.key === 'Enter') $('btn-join').click(); };
+  $('input-answer').onkeydown = e => { if (e.key === 'Enter') $('btn-submit').click(); };
+
+})();
+</script>
+</body>
+</html>
