@@ -301,9 +301,13 @@ input[type="text"]::placeholder{color:#ffffff44}
 <div class="game-hud">
 <div class="hud-item"><div class="hud-label">Time</div><div class="hud-value timer-val" id="drawer-timer">3:00</div></div>
 <div class="hud-item"><div class="hud-label">Role</div><div class="hud-value role-val">✏️ Drawing</div></div>
-<div class="hud-item"><div class="hud-label">Score</div><div class="hud-value score-val" id="drawer-score">0</div></div>
+<div class="hud-item"><div class="hud-label">Round</div><div class="hud-value score-val" id="drawer-round-score">0</div></div>
 </div>
 <div class="timer-bar"><div class="timer-bar-fill" id="drawer-timer-bar" style="width:100%"></div></div>
+<div style="display:flex;justify-content:center;gap:20px;width:100%;margin-bottom:8px">
+<div style="text-align:center"><div class="hud-label">Total</div><div class="hud-value score-val" id="drawer-total-score" style="font-size:1rem">0</div></div>
+<div style="text-align:center"><div class="hud-label">Session Best</div><div class="hud-value" id="drawer-session-best" style="font-size:1rem;color:#facc15">0</div></div>
+</div>
 
 <div class="word-display" id="word-display">
 <div class="word-label">Draw this word</div>
@@ -343,9 +347,13 @@ input[type="text"]::placeholder{color:#ffffff44}
 <div class="game-hud">
 <div class="hud-item"><div class="hud-label">Time</div><div class="hud-value timer-val" id="guesser-timer">3:00</div></div>
 <div class="hud-item"><div class="hud-label">Role</div><div class="hud-value role-val">🔍 Guessing</div></div>
-<div class="hud-item"><div class="hud-label">Score</div><div class="hud-value score-val" id="guesser-score">0</div></div>
+<div class="hud-item"><div class="hud-label">Round</div><div class="hud-value score-val" id="guesser-round-score">0</div></div>
 </div>
 <div class="timer-bar"><div class="timer-bar-fill" id="guesser-timer-bar" style="width:100%"></div></div>
+<div style="display:flex;justify-content:center;gap:20px;width:100%;margin-bottom:8px">
+<div style="text-align:center"><div class="hud-label">Total</div><div class="hud-value score-val" id="guesser-total-score" style="font-size:1rem">0</div></div>
+<div style="text-align:center"><div class="hud-label">Session Best</div><div class="hud-value" id="guesser-session-best" style="font-size:1rem;color:#facc15">0</div></div>
+</div>
 
 <div class="hint-display" id="hint-display">
 <div class="hint-label">Guess the word</div>
@@ -392,6 +400,8 @@ input[type="text"]::placeholder{color:#ffffff44}
 <div class="results-grid">
 <div class="result-box"><div class="label">Guessed</div><div class="value orange" id="res-guessed">0</div></div>
 <div class="result-box"><div class="label">Skipped</div><div class="value purple" id="res-skipped">0</div></div>
+<div class="result-box"><div class="label">Last Round</div><div class="value orange" id="res-last-round">0</div></div>
+<div class="result-box"><div class="label">Session Best</div><div class="value" id="res-session-best" style="color:#facc15">0</div></div>
 </div>
 
 <div class="word-recap">
@@ -436,6 +446,9 @@ let oppName='';
 let gameCode='';
 let isDrawer=false;
 let score=0;
+let roundScore=0;
+let totalScore=0;
+let sessionBest=0;
 let currentWord='';
 let currentCatEmoji='';
 let wordPool=[];
@@ -448,7 +461,6 @@ let hintTimers=[];
 let revealedIndices=new Set();
 let revealedLetters={};
 let currentWordLength=0;
-// FIX 3: Track space positions for multi-word hints
 let currentSpacePositions=[];
 let drawHistory=[];
 let currentColor='#000000';
@@ -471,6 +483,21 @@ function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let r='';for(let i
 function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
 function send(obj){if(conn&&conn.open)conn.send(JSON.stringify(obj))}
 
+function getSpacePositions(word){
+  const p=[];
+  for(let i=0;i<word.length;i++){if(word[i]===' ')p.push(i)}
+  return p;
+}
+
+function clearHintTimers(){hintTimers.forEach(t=>clearTimeout(t));hintTimers=[]}
+
+function syncScores(d){
+  if(d.totalScore!=null)totalScore=d.totalScore;
+  if(d.roundScore!=null)roundScore=d.roundScore;
+  if(d.sessionBest!=null&&d.sessionBest>sessionBest)sessionBest=d.sessionBest;
+  if(d.score!=null)score=d.score;
+}
+
 async function loadWords(){
   try{const res=await fetch('words.json');wordData=await res.json()}
   catch(e){console.error(e);showError('home-error','Failed to load words. Refresh.')}
@@ -483,12 +510,12 @@ function buildCategoryPicker(){
   picker.innerHTML='';
   const allBtn=document.createElement('button');
   allBtn.className='cat-pick active';allBtn.dataset.cat='all';
-  allBtn.innerHTML=`<span class="cat-emoji">🎲</span><span class="cat-name">All Mixed</span>`;
+  allBtn.innerHTML='<span class="cat-emoji">🎲</span><span class="cat-name">All Mixed</span>';
   picker.appendChild(allBtn);
   wordData.categories.forEach(cat=>{
     const btn=document.createElement('button');
     btn.className='cat-pick';btn.dataset.cat=cat.id;
-    btn.innerHTML=`<span class="cat-emoji">${cat.emoji}</span><span class="cat-name">${cat.name}</span>`;
+    btn.innerHTML='<span class="cat-emoji">'+cat.emoji+'</span><span class="cat-name">'+cat.name+'</span>';
     picker.appendChild(btn);
   });
   picker.querySelectorAll('.cat-pick').forEach(btn=>{
@@ -526,20 +553,8 @@ function pickWord(){
   return w;
 }
 
-// ══════════════════════════════════
-// FIX 3 HELPER: Extract space positions from a word
-// ══════════════════════════════════
-function getSpacePositions(word){
-  const positions=[];
-  for(let i=0;i<word.length;i++){
-    if(word[i]===' ')positions.push(i);
-  }
-  return positions;
-}
+// ── PEER CONNECTION ──
 
-// ══════════════════════════════════
-// PEER CONNECTION
-// ══════════════════════════════════
 $('btn-create').onclick=()=>{
   const name=$('input-name').value.trim();
   if(!name)return showError('home-error','Please enter your name');
@@ -582,38 +597,32 @@ function cleanup(){
   clearTimers();
   if(conn){try{conn.close()}catch{}conn=null}
   if(peer){try{peer.destroy()}catch{}peer=null}
-  isHost=false;oppConnected=false;score=0;usedWords.clear();allGameWords=[];
-  newRoundReadyCount=0;waitingNewRound=false;
+  isHost=false;oppConnected=false;score=0;roundScore=0;totalScore=0;
+  usedWords.clear();allGameWords=[];newRoundReadyCount=0;waitingNewRound=false;
 }
 
 function clearTimers(){
   if(timerInterval){clearInterval(timerInterval);timerInterval=null}
-  hintTimers.forEach(t=>clearTimeout(t));hintTimers=[];
+  clearHintTimers();
 }
 
-// FIX 1: Separate function to clear only hint timers without touching the interval
-function clearHintTimers(){
-  hintTimers.forEach(t=>clearTimeout(t));hintTimers=[];
-}
+// ── MESSAGES ──
 
-// ══════════════════════════════════
-// MESSAGES
-// ══════════════════════════════════
 function onMessage(raw){
   let d;try{d=JSON.parse(raw)}catch{return}
   switch(d.type){
     case 'hello':
       oppName=d.name;
-      if(isHost){send({type:'hello-ack',name:myName});oppConnected=true;$('lobby-status').textContent=`${oppName} joined!`;$('btn-start-game').style.display='';$('btn-start-game').disabled=false}
+      if(isHost){send({type:'hello-ack',name:myName});oppConnected=true;$('lobby-status').textContent=oppName+' joined!';$('btn-start-game').style.display='';$('btn-start-game').disabled=false}
       break;
     case 'hello-ack':
-      oppName=d.name;oppConnected=true;$('connecting-status').textContent=`Connected with ${oppName}!`;
+      oppName=d.name;oppConnected=true;$('connecting-status').textContent='Connected with '+oppName+'!';
       break;
     case 'start-round':
-      roundTime=d.roundTime;isDrawer=d.yourRole==='drawer';score=d.score!=null?d.score:score;
+      roundTime=d.roundTime;isDrawer=d.yourRole==='drawer';
+      syncScores(d);
       wordPool=shuffle(getWordPool());usedWords=new Set(d.usedWords||[]);
       if(d.allGameWords)allGameWords=d.allGameWords;
-      // FIX 3: Receive space positions
       if(isDrawer){startDrawerRound(d.word,d.catEmoji)}
       else{currentWord='';currentSpacePositions=d.spacePositions||[];startGuesserRound(d.wordLength,d.catName,d.catEmoji)}
       break;
@@ -625,7 +634,6 @@ function onMessage(raw){
         clearViewCanvas();revealedIndices.clear();revealedLetters={};
         clearHintTimers();
         currentWordLength=d.wordLength;
-        // FIX 3: Receive space positions for new word
         currentSpacePositions=d.spacePositions||[];
         startGuesserHints(d.wordLength);
         updateHintDisplayClean(d.wordLength);
@@ -634,21 +642,17 @@ function onMessage(raw){
       }
       break;
     case 'correct':
-      score=d.score;
+      syncScores(d);
       allGameWords=d.allGameWords||allGameWords;
-      // FIX 2: Show correct feedback on guesser side, clear "not quite"
       if(isDrawer){showCorrectBanner('drawer',d.word);updateDrawerUI()}
-      else{
-        $('guess-feedback').textContent='';
-        showCorrectBanner('guesser',d.word);updateGuesserUI();
-      }
+      else{$('guess-feedback').textContent='';showCorrectBanner('guesser',d.word);updateGuesserUI()}
       break;
     case 'skip':
       allGameWords=d.allGameWords||allGameWords;
       break;
     case 'time-up':
       clearTimers();
-      score=d.score!=null?d.score:score;
+      syncScores(d);
       allGameWords=d.allGameWords||allGameWords;
       showSwapScreen();
       break;
@@ -659,17 +663,14 @@ function onMessage(raw){
     case 'host-swap-ready':
       break;
     case 'new-round-go':
-      // FIX 4: Hide swap overlay for the receiving player
       $('swap-overlay').style.display='none';
-      // Also reset new-round button in case coming from results
       $('btn-new-round').disabled=false;
       $('btn-new-round').innerHTML='🔄 Play Another Round';
-
-      isDrawer=d.yourRole==='drawer';score=d.score!=null?d.score:score;
+      isDrawer=d.yourRole==='drawer';
+      syncScores(d);roundScore=0;
       if(d.usedWords)usedWords=new Set(d.usedWords);
       if(d.allGameWords)allGameWords=d.allGameWords;
       wordPool=shuffle(getWordPool());
-      // FIX 3: Receive space positions
       if(isDrawer){startDrawerRound(d.word,d.catEmoji)}
       else{currentWord='';currentSpacePositions=d.spacePositions||[];startGuesserRound(d.wordLength,d.catName,d.catEmoji)}
       break;
@@ -681,7 +682,6 @@ function onMessage(raw){
       $('guess-feedback').style.color='#facc15';
       setTimeout(()=>{if($('guess-feedback').textContent==='🔥 Very close!')$('guess-feedback').textContent=''},2000);
       break;
-    // FIX 2: New message type for wrong guesses from drawer
     case 'wrong-guess':
       $('guess-feedback').textContent='❌ Not quite…';
       $('guess-feedback').style.color='#ef4444';
@@ -694,9 +694,8 @@ function onMessage(raw){
       revealedIndices.add(d.index);
       revealedLetters[d.index]=d.letter;
       updateHintDisplayClean(currentWordLength);
-      // FIX 3: Calculate max reveal excluding spaces
-      const nonSpaceCount=currentWordLength-currentSpacePositions.length;
-      const maxReveal=Math.floor(nonSpaceCount*0.5);
+      const nonSpaceLen=currentWordLength-currentSpacePositions.length;
+      const maxReveal=Math.floor(nonSpaceLen*0.5);
       if(revealedIndices.size<maxReveal){
         const t=setTimeout(()=>{send({type:'request-hint',revealed:[...revealedIndices]})},HINT_INTERVAL);
         hintTimers.push(t);
@@ -707,35 +706,32 @@ function onMessage(raw){
       if(isHost&&waitingNewRound){startNewRoundFromResults()}
       break;
     case 'show-results':
-      score=d.score!=null?d.score:score;
-      allGameWords=d.allGameWords||allGameWords;
-      // FIX 4: Hide swap overlay when showing results
       $('swap-overlay').style.display='none';
+      syncScores(d);
+      allGameWords=d.allGameWords||allGameWords;
       showResults();
       break;
   }
 }
 
-// ══════════════════════════════════
-// HOST START
-// ══════════════════════════════════
+// ── HOST START ──
+
 $('btn-start-game').onclick=()=>{
   if(!oppConnected)return;
   wordPool=shuffle(getWordPool());
   const w=pickWord();currentWord=w.word;currentCatEmoji=w.emoji;
-  isDrawer=true;score=0;allGameWords=[];
-  // FIX 3: Send space positions to guesser
-  send({type:'start-round',roundTime,yourRole:'guesser',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji,score:0,usedWords:[...usedWords],allGameWords:[],spacePositions:getSpacePositions(w.word)});
+  isDrawer=true;score=0;roundScore=0;totalScore=0;allGameWords=[];
+  send({type:'start-round',roundTime,yourRole:'guesser',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji,score:0,roundScore:0,totalScore:0,sessionBest,usedWords:[...usedWords],allGameWords:[],spacePositions:getSpacePositions(w.word)});
   startDrawerRound(w.word,w.emoji);
 };
 
-// ══════════════════════════════════
-// DRAWER ROUND
-// ══════════════════════════════════
+// ── DRAWER ROUND ──
+
 function startDrawerRound(word,catEmoji){
   isDrawer=true;currentWord=word;currentCatEmoji=catEmoji;
   $('current-word').textContent=word;
-  $('drawer-score').textContent=score;
+  roundScore=0;
+  updateDrawerUI();
   $('correct-banner-drawer').style.display='none';
   clearDrawCanvas();drawHistory=[];
   timeLeft=roundTime;totalTime=roundTime;
@@ -749,7 +745,6 @@ function nextWord(){
   $('current-word').textContent=w.word;
   $('correct-banner-drawer').style.display='none';
   clearDrawCanvas();drawHistory=[];
-  // FIX 3: Send space positions with new word
   send({type:'new-word',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji,spacePositions:getSpacePositions(w.word)});
   send({type:'clear-canvas'});
 }
@@ -760,61 +755,75 @@ $('btn-skip').onclick=()=>{
   nextWord();
 };
 
-function updateDrawerUI(){$('drawer-score').textContent=score}
+function updateDrawerUI(){
+  $('drawer-round-score').textContent=roundScore;
+  $('drawer-total-score').textContent=totalScore;
+  $('drawer-session-best').textContent=sessionBest;
+}
 
-// ══════════════════════════════════
-// GUESSER ROUND
-// ══════════════════════════════════
+// ── GUESSER ROUND ──
+
 function startGuesserRound(wordLength,catName,catEmoji){
   isDrawer=false;revealedIndices.clear();revealedLetters={};currentWordLength=wordLength;
-  $('guesser-score').textContent=score;
+  roundScore=0;
+  updateGuesserUI();
   $('guess-input').value='';$('guess-feedback').textContent='';
   $('correct-banner-guesser').style.display='none';
   $('hint-cat').textContent=catEmoji+' '+catName;
   clearViewCanvas();
   updateHintDisplayClean(wordLength);
-  // FIX 1: Start timer BEFORE hints so clearTimers in startTimer doesn't wipe hint timers
   timeLeft=roundTime;totalTime=roundTime;
   updateTimerDisplay('guesser');
   showScreen('screen-guesser');
   startTimer('guesser');
-  // Now start hints AFTER timer is running
   startGuesserHints(wordLength);
   setTimeout(()=>$('guess-input').focus(),300);
 }
 
-// FIX 3: Updated hint display to show spaces as visible gaps
 function updateHintDisplayClean(len){
-  let display='';
+  const container=$('hint-text');
+  container.innerHTML='';
+  let wordChunks=[];
+  let currentChunk=[];
   for(let i=0;i<len;i++){
     if(currentSpacePositions.includes(i)){
-      // Show a visible gap for spaces (3 spaces wide for clarity)
-      display+='   ';
-    } else if(revealedLetters[i]){
-      display+=revealedLetters[i].toUpperCase();
-    } else {
-      display+='_';
-    }
-    if(i<len-1 && !currentSpacePositions.includes(i)){
-      display+=' ';
+      if(currentChunk.length>0)wordChunks.push(currentChunk);
+      currentChunk=[];
+    }else{
+      currentChunk.push(revealedLetters[i]?revealedLetters[i].toUpperCase():'_');
     }
   }
-  $('hint-text').textContent=display;
+  if(currentChunk.length>0)wordChunks.push(currentChunk);
+
+  wordChunks.forEach((chunk,wi)=>{
+    const span=document.createElement('span');
+    span.textContent=chunk.join(' ');
+    container.appendChild(span);
+    if(wi<wordChunks.length-1){
+      const gap=document.createElement('span');
+      gap.style.display='inline-block';
+      gap.style.width='1.2em';
+      container.appendChild(gap);
+    }
+  });
 }
 
 function startGuesserHints(wordLength){
   clearHintTimers();
   revealedIndices.clear();revealedLetters={};currentWordLength=wordLength;
-  // FIX 3: Calculate max reveal excluding spaces
-  const nonSpaceCount=wordLength-currentSpacePositions.length;
-  const maxReveal=Math.floor(nonSpaceCount*0.5);
+  const nonSpaceLen=wordLength-currentSpacePositions.length;
+  const maxReveal=Math.floor(nonSpaceLen*0.5);
   if(maxReveal>0){
     const t=setTimeout(()=>{send({type:'request-hint',revealed:[...revealedIndices]})},HINT_FIRST_DELAY);
     hintTimers.push(t);
   }
 }
 
-function updateGuesserUI(){$('guesser-score').textContent=score}
+function updateGuesserUI(){
+  $('guesser-round-score').textContent=roundScore;
+  $('guesser-total-score').textContent=totalScore;
+  $('guesser-session-best').textContent=sessionBest;
+}
 
 function handleHintRequest(alreadyRevealed){
   if(!currentWord)return;
@@ -827,48 +836,36 @@ function handleHintRequest(alreadyRevealed){
   send({type:'hint-reveal',index:idx,letter:currentWord[idx]});
 }
 
-// ══════════════════════════════════
-// GUESS HANDLING
-// ══════════════════════════════════
+// ── GUESS HANDLING ──
+
 $('btn-guess').onclick=submitGuess;
 $('guess-input').onkeydown=e=>{if(e.key==='Enter')submitGuess()};
 
-// FIX 2: Don't show "not quite" locally — wait for drawer's validation response
 function submitGuess(){
   const val=$('guess-input').value.trim();
   if(!val)return;
   $('guess-input').value='';
   send({type:'guess',text:val});
-  // FIX 2: Show neutral "thinking" feedback instead of premature "not quite"
-  $('guess-feedback').textContent='⏳ Checking…';
-  $('guess-feedback').style.color='#94a1b2';
-  setTimeout(()=>{if($('guess-feedback').textContent==='⏳ Checking…')$('guess-feedback').textContent=''},2000);
+  $('guess-feedback').textContent='';
   setTimeout(()=>$('guess-input').focus(),50);
 }
 
 function handleGuessFromOpponent(text){
   if(!isDrawer||!currentWord)return;
-  const guess=text.toLowerCase().trim();
-  const answer=currentWord.toLowerCase().trim();
-  // FIX 2: Normalize spaces for comparison (collapse multiple spaces)
-  const normalizedGuess=guess.replace(/\s+/g,' ');
-  const normalizedAnswer=answer.replace(/\s+/g,' ');
-  if(normalizedGuess===normalizedAnswer){
-    score++;
+  const guess=text.toLowerCase().trim().replace(/\s+/g,' ');
+  const answer=currentWord.toLowerCase().trim().replace(/\s+/g,' ');
+  if(guess===answer){
+    score++;roundScore++;totalScore++;
+    if(totalScore>sessionBest)sessionBest=totalScore;
     allGameWords.push({word:currentWord,status:'guessed'});
-    send({type:'correct',word:currentWord,score,allGameWords});
+    send({type:'correct',word:currentWord,score,roundScore,totalScore,sessionBest,allGameWords});
     showCorrectBanner('drawer',currentWord);
     updateDrawerUI();
     setTimeout(()=>nextWord(),800);
   }else{
-    // Check close match
-    const isClose=(normalizedAnswer.includes(normalizedGuess)&&normalizedGuess.length>=3)||(normalizedGuess.includes(normalizedAnswer)&&normalizedAnswer.length>=3)||levenshtein(normalizedGuess,normalizedAnswer)<=2;
-    if(isClose){
-      send({type:'close-guess'});
-    } else {
-      // FIX 2: Send explicit wrong-guess message so guesser shows "not quite"
-      send({type:'wrong-guess'});
-    }
+    const isClose=(answer.includes(guess)&&guess.length>=3)||(guess.includes(answer)&&answer.length>=3)||levenshtein(guess,answer)<=2;
+    if(isClose){send({type:'close-guess'})}
+    else{send({type:'wrong-guess'})}
   }
 }
 
@@ -883,20 +880,17 @@ function levenshtein(a,b){
   return dp[m][n];
 }
 
-// ══════════════════════════════════
-// CORRECT BANNER
-// ══════════════════════════════════
+// ── CORRECT BANNER ──
+
 function showCorrectBanner(role,word){
   const el=$(role==='drawer'?'correct-banner-drawer':'correct-banner-guesser');
   el.style.display='block';
-  el.innerHTML=`<div class="correct-banner"><div class="correct-emoji">🎉</div><div class="correct-text">Correct!</div><div class="correct-word">The word was: ${esc(word)}</div></div>`;
+  el.innerHTML='<div class="correct-banner"><div class="correct-emoji">🎉</div><div class="correct-text">Correct!</div><div class="correct-word">The word was: '+esc(word)+'</div></div>';
   setTimeout(()=>{el.style.display='none'},1500);
 }
 
-// ══════════════════════════════════
-// TIMER
-// ══════════════════════════════════
-// FIX 1: startTimer no longer clears hint timers
+// ── TIMER ──
+
 function startTimer(role){
   if(timerInterval){clearInterval(timerInterval);timerInterval=null}
   const startMs=Date.now();
@@ -907,7 +901,7 @@ function startTimer(role){
     if(timeLeft<=0){
       clearTimers();
       if(isDrawer){
-        send({type:'time-up',score,allGameWords});
+        send({type:'time-up',score,roundScore,totalScore,sessionBest,allGameWords});
         showSwapScreen();
       }
     }
@@ -926,41 +920,32 @@ function updateTimerDisplay(role){
   $(prefix+'-timer-bar').className='timer-bar-fill'+(timeLeft<=30?' danger':'');
 }
 
-// ══════════════════════════════════
-// SWAP SCREEN
-// ══════════════════════════════════
+// ── SWAP SCREEN ──
+
 function showSwapScreen(){
   clearTimers();
-  const overlay=$('swap-overlay');
   $('swap-emoji').textContent='⏰';
   $('swap-title').textContent="Time's Up!";
-
   const guessed=allGameWords.filter(w=>w.status==='guessed').length;
   const skipped=allGameWords.filter(w=>w.status==='skipped').length;
-
-  $('swap-sub').textContent=`Team score: ${score} words guessed so far!`;
-  $('swap-results').innerHTML=`
-    <div class="result-box"><div class="label">Total Guessed</div><div class="value orange">${guessed}</div></div>
-    <div class="result-box"><div class="label">Skipped</div><div class="value purple">${skipped}</div></div>
-  `;
-
+  $('swap-sub').textContent='This round: '+roundScore+' · Total: '+totalScore+' · Best: '+sessionBest;
+  $('swap-results').innerHTML=
+    '<div class="result-box"><div class="label">Round Score</div><div class="value orange">'+roundScore+'</div></div>'+
+    '<div class="result-box"><div class="label">Total Score</div><div class="value orange">'+totalScore+'</div></div>'+
+    '<div class="result-box"><div class="label">Guessed</div><div class="value orange">'+guessed+'</div></div>'+
+    '<div class="result-box"><div class="label">Session Best</div><div class="value" style="color:#facc15">'+sessionBest+'</div></div>';
   $('btn-swap-ready').textContent='🔄 Swap Roles & Continue';
   $('btn-swap-ready').disabled=false;
-  overlay.style.display='flex';
+  $('swap-overlay').style.display='flex';
   swapReadyCount=0;waitingSwap=false;
 }
 
 $('btn-swap-ready').onclick=()=>{
   $('btn-swap-ready').disabled=true;
   $('btn-swap-ready').textContent='⏳ Waiting for opponent…';
-
   if(isHost){
-    if(swapReadyCount>0){
-      doSwap();
-    }else{
-      waitingSwap=true;
-      send({type:'host-swap-ready'});
-    }
+    if(swapReadyCount>0){doSwap()}
+    else{waitingSwap=true;send({type:'host-swap-ready'})}
   }else{
     send({type:'swap-ready'});
   }
@@ -969,49 +954,44 @@ $('btn-swap-ready').onclick=()=>{
 function doSwap(){
   $('swap-overlay').style.display='none';
   swapReadyCount=0;waitingSwap=false;
-
+  roundScore=0;
   const w=pickWord();
   const hostDrawsNow=!isDrawer;
-
   if(hostDrawsNow){
     isDrawer=true;currentWord=w.word;currentCatEmoji=w.emoji;
-    // FIX 3: Send space positions; FIX 4: include catName for guesser
-    send({type:'new-round-go',yourRole:'guesser',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji,score,usedWords:[...usedWords],allGameWords,spacePositions:getSpacePositions(w.word)});
+    send({type:'new-round-go',yourRole:'guesser',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji,score,roundScore:0,totalScore,sessionBest,usedWords:[...usedWords],allGameWords,spacePositions:getSpacePositions(w.word)});
     startDrawerRound(w.word,w.emoji);
   }else{
     isDrawer=false;currentWord='';
     currentSpacePositions=getSpacePositions(w.word);
-    send({type:'new-round-go',yourRole:'drawer',word:w.word,catEmoji:w.emoji,score,usedWords:[...usedWords],allGameWords});
+    send({type:'new-round-go',yourRole:'drawer',word:w.word,catName:w.cat,catEmoji:w.emoji,score,roundScore:0,totalScore,sessionBest,usedWords:[...usedWords],allGameWords});
     startGuesserRound(w.word.length,w.cat,w.emoji);
   }
 }
 
-// ══════════════════════════════════
-// RESULTS
-// ══════════════════════════════════
+// ── RESULTS ──
+
 function showResults(){
   clearTimers();
-  // FIX 4: Ensure swap overlay is hidden
   $('swap-overlay').style.display='none';
-
+  if(totalScore>sessionBest)sessionBest=totalScore;
   const guessed=allGameWords.filter(w=>w.status==='guessed').length;
   const skipped=allGameWords.filter(w=>w.status==='skipped').length;
-
-  $('res-total').textContent=score;
-  $('res-label').textContent=score===1?'word guessed':'words guessed';
+  $('res-total').textContent=totalScore;
+  $('res-label').textContent=totalScore===1?'word guessed':'words guessed';
   $('res-guessed').textContent=guessed;
   $('res-skipped').textContent=skipped;
-
+  $('res-last-round').textContent=roundScore;
+  $('res-session-best').textContent=sessionBest;
   const recap=$('recap-list');
   recap.innerHTML='';
   allGameWords.forEach(w=>{
     const item=document.createElement('div');
     item.className='recap-item '+(w.status==='guessed'?'guessed':'skipped');
-    item.innerHTML=`<span class="recap-word">${esc(w.word)}</span><span class="recap-status">${w.status==='guessed'?'✅ Guessed':'⏭ Skipped'}</span>`;
+    item.innerHTML='<span class="recap-word">'+esc(w.word)+'</span><span class="recap-status">'+(w.status==='guessed'?'✅ Guessed':'⏭ Skipped')+'</span>';
     recap.appendChild(item);
   });
-
-  generateShareCard(score,guessed,skipped);
+  generateShareCard(totalScore,guessed,skipped);
   showScreen('screen-results');
 }
 
@@ -1025,24 +1005,18 @@ swapCard.appendChild(endBtn);
 
 $('btn-end-game').onclick=()=>{
   $('swap-overlay').style.display='none';
-  send({type:'show-results',score,allGameWords});
+  send({type:'show-results',score,totalScore,sessionBest,allGameWords});
   showResults();
 };
 
-// ══════════════════════════════════
-// NEW ROUND FROM RESULTS
-// ══════════════════════════════════
+// ── NEW ROUND FROM RESULTS ──
+
 $('btn-new-round').onclick=()=>{
   $('btn-new-round').disabled=true;
   $('btn-new-round').innerHTML='⏳ Waiting for opponent…';
-
   if(isHost){
-    if(newRoundReadyCount>0){
-      startNewRoundFromResults();
-    }else{
-      waitingNewRound=true;
-      send({type:'host-swap-ready'});
-    }
+    if(newRoundReadyCount>0){startNewRoundFromResults()}
+    else{waitingNewRound=true;send({type:'host-swap-ready'})}
   }else{
     send({type:'new-round-ready'});
   }
@@ -1052,70 +1026,61 @@ function startNewRoundFromResults(){
   newRoundReadyCount=0;waitingNewRound=false;
   $('btn-new-round').disabled=false;
   $('btn-new-round').innerHTML='🔄 Play Another Round';
-
+  roundScore=0;
   const w=pickWord();
   const hostDrawsNow=!isDrawer;
-
   if(hostDrawsNow){
     isDrawer=true;currentWord=w.word;currentCatEmoji=w.emoji;
-    // FIX 3: Send space positions; FIX 4: include catName
-    send({type:'new-round-go',yourRole:'guesser',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji,score,usedWords:[...usedWords],allGameWords,spacePositions:getSpacePositions(w.word)});
+    send({type:'new-round-go',yourRole:'guesser',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji,score,roundScore:0,totalScore,sessionBest,usedWords:[...usedWords],allGameWords,spacePositions:getSpacePositions(w.word)});
     startDrawerRound(w.word,w.emoji);
   }else{
     isDrawer=false;currentWord='';
     currentSpacePositions=getSpacePositions(w.word);
-    send({type:'new-round-go',yourRole:'drawer',word:w.word,catEmoji:w.emoji,score,usedWords:[...usedWords],allGameWords});
+    send({type:'new-round-go',yourRole:'drawer',word:w.word,catName:w.cat,catEmoji:w.emoji,score,roundScore:0,totalScore,sessionBest,usedWords:[...usedWords],allGameWords});
     startGuesserRound(w.word.length,w.cat,w.emoji);
   }
 }
 
 $('btn-home-end').onclick=()=>{cleanup();$('input-name').value=myName;$('input-code').value='';showScreen('screen-home')};
 
-// ══════════════════════════════════
-// SHARE CARD
-// ══════════════════════════════════
-function generateShareCard(totalScore,guessed,skipped){
+// ── SHARE CARD ──
+
+function generateShareCard(ts,guessed,skipped){
   const canvas=$('share-canvas');
   const ctx=canvas.getContext('2d');
   const w=600,h=400;
   canvas.width=w;canvas.height=h;
-
   const grad=ctx.createLinearGradient(0,0,w,h);
   grad.addColorStop(0,'#0f0c29');grad.addColorStop(0.5,'#1a1a3e');grad.addColorStop(1,'#0f0f2e');
   ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);
-
   ctx.globalAlpha=0.08;
   ctx.fillStyle='#f97316';ctx.beginPath();ctx.arc(500,60,120,0,Math.PI*2);ctx.fill();
   ctx.fillStyle='#8b5cf6';ctx.beginPath();ctx.arc(80,350,100,0,Math.PI*2);ctx.fill();
   ctx.globalAlpha=1;
-
   ctx.font='900 28px Nunito, sans-serif';ctx.fillStyle='#f97316';ctx.textAlign='center';
   ctx.fillText('✏️ Draw & Guess',w/2,48);
-
   ctx.font='700 18px Nunito, sans-serif';ctx.fillStyle='#c4b5fd';
-  ctx.fillText(`${myName} & ${oppName}`,w/2,80);
-
+  ctx.fillText(myName+' & '+oppName,w/2,80);
   ctx.font='900 80px Nunito, sans-serif';ctx.fillStyle='#f97316';
-  ctx.fillText(String(totalScore),w/2,180);
-
+  ctx.fillText(String(ts),w/2,180);
   ctx.font='700 16px Nunito, sans-serif';ctx.fillStyle='#94a1b2';
   ctx.fillText('WORDS GUESSED',w/2,210);
-
   const statY=260;
-  ctx.fillText('GUESSED',200,statY);
+  ctx.fillText('GUESSED',150,statY);
   ctx.font='900 36px Nunito, sans-serif';ctx.fillStyle='#22c55e';
-  ctx.fillText(String(guessed),200,statY+38);
-
+  ctx.fillText(String(guessed),150,statY+38);
   ctx.font='700 16px Nunito, sans-serif';ctx.fillStyle='#94a1b2';
-  ctx.fillText('SKIPPED',400,statY);
+  ctx.fillText('SKIPPED',300,statY);
   ctx.font='900 36px Nunito, sans-serif';ctx.fillStyle='#8b5cf6';
-  ctx.fillText(String(skipped),400,statY+38);
-
+  ctx.fillText(String(skipped),300,statY+38);
+  ctx.font='700 16px Nunito, sans-serif';ctx.fillStyle='#94a1b2';
+  ctx.fillText('BEST',450,statY);
+  ctx.font='900 36px Nunito, sans-serif';ctx.fillStyle='#facc15';
+  ctx.fillText(String(sessionBest),450,statY+38);
   ctx.font='800 15px Nunito, sans-serif';ctx.fillStyle='#f9731688';
   ctx.fillText('Can you draw better? ✏️',w/2,348);
   ctx.font='700 12px Nunito, sans-serif';ctx.fillStyle='#94a1b2';
   ctx.fillText(window.location.href.replace(/\/$/,''),w/2,375);
-
   const img=$('share-preview');img.src=canvas.toDataURL('image/png');img.style.display='block';
 }
 
@@ -1129,10 +1094,10 @@ $('btn-save-img').onclick=()=>{
 };
 
 $('btn-copy-text').onclick=()=>{
-  let text=`✏️ Draw & Guess\n\n`;
-  text+=`${myName} & ${oppName}\n`;
-  text+=`Score: ${score} words guessed!\n\n`;
-  text+=`Can you draw better?\n${window.location.href}`;
+  let text='✏️ Draw & Guess\n\n';
+  text+=myName+' & '+oppName+'\n';
+  text+='Total: '+totalScore+' · Best: '+sessionBest+'\n\n';
+  text+='Can you draw better?\n'+window.location.href;
   navigator.clipboard.writeText(text).then(()=>{
     $('btn-copy-text').innerHTML='✅ Copied!';
     setTimeout(()=>$('btn-copy-text').innerHTML='📋 Copy Result',2000);
@@ -1146,9 +1111,8 @@ $('btn-copy-code').onclick=()=>{
   }).catch(()=>{});
 };
 
-// ══════════════════════════════════
-// DRAWING CANVAS
-// ══════════════════════════════════
+// ── DRAWING CANVAS ──
+
 const drawCanvas=$('draw-canvas');
 const drawCtx=drawCanvas.getContext('2d');
 const viewCanvas=$('view-canvas');
@@ -1156,12 +1120,11 @@ const viewCtx=viewCanvas.getContext('2d');
 
 function clearDrawCanvas(){drawCtx.fillStyle='#fff';drawCtx.fillRect(0,0,800,600);drawHistory=[]}
 function clearViewCanvas(){viewCtx.fillStyle='#fff';viewCtx.fillRect(0,0,800,600)}
-
 clearDrawCanvas();clearViewCanvas();
 
 function getCanvasPos(canvas,e){
   const rect=canvas.getBoundingClientRect();
-  const scaleX=800/rect.width;const scaleY=600/rect.height;
+  const scaleX=800/rect.width,scaleY=600/rect.height;
   let clientX,clientY;
   if(e.touches){clientX=e.touches[0].clientX;clientY=e.touches[0].clientY}
   else{clientX=e.clientX;clientY=e.clientY}
@@ -1200,8 +1163,7 @@ function redrawCanvas(ctx,history){
   ctx.fillStyle='#fff';ctx.fillRect(0,0,800,600);
   history.forEach(stroke=>{
     for(let i=1;i<stroke.length;i++){
-      const prev=stroke[i-1];const curr=stroke[i];
-      drawLine(ctx,prev.x,prev.y,curr.x,curr.y,curr.color,curr.size);
+      drawLine(ctx,stroke[i-1].x,stroke[i-1].y,stroke[i].x,stroke[i].y,stroke[i].color,stroke[i].size);
     }
   });
 }
@@ -1210,8 +1172,7 @@ function undoViewCanvas(history){
   viewCtx.fillStyle='#fff';viewCtx.fillRect(0,0,800,600);
   history.forEach(stroke=>{
     for(let i=1;i<stroke.length;i++){
-      const prev=stroke[i-1];const curr=stroke[i];
-      drawLine(viewCtx,prev.x,prev.y,curr.x,curr.y,curr.color,curr.size);
+      drawLine(viewCtx,stroke[i-1].x,stroke[i-1].y,stroke[i].x,stroke[i].y,stroke[i].color,stroke[i].size);
     }
   });
 }
@@ -1225,9 +1186,8 @@ drawCanvas.addEventListener('touchmove',moveDraw,{passive:false});
 drawCanvas.addEventListener('touchend',endDraw,{passive:false});
 drawCanvas.addEventListener('touchcancel',endDraw,{passive:false});
 
-// ══════════════════════════════════
-// DRAWING TOOLS
-// ══════════════════════════════════
+// ── DRAWING TOOLS ──
+
 document.querySelectorAll('.color-btn').forEach(btn=>{
   btn.onclick=()=>{
     document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('active'));
