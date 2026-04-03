@@ -78,7 +78,6 @@ input[type="text"]::placeholder{color:#ffffff44}
 .error-msg{background:rgba(239,68,68,.15);color:#ef4444;padding:12px 18px;border-radius:12px;font-size:.85rem;font-weight:700;text-align:center;margin:12px 0;display:none;width:100%}
 .error-msg.show{display:block;animation:shake .4s ease}
 
-/* Category picker */
 .cat-picker{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0;width:100%}
 .cat-pick{
   padding:12px 10px;border:2px solid rgba(255,255,255,.12);border-radius:14px;
@@ -90,13 +89,11 @@ input[type="text"]::placeholder{color:#ffffff44}
 .cat-pick .cat-emoji{font-size:1.2rem;display:block;margin-bottom:2px}
 .cat-pick .cat-name{font-weight:800;font-size:.82rem}
 
-/* Time picker */
 .time-picker{display:flex;gap:8px;margin:12px 0;width:100%}
 .time-pick{flex:1;padding:14px;border:2px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;transition:all .2s;text-align:center}
 .time-pick:hover{border-color:#f97316}
 .time-pick.active{background:rgba(249,115,22,.15);border-color:#f97316}
 
-/* ══════ GAME HUD ══════ */
 .game-hud{
   display:flex;justify-content:space-between;align-items:center;
   width:100%;padding:8px 0;margin-bottom:4px;
@@ -113,7 +110,6 @@ input[type="text"]::placeholder{color:#ffffff44}
 .timer-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#f97316,#facc15);transition:width .5s linear}
 .timer-bar-fill.danger{background:linear-gradient(90deg,#ef4444,#f97316)}
 
-/* Word display (drawer) */
 .word-display{
   background:rgba(249,115,22,.1);border:2px solid rgba(249,115,22,.3);
   border-radius:14px;padding:12px 20px;text-align:center;width:100%;margin:8px 0;
@@ -122,7 +118,6 @@ input[type="text"]::placeholder{color:#ffffff44}
 .word-display .word-text{font-size:1.5rem;font-weight:900;color:#fdba74;margin-top:4px}
 .word-actions{display:flex;gap:8px;margin:8px 0;justify-content:center}
 
-/* Hint display (guesser) */
 .hint-display{
   background:rgba(139,92,246,.1);border:2px solid rgba(139,92,246,.3);
   border-radius:14px;padding:12px 20px;text-align:center;width:100%;margin:8px 0;
@@ -131,7 +126,6 @@ input[type="text"]::placeholder{color:#ffffff44}
 .hint-display .hint-text{font-size:1.8rem;font-weight:900;color:#c4b5fd;margin-top:4px;letter-spacing:.15em;font-family:monospace}
 .hint-display .hint-cat{font-size:.75rem;color:#94a1b2;margin-top:6px}
 
-/* Canvas */
 .canvas-wrap{
   width:100%;background:#fff;border-radius:16px;overflow:hidden;
   margin:8px 0;box-shadow:0 4px 20px rgba(0,0,0,.3);
@@ -139,7 +133,6 @@ input[type="text"]::placeholder{color:#ffffff44}
 }
 .canvas-wrap canvas{display:block;width:100%;cursor:crosshair}
 
-/* Drawing tools */
 .draw-tools{
   display:flex;gap:6px;align-items:center;justify-content:center;
   flex-wrap:wrap;margin:8px 0;padding:10px;
@@ -172,13 +165,11 @@ input[type="text"]::placeholder{color:#ffffff44}
 .tool-btn.active{border-color:#f97316;background:rgba(249,115,22,.2)}
 .tool-divider{width:1px;height:28px;background:rgba(255,255,255,.15);margin:0 4px}
 
-/* Guess input */
 .guess-area{width:100%;margin:8px 0}
 .guess-input-wrap{display:flex;gap:8px}
 .guess-input-wrap input{flex:1}
 .guess-input-wrap .btn{width:auto;padding:14px 20px}
 
-/* Correct banner */
 .correct-banner{
   background:rgba(34,197,94,.15);border:2px solid rgba(34,197,94,.3);
   border-radius:14px;padding:16px;text-align:center;width:100%;margin:8px 0;
@@ -188,7 +179,6 @@ input[type="text"]::placeholder{color:#ffffff44}
 .correct-banner .correct-text{font-size:1.1rem;font-weight:800;color:#22c55e;margin-top:4px}
 .correct-banner .correct-word{font-size:.9rem;color:#94a1b2;margin-top:2px}
 
-/* Swap overlay */
 .swap-overlay{
   position:fixed;top:0;left:0;right:0;bottom:0;
   background:rgba(10,10,26,.95);display:flex;align-items:center;justify-content:center;
@@ -204,7 +194,6 @@ input[type="text"]::placeholder{color:#ffffff44}
 .swap-title{font-size:1.4rem;font-weight:900;margin-bottom:8px}
 .swap-sub{font-size:.9rem;color:#94a1b2;margin-bottom:24px;font-weight:600}
 
-/* ══════ RESULTS ══════ */
 .results-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin:16px 0}
 .result-box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px 12px;text-align:center}
 .result-box .label{font-size:.7rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
@@ -251,7 +240,7 @@ input[type="text"]::placeholder{color:#ffffff44}
 
 <div class="container">
 
-<!-- ══════ HOME ══════ -->
+<!-- HOME -->
 <div class="screen active" id="screen-home">
 <div class="logo">Draw &<br>Guess 🎨</div>
 <p class="subtitle">One draws, one guesses — how many can you get?</p>
@@ -276,7 +265,7 @@ input[type="text"]::placeholder{color:#ffffff44}
 <div class="error-msg" id="home-error"></div>
 </div>
 
-<!-- ══════ LOBBY ══════ -->
+<!-- LOBBY -->
 <div class="screen" id="screen-lobby">
 <div class="logo">Draw &<br>Guess 🎨</div>
 <p class="subtitle">Share this code with a friend</p>
@@ -301,13 +290,13 @@ input[type="text"]::placeholder{color:#ffffff44}
 <button class="btn btn-primary" id="btn-start-game" style="display:none" disabled>🎨 Start Game</button>
 </div>
 
-<!-- ══════ CONNECTING ══════ -->
+<!-- CONNECTING -->
 <div class="screen" id="screen-connecting">
 <div class="logo">Connecting… ⏳</div>
 <div class="status"><div class="dot-pulse"></div><span id="connecting-status">Please wait…</span></div>
 </div>
 
-<!-- ══════ GAME: DRAWER ══════ -->
+<!-- GAME: DRAWER -->
 <div class="screen" id="screen-drawer">
 <div class="game-hud">
 <div class="hud-item"><div class="hud-label">Time</div><div class="hud-value timer-val" id="drawer-timer">3:00</div></div>
@@ -349,7 +338,7 @@ input[type="text"]::placeholder{color:#ffffff44}
 </div>
 </div>
 
-<!-- ══════ GAME: GUESSER ══════ -->
+<!-- GAME: GUESSER -->
 <div class="screen" id="screen-guesser">
 <div class="game-hud">
 <div class="hud-item"><div class="hud-label">Time</div><div class="hud-value timer-val" id="guesser-timer">3:00</div></div>
@@ -379,7 +368,7 @@ input[type="text"]::placeholder{color:#ffffff44}
 </div>
 </div>
 
-<!-- ══════ SWAP ══════ -->
+<!-- SWAP -->
 <div class="swap-overlay" id="swap-overlay" style="display:none">
 <div class="swap-card">
 <div class="swap-emoji" id="swap-emoji">🔄</div>
@@ -390,7 +379,7 @@ input[type="text"]::placeholder{color:#ffffff44}
 </div>
 </div>
 
-<!-- ══════ RESULTS ══════ -->
+<!-- RESULTS -->
 <div class="screen" id="screen-results">
 <div class="logo">Results 🎨</div>
 
@@ -459,6 +448,8 @@ let hintTimers=[];
 let revealedIndices=new Set();
 let revealedLetters={};
 let currentWordLength=0;
+// FIX 3: Track space positions for multi-word hints
+let currentSpacePositions=[];
 let drawHistory=[];
 let currentColor='#000000';
 let currentSize=4;
@@ -480,9 +471,6 @@ function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let r='';for(let i
 function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
 function send(obj){if(conn&&conn.open)conn.send(JSON.stringify(obj))}
 
-// ══════════════════════════════════
-// LOAD WORDS
-// ══════════════════════════════════
 async function loadWords(){
   try{const res=await fetch('words.json');wordData=await res.json()}
   catch(e){console.error(e);showError('home-error','Failed to load words. Refresh.')}
@@ -539,6 +527,17 @@ function pickWord(){
 }
 
 // ══════════════════════════════════
+// FIX 3 HELPER: Extract space positions from a word
+// ══════════════════════════════════
+function getSpacePositions(word){
+  const positions=[];
+  for(let i=0;i<word.length;i++){
+    if(word[i]===' ')positions.push(i);
+  }
+  return positions;
+}
+
+// ══════════════════════════════════
 // PEER CONNECTION
 // ══════════════════════════════════
 $('btn-create').onclick=()=>{
@@ -592,6 +591,11 @@ function clearTimers(){
   hintTimers.forEach(t=>clearTimeout(t));hintTimers=[];
 }
 
+// FIX 1: Separate function to clear only hint timers without touching the interval
+function clearHintTimers(){
+  hintTimers.forEach(t=>clearTimeout(t));hintTimers=[];
+}
+
 // ══════════════════════════════════
 // MESSAGES
 // ══════════════════════════════════
@@ -609,8 +613,9 @@ function onMessage(raw){
       roundTime=d.roundTime;isDrawer=d.yourRole==='drawer';score=d.score!=null?d.score:score;
       wordPool=shuffle(getWordPool());usedWords=new Set(d.usedWords||[]);
       if(d.allGameWords)allGameWords=d.allGameWords;
+      // FIX 3: Receive space positions
       if(isDrawer){startDrawerRound(d.word,d.catEmoji)}
-      else{currentWord='';startGuesserRound(d.wordLength,d.catName,d.catEmoji)}
+      else{currentWord='';currentSpacePositions=d.spacePositions||[];startGuesserRound(d.wordLength,d.catName,d.catEmoji)}
       break;
     case 'draw':applyDrawData(d);break;
     case 'clear-canvas':clearViewCanvas();break;
@@ -618,8 +623,10 @@ function onMessage(raw){
     case 'new-word':
       if(!isDrawer){
         clearViewCanvas();revealedIndices.clear();revealedLetters={};
-        hintTimers.forEach(t=>clearTimeout(t));hintTimers=[];
+        clearHintTimers();
         currentWordLength=d.wordLength;
+        // FIX 3: Receive space positions for new word
+        currentSpacePositions=d.spacePositions||[];
         startGuesserHints(d.wordLength);
         updateHintDisplayClean(d.wordLength);
         $('hint-cat').textContent=d.catEmoji+' '+d.catName;
@@ -629,8 +636,12 @@ function onMessage(raw){
     case 'correct':
       score=d.score;
       allGameWords=d.allGameWords||allGameWords;
+      // FIX 2: Show correct feedback on guesser side, clear "not quite"
       if(isDrawer){showCorrectBanner('drawer',d.word);updateDrawerUI()}
-      else{showCorrectBanner('guesser',d.word);updateGuesserUI()}
+      else{
+        $('guess-feedback').textContent='';
+        showCorrectBanner('guesser',d.word);updateGuesserUI();
+      }
       break;
     case 'skip':
       allGameWords=d.allGameWords||allGameWords;
@@ -646,15 +657,21 @@ function onMessage(raw){
       if(isHost&&waitingSwap){doSwap()}
       break;
     case 'host-swap-ready':
-      // informational for guest
       break;
     case 'new-round-go':
+      // FIX 4: Hide swap overlay for the receiving player
+      $('swap-overlay').style.display='none';
+      // Also reset new-round button in case coming from results
+      $('btn-new-round').disabled=false;
+      $('btn-new-round').innerHTML='🔄 Play Another Round';
+
       isDrawer=d.yourRole==='drawer';score=d.score!=null?d.score:score;
       if(d.usedWords)usedWords=new Set(d.usedWords);
       if(d.allGameWords)allGameWords=d.allGameWords;
       wordPool=shuffle(getWordPool());
+      // FIX 3: Receive space positions
       if(isDrawer){startDrawerRound(d.word,d.catEmoji)}
-      else{currentWord='';startGuesserRound(d.wordLength,d.catName,d.catEmoji)}
+      else{currentWord='';currentSpacePositions=d.spacePositions||[];startGuesserRound(d.wordLength,d.catName,d.catEmoji)}
       break;
     case 'guess':
       handleGuessFromOpponent(d.text);
@@ -664,6 +681,12 @@ function onMessage(raw){
       $('guess-feedback').style.color='#facc15';
       setTimeout(()=>{if($('guess-feedback').textContent==='🔥 Very close!')$('guess-feedback').textContent=''},2000);
       break;
+    // FIX 2: New message type for wrong guesses from drawer
+    case 'wrong-guess':
+      $('guess-feedback').textContent='❌ Not quite…';
+      $('guess-feedback').style.color='#ef4444';
+      setTimeout(()=>{if($('guess-feedback').textContent==='❌ Not quite…')$('guess-feedback').textContent=''},1500);
+      break;
     case 'request-hint':
       if(isDrawer)handleHintRequest(d.revealed);
       break;
@@ -671,7 +694,9 @@ function onMessage(raw){
       revealedIndices.add(d.index);
       revealedLetters[d.index]=d.letter;
       updateHintDisplayClean(currentWordLength);
-      const maxReveal=Math.floor(currentWordLength*0.5);
+      // FIX 3: Calculate max reveal excluding spaces
+      const nonSpaceCount=currentWordLength-currentSpacePositions.length;
+      const maxReveal=Math.floor(nonSpaceCount*0.5);
       if(revealedIndices.size<maxReveal){
         const t=setTimeout(()=>{send({type:'request-hint',revealed:[...revealedIndices]})},HINT_INTERVAL);
         hintTimers.push(t);
@@ -684,6 +709,8 @@ function onMessage(raw){
     case 'show-results':
       score=d.score!=null?d.score:score;
       allGameWords=d.allGameWords||allGameWords;
+      // FIX 4: Hide swap overlay when showing results
+      $('swap-overlay').style.display='none';
       showResults();
       break;
   }
@@ -697,7 +724,8 @@ $('btn-start-game').onclick=()=>{
   wordPool=shuffle(getWordPool());
   const w=pickWord();currentWord=w.word;currentCatEmoji=w.emoji;
   isDrawer=true;score=0;allGameWords=[];
-  send({type:'start-round',roundTime,yourRole:'guesser',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji,score:0,usedWords:[...usedWords],allGameWords:[]});
+  // FIX 3: Send space positions to guesser
+  send({type:'start-round',roundTime,yourRole:'guesser',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji,score:0,usedWords:[...usedWords],allGameWords:[],spacePositions:getSpacePositions(w.word)});
   startDrawerRound(w.word,w.emoji);
 };
 
@@ -721,7 +749,8 @@ function nextWord(){
   $('current-word').textContent=w.word;
   $('correct-banner-drawer').style.display='none';
   clearDrawCanvas();drawHistory=[];
-  send({type:'new-word',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji});
+  // FIX 3: Send space positions with new word
+  send({type:'new-word',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji,spacePositions:getSpacePositions(w.word)});
   send({type:'clear-canvas'});
 }
 
@@ -744,27 +773,41 @@ function startGuesserRound(wordLength,catName,catEmoji){
   $('hint-cat').textContent=catEmoji+' '+catName;
   clearViewCanvas();
   updateHintDisplayClean(wordLength);
-  startGuesserHints(wordLength);
+  // FIX 1: Start timer BEFORE hints so clearTimers in startTimer doesn't wipe hint timers
   timeLeft=roundTime;totalTime=roundTime;
   updateTimerDisplay('guesser');
   showScreen('screen-guesser');
+  startTimer('guesser');
+  // Now start hints AFTER timer is running
+  startGuesserHints(wordLength);
   setTimeout(()=>$('guess-input').focus(),300);
 }
 
+// FIX 3: Updated hint display to show spaces as visible gaps
 function updateHintDisplayClean(len){
   let display='';
   for(let i=0;i<len;i++){
-    if(revealedLetters[i])display+=revealedLetters[i].toUpperCase();
-    else display+='_';
-    if(i<len-1)display+=' ';
+    if(currentSpacePositions.includes(i)){
+      // Show a visible gap for spaces (3 spaces wide for clarity)
+      display+='   ';
+    } else if(revealedLetters[i]){
+      display+=revealedLetters[i].toUpperCase();
+    } else {
+      display+='_';
+    }
+    if(i<len-1 && !currentSpacePositions.includes(i)){
+      display+=' ';
+    }
   }
   $('hint-text').textContent=display;
 }
 
 function startGuesserHints(wordLength){
-  hintTimers.forEach(t=>clearTimeout(t));hintTimers=[];
+  clearHintTimers();
   revealedIndices.clear();revealedLetters={};currentWordLength=wordLength;
-  const maxReveal=Math.floor(wordLength*0.5);
+  // FIX 3: Calculate max reveal excluding spaces
+  const nonSpaceCount=wordLength-currentSpacePositions.length;
+  const maxReveal=Math.floor(nonSpaceCount*0.5);
   if(maxReveal>0){
     const t=setTimeout(()=>{send({type:'request-hint',revealed:[...revealedIndices]})},HINT_FIRST_DELAY);
     hintTimers.push(t);
@@ -790,14 +833,16 @@ function handleHintRequest(alreadyRevealed){
 $('btn-guess').onclick=submitGuess;
 $('guess-input').onkeydown=e=>{if(e.key==='Enter')submitGuess()};
 
+// FIX 2: Don't show "not quite" locally — wait for drawer's validation response
 function submitGuess(){
   const val=$('guess-input').value.trim();
   if(!val)return;
   $('guess-input').value='';
   send({type:'guess',text:val});
-  $('guess-feedback').textContent='❌ Not quite…';
-  $('guess-feedback').style.color='#ef4444';
-  setTimeout(()=>{if($('guess-feedback').textContent==='❌ Not quite…')$('guess-feedback').textContent=''},1500);
+  // FIX 2: Show neutral "thinking" feedback instead of premature "not quite"
+  $('guess-feedback').textContent='⏳ Checking…';
+  $('guess-feedback').style.color='#94a1b2';
+  setTimeout(()=>{if($('guess-feedback').textContent==='⏳ Checking…')$('guess-feedback').textContent=''},2000);
   setTimeout(()=>$('guess-input').focus(),50);
 }
 
@@ -805,7 +850,10 @@ function handleGuessFromOpponent(text){
   if(!isDrawer||!currentWord)return;
   const guess=text.toLowerCase().trim();
   const answer=currentWord.toLowerCase().trim();
-  if(guess===answer){
+  // FIX 2: Normalize spaces for comparison (collapse multiple spaces)
+  const normalizedGuess=guess.replace(/\s+/g,' ');
+  const normalizedAnswer=answer.replace(/\s+/g,' ');
+  if(normalizedGuess===normalizedAnswer){
     score++;
     allGameWords.push({word:currentWord,status:'guessed'});
     send({type:'correct',word:currentWord,score,allGameWords});
@@ -813,10 +861,13 @@ function handleGuessFromOpponent(text){
     updateDrawerUI();
     setTimeout(()=>nextWord(),800);
   }else{
-    // Check close match — if guess is at least 60% of the answer and contained
-    const isClose=(answer.includes(guess)&&guess.length>=3)||(guess.includes(answer)&&answer.length>=3)||levenshtein(guess,answer)<=2;
+    // Check close match
+    const isClose=(normalizedAnswer.includes(normalizedGuess)&&normalizedGuess.length>=3)||(normalizedGuess.includes(normalizedAnswer)&&normalizedAnswer.length>=3)||levenshtein(normalizedGuess,normalizedAnswer)<=2;
     if(isClose){
       send({type:'close-guess'});
+    } else {
+      // FIX 2: Send explicit wrong-guess message so guesser shows "not quite"
+      send({type:'wrong-guess'});
     }
   }
 }
@@ -845,8 +896,9 @@ function showCorrectBanner(role,word){
 // ══════════════════════════════════
 // TIMER
 // ══════════════════════════════════
+// FIX 1: startTimer no longer clears hint timers
 function startTimer(role){
-  clearTimers();
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null}
   const startMs=Date.now();
   timerInterval=setInterval(()=>{
     const elapsed=Math.floor((Date.now()-startMs)/1000);
@@ -855,7 +907,6 @@ function startTimer(role){
     if(timeLeft<=0){
       clearTimers();
       if(isDrawer){
-        // Drawer controls the timer ending
         send({type:'time-up',score,allGameWords});
         showSwapScreen();
       }
@@ -920,15 +971,16 @@ function doSwap(){
   swapReadyCount=0;waitingSwap=false;
 
   const w=pickWord();
-  // Host swaps: if host was drawer, host is now guesser
   const hostDrawsNow=!isDrawer;
 
   if(hostDrawsNow){
     isDrawer=true;currentWord=w.word;currentCatEmoji=w.emoji;
-    send({type:'new-round-go',yourRole:'guesser',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji,score,usedWords:[...usedWords],allGameWords});
+    // FIX 3: Send space positions; FIX 4: include catName for guesser
+    send({type:'new-round-go',yourRole:'guesser',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji,score,usedWords:[...usedWords],allGameWords,spacePositions:getSpacePositions(w.word)});
     startDrawerRound(w.word,w.emoji);
   }else{
     isDrawer=false;currentWord='';
+    currentSpacePositions=getSpacePositions(w.word);
     send({type:'new-round-go',yourRole:'drawer',word:w.word,catEmoji:w.emoji,score,usedWords:[...usedWords],allGameWords});
     startGuesserRound(w.word.length,w.cat,w.emoji);
   }
@@ -939,6 +991,9 @@ function doSwap(){
 // ══════════════════════════════════
 function showResults(){
   clearTimers();
+  // FIX 4: Ensure swap overlay is hidden
+  $('swap-overlay').style.display='none';
+
   const guessed=allGameWords.filter(w=>w.status==='guessed').length;
   const skipped=allGameWords.filter(w=>w.status==='skipped').length;
 
@@ -960,8 +1015,6 @@ function showResults(){
   showScreen('screen-results');
 }
 
-// Add "End Game" button to swap screen
-// Actually let's add it — modify swap screen to have both options
 const swapCard=document.querySelector('.swap-card');
 const endBtn=document.createElement('button');
 endBtn.className='btn btn-outline';
@@ -1001,15 +1054,16 @@ function startNewRoundFromResults(){
   $('btn-new-round').innerHTML='🔄 Play Another Round';
 
   const w=pickWord();
-  // Swap roles from last round
   const hostDrawsNow=!isDrawer;
 
   if(hostDrawsNow){
     isDrawer=true;currentWord=w.word;currentCatEmoji=w.emoji;
-    send({type:'new-round-go',yourRole:'guesser',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji,score,usedWords:[...usedWords],allGameWords});
+    // FIX 3: Send space positions; FIX 4: include catName
+    send({type:'new-round-go',yourRole:'guesser',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji,score,usedWords:[...usedWords],allGameWords,spacePositions:getSpacePositions(w.word)});
     startDrawerRound(w.word,w.emoji);
   }else{
     isDrawer=false;currentWord='';
+    currentSpacePositions=getSpacePositions(w.word);
     send({type:'new-round-go',yourRole:'drawer',word:w.word,catEmoji:w.emoji,score,usedWords:[...usedWords],allGameWords});
     startGuesserRound(w.word.length,w.cat,w.emoji);
   }
@@ -1209,7 +1263,6 @@ $('btn-clear').onclick=()=>{
   send({type:'clear-canvas'});
 };
 
-// Keyboard
 $('input-name').onkeydown=e=>{if(e.key==='Enter')$('btn-create').click()};
 $('input-code').onkeydown=e=>{if(e.key==='Enter')$('btn-join').click()};
 
