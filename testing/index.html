@@ -145,17 +145,30 @@ h1{
   background:rgba(127,90,240,.15);
 }
 
-/* Socials */
-.socials{margin-top:50px;text-align:center}
-.socials p{color:#94a1b2;font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.15em;margin-bottom:16px}
-.social-links{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
-.social-btn{
-  width:48px;height:48px;border-radius:14px;
-  display:flex;align-items:center;justify-content:center;
-  transition:all .3s;text-decoration:none;color:#fff;
-}
-.social-btn svg{width:22px;height:22px}
-.social-btn:hover{transform:translateY(-4px) scale(1.1)}
+/* Platform Colors */
+  .social-btn.instagram {
+    background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+    box-shadow: 0 4px 15px rgba(225, 48, 108, 0.3);
+  }
+  .social-btn.instagram:hover {
+    box-shadow: 0 8px 25px rgba(225, 48, 108, 0.5);
+  }
+  
+  .social-btn.tiktok {
+    background: linear-gradient(135deg, #010101, #25f4ee);
+    box-shadow: 0 4px 15px rgba(37, 244, 238, 0.3);
+  }
+  .social-btn.tiktok:hover {
+    box-shadow: 0 8px 25px rgba(37, 244, 238, 0.5);
+  }
+  
+  .social-btn.youtube {
+    background: linear-gradient(135deg, #ff0000, #cc0000);
+    box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);
+  }
+  .social-btn.youtube:hover {
+    box-shadow: 0 8px 25px rgba(255, 0, 0, 0.5);
+  }
 
 footer{margin-top:40px;color:#94a1b2;font-size:.8rem;text-align:center}
 
