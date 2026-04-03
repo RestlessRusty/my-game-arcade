@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-19MTMYDQ3S"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-19MTMYDQ3S');
+</script>
+<link rel="icon" type="image/png" href="/my-game-arcade/favicon.png">
+<title>Snake 3310 🐍</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Nunito',sans-serif;min-height:100vh;
+  background:linear-gradient(135deg,#0a0a1a,#1a1a3e,#0f0f2e);
+  color:#fff;display:flex;justify-content:center;align-items:flex-start;
+  overflow-x:hidden;overflow-y:auto;user-select:none;-webkit-user-select:none;
+}
+.bg-blob{position:fixed;border-radius:50%;filter:blur(100px);opacity:.25;pointer-events:none;z-index:0}
+.bg-blob.a{width:500px;height:500px;background:#4ade80;top:-120px;left:-100px;animation:fA 18s ease-in-out infinite}
+.bg-blob.b{width:400px;height:400px;background:#22c55e;bottom:-80px;right:-80px;animation:fB 22s ease-in-out infinite}
+.bg-blob.c{width:300px;height:300px;background:#06b6d4;top:50%;left:55%;animation:fC 20s ease-in-out infinite}
+@keyframes fA{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,80px)}}
+@keyframes fB{0%,100%{transform:translate(0,0)}50%{transform:translate(-50px,-60px)}}
+@keyframes fC{0%,100%{transform:translate(0,0)}50%{transform:translate(-40px,50px)}}
+
+.container{position:relative;z-index:1;width:100%;max-width:520px;padding:20px 20px 40px;display:flex;flex-direction:column;align-items:center}
+
+.screen{display:none;width:100%;animation:fadeIn .4s ease}
+.screen.active{display:flex;flex-direction:column;align-items:center}
+@keyframes fadeIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+
+.logo{font-size:2.2rem;font-weight:900;text-align:center;line-height:1.15;margin-bottom:8px;background:linear-gradient(135deg,#4ade80,#22c55e);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{font-size:.95rem;color:#94a1b2;text-align:center;margin-bottom:24px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 32px;border:none;border-radius:14px;font-family:inherit;font-size:1rem;font-weight:800;cursor:pointer;transition:all .2s;width:100%}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,#4ade80,#22c55e);color:#0a0a1a;box-shadow:0 4px 20px rgba(34,197,94,.4)}
+.btn-primary:hover{box-shadow:0 6px 28px rgba(34,197,94,.55)}
+.btn-outline{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.2)}
+.btn-outline:hover{border-color:#4ade80;color:#4ade80}
+.btn-share{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;box-shadow:0 4px 20px rgba(139,92,246,.3)}
+.btn+.btn{margin-top:12px}
+.btn-sm{padding:10px 18px;font-size:.85rem;width:auto}
+
+.instructions{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 20px;margin:0 0 18px;width:100%}
+.instructions h3{font-size:.85rem;color:#4ade80;margin-bottom:8px;text-transform:uppercase;letter-spacing:.1em}
+.instructions p{font-size:.82rem;color:#94a1b2;line-height:1.6}
+.instructions strong{color:#fff}
+
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin:16px 0}
+.result-box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px 12px;text-align:center}
+.result-box .label{font-size:.7rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.result-box .value{font-size:1.5rem;font-weight:900}
+.result-box .value.green{background:linear-gradient(135deg,#4ade80,#22c55e);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.result-box .value.gold{color:#facc15}
+
+.share-section{width:100%;margin:16px 0;text-align:center}
+.share-preview{width:100%;border-radius:16px;margin-bottom:12px;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.share-buttons{display:flex;gap:8px}
+.share-buttons .btn{flex:1}
+
+/* ══════ NOKIA PHONE ══════ */
+.nokia-phone{
+  width:300px;
+  background:linear-gradient(180deg,#2a2a3a,#1e1e2e,#16162a);
+  border-radius:36px;
+  padding:20px 16px 24px;
+  box-shadow:
+    0 0 0 3px #3a3a4a,
+    0 0 0 6px #1a1a2a,
+    0 20px 60px rgba(0,0,0,.6),
+    inset 0 1px 0 rgba(255,255,255,.1);
+  position:relative;
+  margin:0 auto;
+}
+
+.nokia-brand{
+  text-align:center;
+  font-size:.7rem;
+  font-weight:800;
+  color:#555;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  margin-bottom:8px;
+}
+
+.nokia-screen-frame{
+  background:#1a1a1a;
+  border-radius:12px;
+  padding:8px;
+  box-shadow:inset 0 2px 8px rgba(0,0,0,.8);
+  margin-bottom:16px;
+}
+
+.nokia-lcd{
+  background:#6b7e4f;
+  border-radius:6px;
+  position:relative;
+  overflow:hidden;
+  image-rendering:pixelated;
+}
+
+.nokia-lcd.off{
+  background:#5a6b42;
+}
+
+.nokia-status-bar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:4px 8px;
+  font-family:'Courier New',monospace;
+  font-size:10px;
+  font-weight:bold;
+  color:#2d3a1f;
+}
+
+.nokia-game-area{
+  position:relative;
+  width:100%;
+}
+
+.nokia-game-area canvas{
+  display:block;
+  width:100%;
+  image-rendering:pixelated;
+  image-rendering:crisp-edges;
+}
+
+.nokia-menu-labels{
+  display:flex;
+  justify-content:space-between;
+  padding:2px 8px 4px;
+  font-family:'Courier New',monospace;
+  font-size:9px;
+  font-weight:bold;
+  color:#2d3a1f;
+}
+
+/* Nokia Keypad */
+.nokia-keypad{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+}
+
+.nokia-nav{
+  position:relative;
+  width:120px;
+  height:120px;
+  margin:4px auto;
+}
+
+.nokia-nav-circle{
+  width:120px;height:120px;
+  border-radius:50%;
+  background:linear-gradient(180deg,#3a3a4a,#2a2a3a);
+  box-shadow:0 2px 8px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.1);
+  position:relative;
+}
+
+.nokia-nav-center{
+  position:absolute;
+  width:44px;height:44px;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:linear-gradient(180deg,#4a4a5a,#3a3a4a);
+  box-shadow:0 2px 4px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.15);
+  cursor:pointer;
+  z-index:2;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.6rem;color:#888;font-weight:800;
+}
+.nokia-nav-center:active{background:linear-gradient(180deg,#3a3a4a,#2a2a3a)}
+
+.nokia-dpad-btn{
+  position:absolute;
+  background:transparent;
+  border:none;
+  cursor:pointer;
+  z-index:3;
+  display:flex;align-items:center;justify-content:center;
+  color:#666;font-size:1.1rem;
+  -webkit-tap-highlight-color:transparent;
+}
+.nokia-dpad-btn:active{opacity:.6}
+.nokia-dpad-btn.up{top:2px;left:50%;transform:translateX(-50%);width:44px;height:36px}
+.nokia-dpad-btn.down{bottom:2px;left:50%;transform:translateX(-50%);width:44px;height:36px}
+.nokia-dpad-btn.left{left:2px;top:50%;transform:translateY(-50%);width:36px;height:44px}
+.nokia-dpad-btn.right{right:2px;top:50%;transform:translateY(-50%);width:36px;height:44px}
+
+.nokia-action-btns{
+  display:flex;gap:40px;margin-top:4px;
+}
+
+.nokia-action-btn{
+  width:48px;height:28px;
+  border-radius:14px;
+  background:linear-gradient(180deg,#3a3a4a,#2a2a3a);
+  box-shadow:0 2px 4px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.1);
+  border:none;cursor:pointer;
+  font-family:'Courier New',monospace;
+  font-size:.55rem;font-weight:800;color:#666;
+  -webkit-tap-highlight-color:transparent;
+}
+.nokia-action-btn:active{background:linear-gradient(180deg,#2a2a3a,#1a1a2a)}
+
+.nokia-numpad{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
+  width:200px;
+  margin:8px auto 0;
+}
+
+.nokia-num-btn{
+  height:26px;
+  border-radius:10px;
+  background:linear-gradient(180deg,#3a3a4a,#2a2a3a);
+  box-shadow:0 2px 4px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.08);
+  border:none;cursor:pointer;
+  font-family:'Courier New',monospace;
+  font-size:.65rem;font-weight:800;color:#555;
+  -webkit-tap-highlight-color:transparent;
+}
+.nokia-num-btn:active{background:linear-gradient(180deg,#2a2a3a,#1a1a2a)}
+
+/* LCD overlay effects */
+.nokia-lcd::after{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  background:repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,.03) 2px,
+    rgba(0,0,0,.03) 4px
+  );
+  pointer-events:none;
+  z-index:1;
+}
+
+/* Game over overlay on LCD */
+.lcd-overlay{
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  z-index:2;
+  font-family:'Courier New',monospace;
+  color:#2d3a1f;
+  text-align:center;
+  padding:10px;
+}
+.lcd-overlay.hidden{display:none}
+.lcd-overlay .lcd-title{font-size:14px;font-weight:900;margin-bottom:4px}
+.lcd-overlay .lcd-score{font-size:11px;font-weight:700;margin-bottom:2px}
+.lcd-overlay .lcd-prompt{font-size:9px;font-weight:700;margin-top:8px;animation:blink 1s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* D-pad for mobile below phone */
+.mobile-dpad{
+  display:none;
+  margin:20px auto 0;
+  position:relative;
+  width:160px;height:160px;
+}
+.mobile-dpad-btn{
+  position:absolute;
+  width:52px;height:52px;
+  border-radius:14px;
+  background:rgba(255,255,255,.08);
+  border:2px solid rgba(255,255,255,.15);
+  color:#fff;font-size:1.4rem;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  transition:all .1s;
+}
+.mobile-dpad-btn:active{background:rgba(74,222,128,.2);border-color:#4ade80}
+.mobile-dpad-btn.up{top:0;left:50%;transform:translateX(-50%)}
+.mobile-dpad-btn.down{bottom:0;left:50%;transform:translateX(-50%)}
+.mobile-dpad-btn.left{left:0;top:50%;transform:translateY(-50%)}
+.mobile-dpad-btn.right{right:0;top:50%;transform:translateY(-50%)}
+
+@media(max-width:480px){
+  .nokia-phone{width:260px;padding:16px 12px 20px}
+  .nokia-nav{width:100px;height:100px}
+  .nokia-nav-circle{width:100px;height:100px}
+  .nokia-nav-center{width:36px;height:36px}
+  .mobile-dpad{display:block}
+  .logo{font-size:1.7rem}
+}
+
+@media(min-width:481px){
+  .mobile-dpad{display:none}
+}
+</style>
+</head>
+<body>
+
+<a href="../" id="arcade-home-btn" style="position:fixed;top:16px;left:16px;z-index:999;background:rgba(255,255,255,.06);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:10px 16px;color:#fff;text-decoration:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:.85rem;display:flex;align-items:center;gap:6px;transition:all .3s;box-shadow:0 4px 15px rgba(0,0,0,.2)">🏠 Back to the Arcade</a>
+<style>#arcade-home-btn:hover{background:rgba(255,255,255,.12);transform:translateY(-2px)}</style>
+
+<div class="bg-blob a"></div>
+<div class="bg-blob b"></div>
+<div class="bg-blob c"></div>
+
+<div class="container">
+
+<!-- ══════ HOME ══════ -->
+<div class="screen active" id="screen-home">
+<div class="logo">Snake 3310 🐍</div>
+<p class="subtitle">The classic Nokia snake, just like you remember</p>
+
+<div class="instructions">
+<h3>📖 How to play</h3>
+<p>Use <strong>arrow keys</strong>, <strong>WASD</strong>, <strong>swipe</strong>, or the <strong>D-pad</strong> to move the snake. Eat the food to grow and score points. Don't hit the walls or yourself! The snake gets <strong>faster</strong> as you grow.</p>
+</div>
+
+<div class="nokia-phone" id="phone-home">
+<div class="nokia-brand">NOKIA</div>
+<div class="nokia-screen-frame">
+<div class="nokia-lcd off" style="height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center">
+<div style="font-family:'Courier New',monospace;color:#2d3a1f;text-align:center">
+<div style="font-size:16px;font-weight:900;margin-bottom:4px">SNAKE</div>
+<div style="font-size:9px;font-weight:700">Press Start</div>
+</div>
+</div>
+</div>
+</div>
+
+<div style="height:16px"></div>
+<button class="btn btn-primary" id="btn-start">🐍 Start Game</button>
+
+<div style="margin-top:12px;text-align:center">
+<span style="font-size:.8rem;color:#94a1b2;font-weight:700">🏆 High Score: <span id="home-highscore" style="color:#facc15">0</span></span>
+</div>
+</div>
+
+<!-- ══════ GAME ══════ -->
+<div class="screen" id="screen-game">
+<div class="nokia-phone" id="phone-game">
+<div class="nokia-brand">NOKIA</div>
+<div class="nokia-screen-frame">
+<div class="nokia-lcd" id="nokia-lcd">
+<div class="nokia-status-bar">
+<span id="lcd-score">Score: 0</span>
+<span id="lcd-high">Hi: 0</span>
+</div>
+<div class="nokia-game-area">
+<canvas id="game-canvas"></canvas>
+</div>
+<div class="nokia-menu-labels">
+<span id="lcd-left-label">Pause</span>
+<span id="lcd-right-label"></span>
+</div>
+<div class="lcd-overlay hidden" id="lcd-overlay">
+<div class="lcd-title" id="lcd-overlay-title">GAME OVER</div>
+<div class="lcd-score" id="lcd-overlay-score">Score: 0</div>
+<div class="lcd-prompt" id="lcd-overlay-prompt">Press Start</div>
+</div>
+<div class="lcd-overlay hidden" id="lcd-pause-overlay">
+<div class="lcd-title">PAUSED</div>
+<div class="lcd-prompt">Press to resume</div>
+</div>
+</div>
+</div>
+<div class="nokia-keypad">
+<div class="nokia-action-btns">
+<button class="nokia-action-btn" id="nk-left-action">Menu</button>
+<button class="nokia-action-btn" id="nk-right-action"></button>
+</div>
+<div class="nokia-nav">
+<div class="nokia-nav-circle">
+<button class="nokia-dpad-btn up" id="nk-up">▲</button>
+<button class="nokia-dpad-btn down" id="nk-down">▼</button>
+<button class="nokia-dpad-btn left" id="nk-left">◀</button>
+<button class="nokia-dpad-btn right" id="nk-right">▶</button>
+<div class="nokia-nav-center" id="nk-center">OK</div>
+</div>
+</div>
+<div class="nokia-numpad">
+<button class="nokia-num-btn">1</button><button class="nokia-num-btn">2</button><button class="nokia-num-btn">3</button>
+<button class="nokia-num-btn">4</button><button class="nokia-num-btn">5</button><button class="nokia-num-btn">6</button>
+<button class="nokia-num-btn">7</button><button class="nokia-num-btn">8</button><button class="nokia-num-btn">9</button>
+<button class="nokia-num-btn">*</button><button class="nokia-num-btn">0</button><button class="nokia-num-btn">#</button>
+</div>
+</div>
+</div>
+
+<!-- Mobile D-pad -->
+<div class="mobile-dpad" id="mobile-dpad">
+<button class="mobile-dpad-btn up" id="mob-up">▲</button>
+<button class="mobile-dpad-btn down" id="mob-down">▼</button>
+<button class="mobile-dpad-btn left" id="mob-left">◀</button>
+<button class="mobile-dpad-btn right" id="mob-right">▶</button>
+</div>
+</div>
+
+<!-- ══════ GAME OVER / RESULTS ══════ -->
+<div class="screen" id="screen-results">
+<div class="logo">Game Over 🐍</div>
+
+<div class="card" style="background:rgba(255,255,255,.06);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px 24px;width:100%;margin-bottom:18px;box-shadow:0 8px 32px rgba(0,0,0,.25);text-align:center">
+<div style="font-size:.8rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Final Score</div>
+<div style="font-size:4rem;font-weight:900;background:linear-gradient(135deg,#4ade80,#22c55e);-webkit-background-clip:text;-webkit-text-fill-color:transparent" id="res-score">0</div>
+<div style="font-size:.9rem;color:#94a1b2;font-weight:700" id="res-new-best" class="hidden">🎉 New High Score!</div>
+</div>
+
+<div class="results-grid">
+<div class="result-box"><div class="label">Length</div><div class="value green" id="res-length">0</div></div>
+<div class="result-box"><div class="label">High Score</div><div class="value gold" id="res-high">0</div></div>
+<div class="result-box"><div class="label">Food Eaten</div><div class="value green" id="res-food">0</div></div>
+<div class="result-box"><div class="label">Speed</div><div class="value gold" id="res-speed">1</div></div>
+</div>
+
+<div class="share-section">
+<canvas id="share-canvas" style="display:none"></canvas>
+<img id="share-preview" class="share-preview" style="display:none" alt="Result card"/>
+<div class="share-buttons">
+<button class="btn btn-share" id="btn-save-img">📸 Save Image</button>
+<button class="btn btn-outline" id="btn-copy-text">📋 Copy Result</button>
+</div>
+</div>
+
+<button class="btn btn-primary" id="btn-play-again">🐍 Play Again</button>
+<button class="btn btn-outline" id="btn-home-end">🏠 Back to Menu</button>
+</div>
+
+<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:16px 20px;margin:20px 0;text-align:center;width:100%;">
+<p style="color:#94a1b2;font-size:0.85rem;margin-bottom:10px;">Enjoying the game? 🎉</p>
+<a href="https://ko-fi.com/restlessrusty" target="_blank" style="color:#7f5af0;font-weight:700;text-decoration:none;">☕ Buy me a coffee to make more games!</a>
+</div>
+</div>
+
+<script>
+(function(){
+
+// ── CONSTANTS ──
+const GRID_W=20;
+const GRID_H=16;
+const CELL=8;
+const CANVAS_W=GRID_W*CELL;
+const CANVAS_H=GRID_H*CELL;
+const BASE_SPEED=180;
+const MIN_SPEED=70;
+const SPEED_STEP=4;
+const FOOD_SCORE=10;
+const LS_KEY='snake3310_highscore';
+
+// ── LCD COLORS (Nokia green) ──
+const LCD_BG='#6b7e4f';
+const LCD_DARK='#2d3a1f';
+const LCD_MED='#4a5a34';
+
+// ── STATE ──
+let snake=[];
+let dir={x:1,y:0};
+let nextDir={x:1,y:0};
+let food={x:0,y:0};
+let score=0;
+let foodEaten=0;
+let highScore=0;
+let gameRunning=false;
+let gamePaused=false;
+let gameOver=false;
+let gameLoop=null;
+let currentSpeed=BASE_SPEED;
+
+// ── AUDIO ──
+const audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+
+function playEatSound(){
+  const o=audioCtx.createOscillator();
+  const g=audioCtx.createGain();
+  o.connect(g);g.connect(audioCtx.destination);
+  o.type='square';
+  o.frequency.setValueAtTime(600,audioCtx.currentTime);
+  o.frequency.setValueAtTime(800,audioCtx.currentTime+0.05);
+  g.gain.setValueAtTime(0.15,audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.15);
+  o.start(audioCtx.currentTime);
+  o.stop(audioCtx.currentTime+0.15);
+}
+
+function playDeathSound(){
+  const o=audioCtx.createOscillator();
+  const g=audioCtx.createGain();
+  o.connect(g);g.connect(audioCtx.destination);
+  o.type='square';
+  o.frequency.setValueAtTime(400,audioCtx.currentTime);
+  o.frequency.setValueAtTime(200,audioCtx.currentTime+0.15);
+  o.frequency.setValueAtTime(100,audioCtx.currentTime+0.3);
+  g.gain.setValueAtTime(0.15,audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.4);
+  o.start(audioCtx.currentTime);
+  o.stop(audioCtx.currentTime+0.4);
+}
+
+function playMoveSound(){
+  const o=audioCtx.createOscillator();
+  const g=audioCtx.createGain();
+  o.connect(g);g.connect(audioCtx.destination);
+  o.type='square';
+  o.frequency.setValueAtTime(220,audioCtx.currentTime);
+  g.gain.setValueAtTime(0.03,audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.03);
+  o.start(audioCtx.currentTime);
+  o.stop(audioCtx.currentTime+0.03);
+}
+
+// ── DOM ──
+const $=id=>document.getElementById(id);
+const screens=document.querySelectorAll('.screen');
+function showScreen(id){screens.forEach(s=>s.classList.remove('active'));$(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'})}
+
+// ── CANVAS SETUP ──
+const canvas=$('game-canvas');
+canvas.width=CANVAS_W;
+canvas.height=CANVAS_H;
+const ctx=canvas.getContext('2d');
+
+// ── HIGH SCORE ──
+function loadHighScore(){
+  try{highScore=parseInt(localStorage.getItem(LS_KEY))||0}catch{highScore=0}
+  $('home-highscore').textContent=highScore;
+}
+function saveHighScore(){
+  try{localStorage.setItem(LS_KEY,highScore)}catch{}
+}
+loadHighScore();
+
+// ── GAME INIT ──
+function initGame(){
+  snake=[{x:5,y:Math.floor(GRID_H/2)},{x:4,y:Math.floor(GRID_H/2)},{x:3,y:Math.floor(GRID_H/2)}];
+  dir={x:1,y:0};
+  nextDir={x:1,y:0};
+  score=0;
+  foodEaten=0;
+  currentSpeed=BASE_SPEED;
+  gameOver=false;
+  gamePaused=false;
+  gameRunning=true;
+  spawnFood();
+  updateLCD();
+  $('lcd-overlay').classList.add('hidden');
+  $('lcd-pause-overlay').classList.add('hidden');
+  $('lcd-left-label').textContent='Pause';
+  draw();
+  startLoop();
+}
+
+function spawnFood(){
+  let valid=false;
+  while(!valid){
+    food.x=Math.floor(Math.random()*GRID_W);
+    food.y=Math.floor(Math.random()*GRID_H);
+    valid=!snake.some(s=>s.x===food.x&&s.y===food.y);
+  }
+}
+
+function startLoop(){
+  if(gameLoop)clearInterval(gameLoop);
+  gameLoop=setInterval(tick,currentSpeed);
+}
+
+function tick(){
+  if(!gameRunning||gamePaused||gameOver)return;
+  dir={...nextDir};
+  const head={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
+
+  // Wall collision
+  if(head.x<0||head.x>=GRID_W||head.y<0||head.y>=GRID_H){
+    die();return;
+  }
+
+  // Self collision
+  if(snake.some(s=>s.x===head.x&&s.y===head.y)){
+    die();return;
+  }
+
+  snake.unshift(head);
+
+  // Food check
+  if(head.x===food.x&&head.y===food.y){
+    score+=FOOD_SCORE;
+    foodEaten++;
+    if(audioCtx.state==='suspended')audioCtx.resume();
+    playEatSound();
+    spawnFood();
+    // Speed up
+    const newSpeed=BASE_SPEED-(foodEaten*SPEED_STEP);
+    currentSpeed=Math.max(MIN_SPEED,newSpeed);
+    startLoop();
+  }else{
+    snake.pop();
+  }
+
+  updateLCD();
+  draw();
+}
+
+function die(){
+  gameOver=true;gameRunning=false;
+  if(gameLoop){clearInterval(gameLoop);gameLoop=null}
+  if(audioCtx.state==='suspended')audioCtx.resume();
+  playDeathSound();
+
+  let newBest=false;
+  if(score>highScore){
+    highScore=score;
+    saveHighScore();
+    newBest=true;
+  }
+
+  // Flash snake then show overlay
+  let flashes=0;
+  const flashInterval=setInterval(()=>{
+    flashes++;
+    if(flashes%2===0)draw();
+    else{ctx.fillStyle=LCD_BG;ctx.fillRect(0,0,CANVAS_W,CANVAS_H)}
+    if(flashes>=6){
+      clearInterval(flashInterval);
+      draw();
+      showLCDGameOver(newBest);
+    }
+  },150);
+}
+
+function showLCDGameOver(newBest){
+  $('lcd-overlay-title').textContent='GAME OVER';
+  $('lcd-overlay-score').textContent='Score: '+score+(newBest?' NEW BEST!':'');
+  $('lcd-overlay-prompt').textContent='Press Start';
+  $('lcd-overlay').classList.remove('hidden');
+  $('lcd-left-label').textContent='Results';
+}
+
+function updateLCD(){
+  $('lcd-score').textContent='Score: '+score;
+  $('lcd-high').textContent='Hi: '+highScore;
+}
+
+// ── DRAW ──
+function draw(){
+  // Background
+  ctx.fillStyle=LCD_BG;
+  ctx.fillRect(0,0,CANVAS_W,CANVAS_H);
+
+  // Border
+  ctx.strokeStyle=LCD_MED;
+  ctx.lineWidth=1;
+  ctx.strokeRect(0.5,0.5,CANVAS_W-1,CANVAS_H-1);
+
+  // Food (blinking pixel block)
+  ctx.fillStyle=LCD_DARK;
+  const blink=Date.now()%600<400;
+  if(blink){
+    ctx.fillRect(food.x*CELL+1,food.y*CELL+1,CELL-2,CELL-2);
+  }
+
+  // Snake
+  snake.forEach((seg,i)=>{
+    ctx.fillStyle=LCD_DARK;
+    if(i===0){
+      // Head - solid
+      ctx.fillRect(seg.x*CELL,seg.y*CELL,CELL,CELL);
+    }else{
+      // Body - slightly inset for Nokia look
+      ctx.fillRect(seg.x*CELL+1,seg.y*CELL+1,CELL-2,CELL-2);
+    }
+  });
+}
+
+// ── DIRECTION INPUT ──
+function setDirection(newDir){
+  if(audioCtx.state==='suspended')audioCtx.resume();
+
+  if(gameOver){
+    // If on game over screen inside LCD, restart
+    if(!$('lcd-overlay').classList.contains('hidden')){
+      initGame();
+      return;
+    }
+  }
+
+  if(gamePaused){
+    togglePause();
+    return;
+  }
+
+  if(!gameRunning)return;
+
+  // Prevent reversing
+  if(newDir==='up'&&dir.y!==1)nextDir={x:0,y:-1};
+  else if(newDir==='down'&&dir.y!==-1)nextDir={x:0,y:1};
+  else if(newDir==='left'&&dir.x!==1)nextDir={x:-1,y:0};
+  else if(newDir==='right'&&dir.x!==-1)nextDir={x:1,y:0};
+}
+
+function togglePause(){
+  if(gameOver)return;
+  if(!gameRunning)return;
+  gamePaused=!gamePaused;
+  if(gamePaused){
+    $('lcd-pause-overlay').classList.remove('hidden');
+    $('lcd-left-label').textContent='Resume';
+  }else{
+    $('lcd-pause-overlay').classList.add('hidden');
+    $('lcd-left-label').textContent='Pause';
+  }
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown',e=>{
+  switch(e.key){
+    case 'ArrowUp':case 'w':case 'W':e.preventDefault();setDirection('up');break;
+    case 'ArrowDown':case 's':case 'S':e.preventDefault();setDirection('down');break;
+    case 'ArrowLeft':case 'a':case 'A':e.preventDefault();setDirection('left');break;
+    case 'ArrowRight':case 'd':case 'D':e.preventDefault();setDirection('right');break;
+    case ' ':case 'Escape':case 'p':case 'P':e.preventDefault();
+      if(gameOver&&!$('lcd-overlay').classList.contains('hidden')){initGame()}
+      else{togglePause()}
+      break;
+    case 'Enter':
+      if(gameOver&&!$('lcd-overlay').classList.contains('hidden')){initGame()}
+      break;
+  }
+});
+
+// ── NOKIA D-PAD ──
+['nk-up','mob-up'].forEach(id=>{
+  $(id).addEventListener('touchstart',e=>{e.preventDefault();setDirection('up')},{passive:false});
+  $(id).addEventListener('mousedown',e=>{e.preventDefault();setDirection('up')});
+});
+['nk-down','mob-down'].forEach(id=>{
+  $(id).addEventListener('touchstart',e=>{e.preventDefault();setDirection('down')},{passive:false});
+  $(id).addEventListener('mousedown',e=>{e.preventDefault();setDirection('down')});
+});
+['nk-left','mob-left'].forEach(id=>{
+  $(id).addEventListener('touchstart',e=>{e.preventDefault();setDirection('left')},{passive:false});
+  $(id).addEventListener('mousedown',e=>{e.preventDefault();setDirection('left')});
+});
+['nk-right','mob-right'].forEach(id=>{
+  $(id).addEventListener('touchstart',e=>{e.preventDefault();setDirection('right')},{passive:false});
+  $(id).addEventListener('mousedown',e=>{e.preventDefault();setDirection('right')});
+});
+
+$('nk-center').addEventListener('touchstart',e=>{
+  e.preventDefault();
+  if(gameOver&&!$('lcd-overlay').classList.contains('hidden'))initGame();
+  else togglePause();
+},{passive:false});
+$('nk-center').addEventListener('mousedown',e=>{
+  e.preventDefault();
+  if(gameOver&&!$('lcd-overlay').classList.contains('hidden'))initGame();
+  else togglePause();
+});
+
+$('nk-left-action').addEventListener('click',()=>{
+  if(gameOver&&!$('lcd-overlay').classList.contains('hidden')){
+    showResultsScreen();
+  }else{
+    togglePause();
+  }
+});
+
+// ── SWIPE ──
+let touchStartX=0,touchStartY=0;
+const swipeArea=$('nokia-lcd');
+
+swipeArea.addEventListener('touchstart',e=>{
+  touchStartX=e.touches[0].clientX;
+  touchStartY=e.touches[0].clientY;
+},{passive:true});
+
+swipeArea.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-touchStartX;
+  const dy=e.changedTouches[0].clientY-touchStartY;
+  const absDx=Math.abs(dx),absDy=Math.abs(dy);
+  if(Math.max(absDx,absDy)<20)return; // too small
+  if(absDx>absDy){
+    setDirection(dx>0?'right':'left');
+  }else{
+    setDirection(dy>0?'down':'up');
+  }
+},{passive:true});
+
+// ── SCREEN NAV ──
+$('btn-start').onclick=()=>{
+  if(audioCtx.state==='suspended')audioCtx.resume();
+  showScreen('screen-game');
+  initGame();
+};
+
+$('btn-play-again').onclick=()=>{
+  showScreen('screen-game');
+  initGame();
+};
+
+$('btn-home-end').onclick=()=>{
+  if(gameLoop){clearInterval(gameLoop);gameLoop=null}
+  gameRunning=false;
+  loadHighScore();
+  showScreen('screen-home');
+};
+
+// ── RESULTS SCREEN ──
+function showResultsScreen(){
+  if(gameLoop){clearInterval(gameLoop);gameLoop=null}
+  gameRunning=false;
+
+  const newBest=score>=highScore&&score>0;
+  $('res-score').textContent=score;
+  $('res-length').textContent=snake.length;
+  $('res-high').textContent=highScore;
+  $('res-food').textContent=foodEaten;
+  const speedLevel=Math.floor((BASE_SPEED-currentSpeed)/SPEED_STEP)+1;
+  $('res-speed').textContent=speedLevel;
+
+  if(newBest){
+    $('res-new-best').classList.remove('hidden');
+    $('res-new-best').style.display='block';
+  }else{
+    $('res-new-best').classList.add('hidden');
+    $('res-new-best').style.display='none';
+  }
+
+  generateShareCard();
+  showScreen('screen-results');
+}
+
+// ── SHARE CARD ──
+function generateShareCard(){
+  const c=$('share-canvas');
+  const x=c.getContext('2d');
+  const w=600,h=400;
+  c.width=w;c.height=h;
+
+  // BG
+  const grad=x.createLinearGradient(0,0,w,h);
+  grad.addColorStop(0,'#0f0c29');grad.addColorStop(0.5,'#1a1a3e');grad.addColorStop(1,'#0f0f2e');
+  x.fillStyle=grad;x.fillRect(0,0,w,h);
+
+  x.globalAlpha=0.08;
+  x.fillStyle='#4ade80';x.beginPath();x.arc(500,60,120,0,Math.PI*2);x.fill();
+  x.fillStyle='#22c55e';x.beginPath();x.arc(80,350,100,0,Math.PI*2);x.fill();
+  x.globalAlpha=1;
+
+  // Nokia phone outline
+  x.fillStyle='#2a2a3a';
+  roundRect(x,220,30,160,220,16);x.fill();
+  x.fillStyle='#6b7e4f';
+  roundRect(x,236,50,128,100,6);x.fill();
+
+  // Mini snake on screen
+  x.fillStyle='#2d3a1f';
+  const miniSnake=[[280,85],[272,85],[264,85],[264,93],[264,101]];
+  miniSnake.forEach(([sx,sy])=>x.fillRect(sx,sy,7,7));
+  // Mini food
+  x.fillRect(304,101,6,6);
+
+  x.font='900 28px Nunito, sans-serif';x.fillStyle='#4ade80';x.textAlign='center';
+  x.fillText('🐍 Snake 3310',w/2,200);
+
+  x.font='900 64px Nunito, sans-serif';x.fillStyle='#4ade80';
+  x.fillText(String(score),w/2,275);
+
+  x.font='700 16px Nunito, sans-serif';x.fillStyle='#94a1b2';
+  x.fillText('POINTS',w/2,298);
+
+  const statY=330;
+  x.fillText('LENGTH',150,statY);
+  x.font='900 28px Nunito, sans-serif';x.fillStyle='#22c55e';
+  x.fillText(String(snake.length),150,statY+30);
+
+  x.font='700 16px Nunito, sans-serif';x.fillStyle='#94a1b2';
+  x.fillText('HIGH SCORE',300,statY);
+  x.font='900 28px Nunito, sans-serif';x.fillStyle='#facc15';
+  x.fillText(String(highScore),300,statY+30);
+
+  x.font='700 16px Nunito, sans-serif';x.fillStyle='#94a1b2';
+  x.fillText('FOOD',450,statY);
+  x.font='900 28px Nunito, sans-serif';x.fillStyle='#22c55e';
+  x.fillText(String(foodEaten),450,statY+30);
+
+  x.font='700 12px Nunito, sans-serif';x.fillStyle='#94a1b2';
+  x.fillText(window.location.href.replace(/\/$/,''),w/2,390);
+
+  const img=$('share-preview');img.src=c.toDataURL('image/png');img.style.display='block';
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
+$('btn-save-img').onclick=()=>{
+  const link=document.createElement('a');
+  link.download='snake-3310-score.png';
+  link.href=$('share-canvas').toDataURL('image/png');
+  link.click();
+  $('btn-save-img').innerHTML='✅ Saved!';
+  setTimeout(()=>$('btn-save-img').innerHTML='📸 Save Image',2000);
+};
+
+$('btn-copy-text').onclick=()=>{
+  let text='🐍 Snake 3310\n\n';
+  text+='Score: '+score+'\n';
+  text+='Length: '+snake.length+'\n';
+  text+='High Score: '+highScore+'\n\n';
+  text+='Can you beat my score?\n'+window.location.href;
+  navigator.clipboard.writeText(text).then(()=>{
+    $('btn-copy-text').innerHTML='✅ Copied!';
+    setTimeout(()=>$('btn-copy-text').innerHTML='📋 Copy Result',2000);
+  }).catch(()=>{});
+};
+
+// ── FOOD BLINK ANIMATION ──
+function animLoop(){
+  if(gameRunning&&!gamePaused&&!gameOver)draw();
+  requestAnimationFrame(animLoop);
+}
+animLoop();
+
+})();
+</script>
+</body>
+</html>
