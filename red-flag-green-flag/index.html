@@ -14,6 +14,7 @@
 <title>Red Flag Green Flag 🚩</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{
@@ -22,19 +23,25 @@ body{
   color:#fff;display:flex;justify-content:center;align-items:flex-start;
   overflow-x:hidden;overflow-y:auto;user-select:none;-webkit-user-select:none;
 }
+.bg-blob{position:fixed;border-radius:50%;filter:blur(100px);opacity:.3;pointer-events:none;z-index:0}
+.bg-blob.a{width:500px;height:500px;background:#ef4444;top:-120px;left:-100px;animation:fA 18s ease-in-out infinite}
+.bg-blob.b{width:400px;height:400px;background:#22c55e;bottom:-80px;right:-80px;animation:fB 22s ease-in-out infinite}
+.bg-blob.c{width:300px;height:300px;background:#a855f7;top:50%;left:55%;animation:fC 20s ease-in-out infinite}
+@keyframes fA{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,80px)}}
+@keyframes fB{0%,100%{transform:translate(0,0)}50%{transform:translate(-50px,-60px)}}
+@keyframes fC{0%,100%{transform:translate(0,0)}50%{transform:translate(-40px,50px)}}
+
 .container{position:relative;z-index:1;width:100%;max-width:520px;padding:40px 20px;display:flex;flex-direction:column;align-items:center}
 .screen{display:none;width:100%;animation:fadeIn .4s ease}
 .screen.active{display:flex;flex-direction:column;align-items:center}
 
 @keyframes fadeIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 @keyframes popIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
-@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 @keyframes flagWave{0%{transform:rotate(0deg)}25%{transform:rotate(8deg)}50%{transform:rotate(0deg)}75%{transform:rotate(-8deg)}100%{transform:rotate(0deg)}}
-@keyframes pulseGreen{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.4)}50%{box-shadow:0 0 0 12px rgba(34,197,94,0)}}
-@keyframes pulseRed{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4)}50%{box-shadow:0 0 0 12px rgba(239,68,68,0)}}
-@keyframes revealGlow{0%{box-shadow:0 0 0 0 rgba(168,85,247,.6)}100%{box-shadow:0 0 30px 10px rgba(168,85,247,0)}}
-@keyframes confettiFall{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(60px) rotate(360deg);opacity:0}}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(168,85,247,.4)}50%{box-shadow:0 0 0 12px rgba(168,85,247,0)}}
 
 .logo{font-size:2.2rem;font-weight:900;text-align:center;line-height:1.15;margin-bottom:8px}
 .logo .red{color:#ef4444}
@@ -43,28 +50,35 @@ body{
 
 .card{background:rgba(255,255,255,.06);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px 24px;width:100%;margin-bottom:18px;box-shadow:0 8px 32px rgba(0,0,0,.25)}
 
+label{font-weight:700;font-size:.85rem;margin-bottom:6px;display:block;color:#ffffffcc}
+input[type="text"]{width:100%;padding:14px 18px;border:2px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.07);color:#fff;font-size:1rem;font-family:inherit;font-weight:600;outline:none;transition:border .2s}
+input[type="text"]:focus{border-color:#a855f7}
+input[type="text"]::placeholder{color:#ffffff44}
+
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 32px;border:none;border-radius:14px;font-family:inherit;font-size:1rem;font-weight:800;cursor:pointer;transition:all .2s;width:100%}
 .btn:active{transform:scale(.97)}
 .btn-primary{background:linear-gradient(135deg,#ef4444,#22c55e);color:#fff;box-shadow:0 4px 20px rgba(239,68,68,.3)}
 .btn-primary:hover{box-shadow:0 6px 28px rgba(34,197,94,.4)}
+.btn-secondary{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;box-shadow:0 4px 20px rgba(34,197,94,.3)}
+.btn-secondary:hover{box-shadow:0 6px 28px rgba(34,197,94,.5)}
 .btn-outline{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.2)}
 .btn-outline:hover{border-color:#a855f7;color:#a855f7}
 .btn-share{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;box-shadow:0 4px 20px rgba(139,92,246,.3)}
 .btn-share:hover{box-shadow:0 6px 28px rgba(139,92,246,.5)}
 .btn+.btn{margin-top:12px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+.code-display{font-size:2.4rem;font-weight:900;letter-spacing:.3em;text-align:center;padding:18px;background:rgba(168,85,247,.15);border:2px dashed rgba(168,85,247,.4);border-radius:16px;margin:18px 0;color:#c4b5fd;user-select:all}
+.status{text-align:center;color:#94a1b2;font-size:.9rem;margin:12px 0;display:flex;align-items:center;justify-content:center;gap:8px}
+.dot-pulse{width:8px;height:8px;border-radius:50%;background:#a855f7;animation:pulse 1.2s ease-in-out infinite}
+
+.divider{display:flex;align-items:center;gap:14px;margin:20px 0;width:100%;color:#94a1b2;font-size:.8rem;font-weight:700}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.1)}
 
 .instructions{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 20px;margin:0 0 18px;width:100%}
 .instructions h3{font-size:.85rem;color:#ef4444;margin-bottom:8px;text-transform:uppercase;letter-spacing:.1em}
 .instructions p{font-size:.82rem;color:#94a1b2;line-height:1.6}
 .instructions strong{color:#fff}
-
-/* Name inputs */
-.name-inputs{display:flex;gap:12px;margin:12px 0;width:100%}
-.name-input-wrap{flex:1}
-.name-input-wrap label{font-size:.75rem;color:#94a1b2;font-weight:700;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.08em}
-.name-input{width:100%;padding:12px 16px;border:2px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(255,255,255,.06);color:#fff;font-family:inherit;font-weight:700;font-size:.95rem;transition:border-color .2s;outline:none}
-.name-input:focus{border-color:#a855f7}
-.name-input::placeholder{color:rgba(255,255,255,.25)}
 
 /* Category picker */
 .cat-picker{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0;width:100%}
@@ -77,7 +91,6 @@ body{
 .cat-pick.active{background:rgba(168,85,247,.15);border-color:#a855f7}
 .cat-pick .cat-emoji{font-size:1.4rem;display:block;margin-bottom:2px}
 .cat-pick .cat-name{font-weight:800;font-size:.85rem}
-.cat-pick .cat-count{font-size:.7rem;color:#94a1b2;margin-top:2px}
 
 /* Round picker */
 .round-picker{display:flex;gap:8px;margin:12px 0;width:100%}
@@ -85,24 +98,25 @@ body{
 .round-pick:hover{border-color:#a855f7}
 .round-pick.active{background:rgba(168,85,247,.15);border-color:#a855f7}
 
+.error-msg{background:rgba(239,68,68,.15);color:#ef4444;padding:12px 18px;border-radius:12px;font-size:.85rem;font-weight:700;text-align:center;margin:12px 0;display:none;width:100%}
+.error-msg.show{display:block;animation:shake .4s ease}
+
 /* ══════ GAME ══════ */
 .progress-bar{width:100%;height:6px;border-radius:3px;background:rgba(255,255,255,.1);margin:12px 0;overflow:hidden}
 .progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#ef4444,#22c55e);transition:width .4s ease}
-
 .round-counter{text-align:center;font-size:.85rem;color:#94a1b2;font-weight:700;margin:8px 0}
+.cat-badge-game{display:inline-block;padding:4px 14px;border-radius:20px;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px;background:rgba(168,85,247,.2);color:#a855f7}
 
 .prompt-card{
   background:rgba(255,255,255,.06);backdrop-filter:blur(16px);
   border:1px solid rgba(255,255,255,.1);border-radius:24px;
   padding:40px 28px;width:100%;text-align:center;
   margin:16px 0;min-height:160px;
-  display:flex;align-items:center;justify-content:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
   box-shadow:0 8px 32px rgba(0,0,0,.25);
   animation:slideUp .4s ease;
 }
 .prompt-text{font-size:1.3rem;font-weight:800;line-height:1.4}
-
-.who-voting{text-align:center;margin:12px 0;font-size:1rem;font-weight:800;color:#a855f7;animation:fadeIn .3s ease}
 
 .flag-buttons{display:flex;gap:16px;width:100%;margin:16px 0}
 .flag-btn{
@@ -114,51 +128,26 @@ body{
 }
 .flag-btn:active{transform:scale(.95)}
 .flag-btn .flag-icon{font-size:2.5rem}
-.flag-btn.red-flag:hover{border-color:#ef4444;background:rgba(239,68,68,.1)}
 .flag-btn.green-flag:hover{border-color:#22c55e;background:rgba(34,197,94,.1)}
-.flag-btn.selected-red{border-color:#ef4444;background:rgba(239,68,68,.15);animation:pulseRed .6s ease}
-.flag-btn.selected-green{border-color:#22c55e;background:rgba(34,197,94,.15);animation:pulseGreen .6s ease}
+.flag-btn.red-flag:hover{border-color:#ef4444;background:rgba(239,68,68,.1)}
+.flag-btn.selected-green{border-color:#22c55e;background:rgba(34,197,94,.15);box-shadow:0 0 20px rgba(34,197,94,.3)}
+.flag-btn.selected-red{border-color:#ef4444;background:rgba(239,68,68,.15);box-shadow:0 0 20px rgba(239,68,68,.3)}
 .flag-btn.disabled{opacity:.4;pointer-events:none}
 
-/* Waiting screen */
-.waiting-msg{
-  text-align:center;padding:40px 20px;
-  animation:fadeIn .4s ease;
-}
-.waiting-msg .wait-emoji{font-size:3rem;margin-bottom:12px;animation:flagWave 1s ease infinite}
-.waiting-msg .wait-text{font-size:1.1rem;font-weight:800;color:#a855f7}
-.waiting-msg .wait-sub{font-size:.85rem;color:#94a1b2;margin-top:6px}
-
 /* Reveal */
-.reveal-card{
-  background:rgba(255,255,255,.06);backdrop-filter:blur(16px);
-  border:1px solid rgba(255,255,255,.1);border-radius:24px;
-  padding:32px 24px;width:100%;text-align:center;
-  margin:16px 0;animation:popIn .4s ease;
-}
-.reveal-prompt{font-size:1rem;font-weight:700;color:#94a1b2;margin-bottom:16px}
-.reveal-answers{display:flex;gap:16px;justify-content:center;margin:16px 0}
-.reveal-answer{
-  flex:1;padding:20px 12px;border-radius:16px;text-align:center;
-  animation:popIn .5s ease;
-}
-.reveal-answer .player-name{font-size:.8rem;font-weight:700;color:#94a1b2;margin-bottom:6px}
-.reveal-answer .answer-flag{font-size:2.5rem;margin-bottom:4px}
-.reveal-answer .answer-label{font-size:.85rem;font-weight:800}
-.reveal-answer.red-bg{background:rgba(239,68,68,.12);border:2px solid rgba(239,68,68,.25)}
-.reveal-answer.red-bg .answer-label{color:#ef4444}
-.reveal-answer.green-bg{background:rgba(34,197,94,.12);border:2px solid rgba(34,197,94,.25)}
-.reveal-answer.green-bg .answer-label{color:#22c55e}
+.reveal-container{display:flex;gap:16px;margin:16px 0;width:100%}
+.reveal-card{flex:1;padding:20px 16px;border-radius:16px;text-align:center;animation:slideUp .5s ease}
+.reveal-card .player-name{font-size:.75rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.1em}
+.reveal-card .answer-flag{font-size:2.5rem;margin:8px 0 4px}
+.reveal-card .answer-label{font-size:.85rem;font-weight:800}
+.reveal-card.red-bg{background:rgba(239,68,68,.12);border:2px solid rgba(239,68,68,.25)}
+.reveal-card.red-bg .answer-label{color:#ef4444}
+.reveal-card.green-bg{background:rgba(34,197,94,.12);border:2px solid rgba(34,197,94,.25)}
+.reveal-card.green-bg .answer-label{color:#22c55e}
 
-.match-result{margin:16px 0;font-size:1.3rem;font-weight:900;animation:popIn .5s ease}
-.match-result.matched{color:#22c55e}
-.match-result.different{color:#ef4444}
-
-.btn-next{
-  background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;
-  box-shadow:0 4px 20px rgba(168,85,247,.4);margin-top:8px;
-}
-.btn-next:hover{box-shadow:0 6px 28px rgba(168,85,247,.55)}
+.match-result{text-align:center;padding:18px;border-radius:16px;font-size:1.3rem;font-weight:800;margin:10px 0 20px;animation:popIn .6s cubic-bezier(.17,.67,.29,1.27)}
+.match-result.yes{background:rgba(34,197,94,.15);color:#22c55e;border:2px solid rgba(34,197,94,.3)}
+.match-result.no{background:rgba(239,68,68,.15);color:#ef4444;border:2px solid rgba(239,68,68,.3)}
 
 /* ══════ RESULTS ══════ */
 .compat-circle{
@@ -170,15 +159,14 @@ body{
 .compat-circle::before{
   content:'';position:absolute;inset:-4px;border-radius:50%;
   background:conic-gradient(#22c55e var(--pct),rgba(255,255,255,.1) var(--pct));
-  z-index:-1;
+  z-index:-1;transition:background 1s ease;
 }
 .compat-circle::after{
   content:'';position:absolute;inset:0;border-radius:50%;
-  background:linear-gradient(135deg,#0f0c29,#1a1a3e);z-index:-1;
+  background:linear-gradient(135deg,#0a0a1a,#1a1a3e);z-index:-1;
 }
 .compat-pct{font-size:3rem;font-weight:900;line-height:1}
 .compat-label{font-size:.8rem;font-weight:700;color:#94a1b2;margin-top:2px}
-
 .compat-title{text-align:center;font-size:1.3rem;font-weight:900;margin:8px 0}
 .compat-desc{text-align:center;font-size:.9rem;color:#94a1b2;font-weight:600;margin-bottom:16px}
 
@@ -186,17 +174,15 @@ body{
 .result-box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px 12px;text-align:center}
 .result-box .label{font-size:.7rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
 .result-box .value{font-size:1.5rem;font-weight:900}
-.result-box .value.green{color:#22c55e}
-.result-box .value.red{color:#ef4444}
-.result-box .value.purple{background:linear-gradient(135deg,#a855f7,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.result-box .value.val-green{color:#22c55e}
+.result-box .value.val-red{color:#ef4444}
 
 .round-recap{width:100%;margin:16px 0}
 .recap-title{font-size:.8rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;text-align:center}
 .recap-list{display:flex;flex-direction:column;gap:8px}
 .recap-item{
   background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
-  border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:12px;
-  font-size:.82rem;
+  border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:12px;font-size:.82rem;
 }
 .recap-item .recap-num{font-weight:900;color:#94a1b2;min-width:24px}
 .recap-item .recap-prompt{flex:1;font-weight:600;color:#ffffffcc}
@@ -212,41 +198,28 @@ body{
 .share-buttons{display:flex;gap:8px}
 .share-buttons .btn{flex:1}
 
-/* Handoff overlay */
-.handoff-overlay{
-  position:fixed;top:0;left:0;right:0;bottom:0;
-  background:rgba(10,10,26,.95);display:flex;align-items:center;justify-content:center;
-  z-index:100;padding:20px;
-}
-.handoff-card{
-  background:rgba(255,255,255,.06);backdrop-filter:blur(16px);
-  border:1px solid rgba(255,255,255,.15);border-radius:24px;
-  padding:40px 32px;text-align:center;max-width:400px;width:100%;
-  animation:popIn .4s ease;
-}
-.handoff-emoji{font-size:3rem;margin-bottom:12px}
-.handoff-title{font-size:1.4rem;font-weight:900;margin-bottom:8px}
-.handoff-sub{font-size:.9rem;color:#94a1b2;margin-bottom:24px;font-weight:600}
-
-.error-msg{background:rgba(239,68,68,.15);color:#ef4444;padding:12px 18px;border-radius:12px;font-size:.85rem;font-weight:700;text-align:center;margin:8px 0;display:none;width:100%}
-.error-msg.show{display:block;animation:shake .4s ease}
-
 @media(max-width:480px){
   .logo{font-size:1.7rem}
   .prompt-text{font-size:1.1rem}
   .flag-btn{padding:20px 12px}
   .flag-btn .flag-icon{font-size:2rem}
   .card{padding:24px 20px}
+  .code-display{font-size:1.8rem;letter-spacing:.2em}
   .compat-circle{width:140px;height:140px}
   .compat-pct{font-size:2.5rem}
   .recap-item{font-size:.78rem;padding:10px 12px}
+  .reveal-container{gap:10px}
 }
 </style>
 </head>
 <body>
 
-<a href="../" id="arcade-home-btn" style="position:fixed;top:16px;left:16px;z-index:999;background:rgba(255,255,255,.06);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:10px 16px;color:#fff;text-decoration:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:.85rem;display:flex;align-items:center;gap:6px;transition:all .3s;box-shadow:0 4px 15px rgba(0,0,0,.2)">🏠 Arcade</a>
+<a href="../" id="arcade-home-btn" style="position:fixed;top:16px;left:16px;z-index:999;background:rgba(255,255,255,.06);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:10px 16px;color:#fff;text-decoration:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:.85rem;display:flex;align-items:center;gap:6px;transition:all .3s;box-shadow:0 4px 15px rgba(0,0,0,.2)">🏠 Back to the Arcade</a>
 <style>#arcade-home-btn:hover{background:rgba(255,255,255,.12);transform:translateY(-2px)}</style>
+
+<div class="bg-blob a"></div>
+<div class="bg-blob b"></div>
+<div class="bg-blob c"></div>
 
 <div class="container">
 
@@ -257,30 +230,39 @@ body{
 
 <div class="instructions">
 <h3>📖 How to play</h3>
-<p>A prompt appears — both players take turns voting <strong>🟢 Green Flag</strong> or <strong>🔴 Red Flag</strong>. See if you agree! At the end, find out your <strong>compatibility score</strong>.</p>
+<p>A prompt appears — both players vote <strong>🟢 Green Flag</strong> or <strong>🔴 Red Flag</strong> at the same time from different devices. See if you agree! At the end, find out your <strong>compatibility score</strong>.</p>
 </div>
 
 <div class="card">
-<label style="font-weight:700;font-size:.85rem;color:#ffffffcc;display:block;margin-bottom:8px">Player Names</label>
-<div class="name-inputs">
-<div class="name-input-wrap">
-<label>Player 1</label>
-<input class="name-input" id="name1" type="text" placeholder="Name" maxlength="12" autocomplete="off">
-</div>
-<div class="name-input-wrap">
-<label>Player 2</label>
-<input class="name-input" id="name2" type="text" placeholder="Name" maxlength="12" autocomplete="off">
-</div>
-</div>
+<label for="input-name">Your Name</label>
+<input type="text" id="input-name" placeholder="Enter your name…" maxlength="16" autocomplete="off"/>
 </div>
 
+<button class="btn btn-primary" id="btn-create">✨ Create Game</button>
+<div class="divider">OR</div>
 <div class="card">
-<label style="font-weight:700;font-size:.85rem;color:#ffffffcc;display:block;margin-bottom:8px">Category</label>
+<label for="input-code">Invite Code</label>
+<input type="text" id="input-code" placeholder="e.g. A3BX9K" maxlength="6" autocomplete="off" style="text-transform:uppercase;letter-spacing:.15em;text-align:center"/>
+</div>
+<button class="btn btn-secondary" id="btn-join">🤝 Join Game</button>
+<div class="error-msg" id="home-error"></div>
+</div>
+
+<!-- ══════ LOBBY ══════ -->
+<div class="screen" id="screen-lobby">
+<div class="logo">🚩 <span class="red">Red Flag</span> <span class="green">Green Flag</span></div>
+<p class="subtitle">Share this code with a friend</p>
+<div class="card" style="text-align:center">
+<label>Invite Code</label>
+<div class="code-display" id="lobby-code"></div>
+<button class="btn btn-outline" id="btn-copy" style="margin-top:12px;width:auto;padding:10px 24px;display:inline-flex">📋 Copy Code</button>
+</div>
+
+<div class="card" id="lobby-settings">
+<label style="margin-bottom:8px">Category</label>
 <div class="cat-picker" id="cat-picker"></div>
-</div>
-
-<div class="card">
-<label style="font-weight:700;font-size:.85rem;color:#ffffffcc;display:block;margin-bottom:8px">Number of Rounds</label>
+<div style="height:16px"></div>
+<label>Number of Rounds</label>
 <div class="round-picker">
 <button class="round-pick" data-rounds="10">10</button>
 <button class="round-pick active" data-rounds="15">15</button>
@@ -288,8 +270,15 @@ body{
 </div>
 </div>
 
-<div class="error-msg" id="error-msg"></div>
-<button class="btn btn-primary" id="btn-start">🚩 Start Game</button>
+<div class="status"><div class="dot-pulse"></div><span id="lobby-status">Waiting for opponent…</span></div>
+<button class="btn btn-primary" id="btn-start-game" style="display:none" disabled>🚩 Start Game</button>
+</div>
+
+<!-- ══════ CONNECTING ══════ -->
+<div class="screen" id="screen-connecting">
+<div class="logo">Connecting… ⏳</div>
+<div class="status"><div class="dot-pulse"></div><span id="connecting-status">Please wait…</span></div>
+<div class="error-msg" id="connecting-error"></div>
 </div>
 
 <!-- ══════ GAME ══════ -->
@@ -298,29 +287,37 @@ body{
 <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
 
 <div class="prompt-card" id="prompt-card">
+<div class="cat-badge-game" id="game-cat-badge"></div>
 <div class="prompt-text" id="prompt-text"></div>
 </div>
 
-<div class="who-voting" id="who-voting"></div>
-
 <div class="flag-buttons" id="flag-buttons">
-<button class="flag-btn green-flag" id="btn-green-flag">
+<button class="flag-btn green-flag" id="btn-green">
 <span class="flag-icon">🟢</span>
 <span>Green Flag</span>
 </button>
-<button class="flag-btn red-flag" id="btn-red-flag">
+<button class="flag-btn red-flag" id="btn-red">
 <span class="flag-icon">🔴</span>
 <span>Red Flag</span>
 </button>
 </div>
 
-<div class="waiting-msg" id="waiting-msg" style="display:none">
-<div class="wait-emoji">🫣</div>
-<div class="wait-text" id="wait-text">Waiting...</div>
-<div class="wait-sub">Hand the phone to the next player</div>
+<div class="status" id="game-status" style="display:none"><div class="dot-pulse"></div><span id="game-status-text">Waiting for opponent…</span></div>
 </div>
 
-<div id="reveal-container" style="display:none"></div>
+<!-- ══════ REVEAL ══════ -->
+<div class="screen" id="screen-reveal">
+<div class="round-counter" id="reveal-round-label">Round 1 Result</div>
+
+<div class="prompt-card" style="min-height:auto;padding:24px 20px;margin:12px 0">
+<div class="prompt-text" id="reveal-prompt" style="font-size:1.1rem"></div>
+</div>
+
+<div class="reveal-container" id="reveal-answers"></div>
+<div class="match-result" id="match-result"></div>
+
+<button class="btn btn-primary" id="btn-next-round">➡️ Next Round</button>
+<div class="status" id="reveal-status" style="display:none"><div class="dot-pulse"></div><span id="reveal-status-text">Waiting…</span></div>
 </div>
 
 <!-- ══════ RESULTS ══════ -->
@@ -338,15 +335,15 @@ body{
 <div class="results-grid">
 <div class="result-box">
 <div class="label">Matched</div>
-<div class="value green" id="res-matched">0</div>
+<div class="value val-green" id="res-matched">0</div>
 </div>
 <div class="result-box">
 <div class="label">Different</div>
-<div class="value red" id="res-different">0</div>
+<div class="value val-red" id="res-different">0</div>
 </div>
 </div>
 
-<div class="round-recap" id="round-recap">
+<div class="round-recap">
 <div class="recap-title">Round by Round</div>
 <div class="recap-list" id="recap-list"></div>
 </div>
@@ -362,7 +359,7 @@ body{
 </div>
 </div>
 
-<button class="btn btn-primary" id="btn-again">🔄 Play Again</button>
+<button class="btn btn-primary" id="btn-play-again">🔄 Play Again</button>
 <button class="btn btn-outline" id="btn-home-end">🏠 Back to Menu</button>
 </div>
 
@@ -374,36 +371,91 @@ body{
 </div>
 </div>
 
-<!-- Handoff overlay -->
-<div class="handoff-overlay" id="handoff-overlay" style="display:none">
-<div class="handoff-card">
-<div class="handoff-emoji" id="handoff-emoji">📱</div>
-<div class="handoff-title" id="handoff-title">Pass the phone!</div>
-<div class="handoff-sub" id="handoff-sub">Give the device to the next player</div>
-<button class="btn btn-primary" id="btn-handoff-ready">I'm Ready!</button>
-</div>
-</div>
-
 <script>
 (function(){
 
+const PEER_PREFIX='rfgf2024x';
+
+const COMPAT_RANKS=[
+  {min:90,title:'Soulmates 💕',desc:'You two are basically the same person!'},
+  {min:75,title:'Best Friends 🤝',desc:'You see the world through very similar eyes!'},
+  {min:60,title:'Good Match 👍',desc:'More alike than different — solid compatibility!'},
+  {min:40,title:'Interesting Duo 🤔',desc:'Some differences but that keeps things spicy!'},
+  {min:20,title:'Opposites Attract? 😬',desc:"You don't agree on much — but variety is fun!"},
+  {min:0,title:'Total Opposites 💥',desc:"One person's green flag is the other's red flag!"},
+];
+
+const RESULT_FACTS=[
+  "Couples who agree on <strong>70%+ of values</strong> report higher relationship satisfaction",
+  "Disagreeing on flags doesn't mean incompatibility — it means <strong>interesting conversations</strong>!",
+  "Research shows that <strong>healthy debate</strong> actually strengthens relationships",
+  "People in strong relationships disagree on about <strong>30% of topics</strong> on average",
+  "The things you both flag as red are the <strong>shared values</strong> that bond you",
+  "Matching on green flags shows you appreciate the <strong>same qualities</strong> in people",
+  "Psychologists say it's more important to agree on <strong>dealbreakers</strong> than preferences",
+  "Partners who discuss their flags openly have <strong>40% fewer surprises</strong> in relationships",
+  "Your red flags often reflect <strong>past experiences</strong> — comparing them can be eye-opening",
+  "Studies show couples who play games together feel <strong>26% more connected</strong>",
+];
+
+// ══════════════════════════════════
+// STATE
+// ══════════════════════════════════
 let promptData=null;
 let selectedCats=new Set(['all']);
 let totalRounds=15;
-let p1Name='Player 1';
-let p2Name='Player 2';
-let currentRound=0;
-let currentVoter=1; // 1 or 2
+let peer=null;
+let conn=null;
+let isHost=false;
+let myName='';
+let oppName='';
+let gameCode='';
 let roundPrompts=[];
-let answers=[]; // [{prompt,p1,p2}]
-let p1Answer=null;
+let currentRound=0;
+let answers=[]; // [{prompt,category,my,opp,match}]
+let myAnswer=null;
+let oppAnswer=null;
+let submitted=false;
+let waitingNextReady=false;
+let nextReadyCount=0;
+let oppConnected=false;
 
 const $=id=>document.getElementById(id);
 const screens=document.querySelectorAll('.screen');
+
 function showScreen(id){
   screens.forEach(s=>s.classList.remove('active'));
   $(id).classList.add('active');
   window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function showError(id,msg){
+  const el=$(id);
+  el.textContent=msg;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),5000);
+}
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+function genCode(){
+  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let r='';
+  for(let i=0;i<6;i++)r+=c[Math.floor(Math.random()*c.length)];
+  return r;
+}
+
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function send(obj){
+  if(conn&&conn.open)conn.send(JSON.stringify(obj));
 }
 
 // ══════════════════════════════════
@@ -413,30 +465,29 @@ async function loadPrompts(){
   try{
     const res=await fetch('prompts.json');
     promptData=await res.json();
-    buildCategoryPicker();
   }catch(e){
     console.error('Failed to load prompts:',e);
-    showError('Failed to load prompts. Please refresh the page.');
+    showError('home-error','Failed to load prompts. Please refresh.');
   }
 }
 loadPrompts();
 
 function buildCategoryPicker(){
+  if(!promptData)return;
   const picker=$('cat-picker');
   picker.innerHTML='';
 
-  // All option
   const allBtn=document.createElement('button');
   allBtn.className='cat-pick active';
   allBtn.dataset.cat='all';
-  allBtn.innerHTML=`<span class="cat-emoji">🎲</span><span class="cat-name">All Mixed</span><span class="cat-count">${promptData.categories.reduce((s,c)=>s+c.prompts.length,0)} prompts</span>`;
+  allBtn.innerHTML=`<span class="cat-emoji">🎲</span><span class="cat-name">All Mixed</span>`;
   picker.appendChild(allBtn);
 
   promptData.categories.forEach(cat=>{
     const btn=document.createElement('button');
     btn.className='cat-pick';
     btn.dataset.cat=cat.id;
-    btn.innerHTML=`<span class="cat-emoji">${cat.emoji}</span><span class="cat-name">${cat.name}</span><span class="cat-count">${cat.prompts.length} prompts</span>`;
+    btn.innerHTML=`<span class="cat-emoji">${cat.emoji}</span><span class="cat-name">${cat.name}</span>`;
     picker.appendChild(btn);
   });
 
@@ -474,253 +525,369 @@ document.querySelectorAll('.round-pick').forEach(btn=>{
   };
 });
 
-function showError(msg){
-  const el=$('error-msg');
-  el.textContent=msg;
-  el.classList.add('show');
-  setTimeout(()=>el.classList.remove('show'),3000);
-}
-
 // ══════════════════════════════════
-// GET PROMPTS POOL
+// PROMPT POOL
 // ══════════════════════════════════
 function getPromptPool(){
   if(!promptData)return[];
   if(selectedCats.has('all')){
-    return promptData.categories.flatMap(c=>c.prompts);
+    return promptData.categories.flatMap(c=>c.prompts.map(p=>({text:p,category:c.name,emoji:c.emoji})));
   }
-  return promptData.categories.filter(c=>selectedCats.has(c.id)).flatMap(c=>c.prompts);
+  return promptData.categories.filter(c=>selectedCats.has(c.id)).flatMap(c=>c.prompts.map(p=>({text:p,category:c.name,emoji:c.emoji})));
 }
 
-function shuffle(arr){
-  const a=[...arr];
-  for(let i=a.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [a[i],a[j]]=[a[j],a[i]];
-  }
-  return a;
-}
-
-// ══════════════════════════════════
-// START GAME
-// ══════════════════════════════════
-function startGame(){
-  p1Name=$('name1').value.trim()||'Player 1';
-  p2Name=$('name2').value.trim()||'Player 2';
-
+function buildRounds(){
   const pool=getPromptPool();
-  if(pool.length<totalRounds){
-    showError(`Not enough prompts! Select more categories or fewer rounds.`);
+  return shuffle(pool).slice(0,totalRounds);
+}
+
+// ══════════════════════════════════
+// PEER SETUP
+// ══════════════════════════════════
+$('btn-create').onclick=()=>{
+  const name=$('input-name').value.trim();
+  if(!name)return showError('home-error','Please enter your name');
+  if(!promptData)return showError('home-error','Prompts still loading, try again');
+  myName=name;
+  isHost=true;
+  gameCode=genCode();
+
+  showScreen('screen-connecting');
+  $('connecting-status').textContent='Setting up game…';
+
+  peer=new Peer(PEER_PREFIX+gameCode);
+  peer.on('open',()=>{
+    $('lobby-code').textContent=gameCode;
+    buildCategoryPicker();
+    showScreen('screen-lobby');
+    $('lobby-status').textContent='Waiting for opponent…';
+    $('btn-start-game').style.display='none';
+
+    peer.on('connection',c=>{
+      if(conn){c.close();return}
+      conn=c;
+      $('lobby-status').textContent='Connecting…';
+      wireConnection();
+    });
+  });
+  peer.on('error',err=>{
+    if(err.type==='unavailable-id'){peer.destroy();$('btn-create').click()}
+    else{showScreen('screen-home');showError('home-error','Error: '+err.type)}
+  });
+};
+
+$('btn-join').onclick=()=>{
+  const name=$('input-name').value.trim();
+  const code=$('input-code').value.trim().toUpperCase();
+  if(!name)return showError('home-error','Please enter your name');
+  if(!code||code.length<4)return showError('home-error','Enter a valid invite code');
+  myName=name;
+  isHost=false;
+  gameCode=code;
+
+  showScreen('screen-connecting');
+  $('connecting-status').textContent='Connecting…';
+
+  peer=new Peer(PEER_PREFIX+'g'+genCode());
+  peer.on('open',()=>{
+    $('connecting-status').textContent='Joining game…';
+    conn=peer.connect(PEER_PREFIX+code,{reliable:true});
+    wireConnection();
+  });
+  peer.on('error',err=>{
+    if(err.type==='peer-unavailable'){
+      showScreen('screen-home');
+      showError('home-error','Game not found. Check the code.');
+    }else{
+      showScreen('screen-home');
+      showError('home-error','Error: '+err.type);
+    }
+  });
+};
+
+function wireConnection(){
+  conn.on('open',()=>{
+    send({type:'hello',name:myName});
+  });
+  conn.on('data',onMessage);
+  conn.on('close',()=>{
+    alert('Opponent disconnected 😢');
+    cleanup();
+    showScreen('screen-home');
+  });
+}
+
+function cleanup(){
+  if(conn){try{conn.close()}catch{}conn=null}
+  if(peer){try{peer.destroy()}catch{}peer=null}
+  isHost=false;oppConnected=false;
+  currentRound=0;roundPrompts=[];answers=[];
+  myAnswer=null;oppAnswer=null;submitted=false;
+  waitingNextReady=false;nextReadyCount=0;
+}
+
+// ══════════════════════════════════
+// MESSAGE HANDLER
+// ══════════════════════════════════
+function onMessage(raw){
+  let data;
+  try{data=JSON.parse(raw)}catch{return}
+
+  switch(data.type){
+
+    case 'hello':
+      oppName=data.name;
+      if(isHost){
+        send({type:'hello-ack',name:myName});
+        oppConnected=true;
+        $('lobby-status').textContent=`${oppName} joined!`;
+        $('btn-start-game').style.display='';
+        $('btn-start-game').disabled=false;
+      }
+      break;
+
+    case 'hello-ack':
+      oppName=data.name;
+      oppConnected=true;
+      $('connecting-status').textContent=`Connected with ${oppName}! Waiting for host…`;
+      break;
+
+    case 'start':
+      roundPrompts=data.rounds;
+      totalRounds=roundPrompts.length;
+      currentRound=0;
+      answers=[];
+      beginRound();
+      break;
+
+    case 'answer':
+      oppAnswer=data.answer;
+      if(submitted)tryReveal();
+      break;
+
+    case 'next-ready':
+      nextReadyCount++;
+      if(isHost&&waitingNextReady){
+        if(currentRound<totalRounds){
+          send({type:'next-go'});
+          beginRound();
+        }else{
+          send({type:'show-results'});
+          showResults();
+        }
+      }
+      break;
+
+    case 'host-ready':
+      // informational
+      break;
+
+    case 'next-go':
+      beginRound();
+      break;
+
+    case 'show-results':
+      showResults();
+      break;
+
+    case 'replay-start':
+      roundPrompts=data.rounds;
+      totalRounds=roundPrompts.length;
+      currentRound=0;
+      answers=[];
+      beginRound();
+      break;
+
+    case 'replay-request':
+      $('btn-play-again').innerHTML='🔄 Opponent wants to play again!';
+      break;
+  }
+}
+
+// ══════════════════════════════════
+// HOST START GAME
+// ══════════════════════════════════
+$('btn-start-game').onclick=()=>{
+  if(!oppConnected)return;
+  roundPrompts=buildRounds();
+  if(roundPrompts.length<totalRounds){
+    showError('home-error','Not enough prompts. Select more categories or fewer rounds.');
     return;
   }
-
-  roundPrompts=shuffle(pool).slice(0,totalRounds);
   currentRound=0;
   answers=[];
-  p1Answer=null;
-  currentVoter=1;
-
-  showScreen('screen-game');
-  showRound();
-}
-
-// ══════════════════════════════════
-// SHOW ROUND
-// ══════════════════════════════════
-function showRound(){
-  $('round-counter').textContent=`Round ${currentRound+1} / ${totalRounds}`;
-  $('progress-fill').style.width=((currentRound)/totalRounds*100)+'%';
-
-  // Show prompt
-  const promptCard=$('prompt-card');
-  promptCard.style.animation='none';
-  promptCard.offsetHeight;
-  promptCard.style.animation='slideUp .4s ease';
-  $('prompt-text').textContent=roundPrompts[currentRound];
-
-  // Show voting UI for player 1
-  currentVoter=1;
-  p1Answer=null;
-  showVotingUI();
-}
-
-function showVotingUI(){
-  $('flag-buttons').style.display='flex';
-  $('waiting-msg').style.display='none';
-  $('reveal-container').style.display='none';
-  $('prompt-card').style.display='flex';
-
-  const name=currentVoter===1?p1Name:p2Name;
-  $('who-voting').textContent=`${name}'s turn to vote`;
-  $('who-voting').style.display='block';
-
-  // Reset buttons
-  $('btn-green-flag').className='flag-btn green-flag';
-  $('btn-red-flag').className='flag-btn red-flag';
-}
-
-// ══════════════════════════════════
-// VOTE
-// ══════════════════════════════════
-function vote(choice){
-  // Animate selection
-  if(choice==='green'){
-    $('btn-green-flag').classList.add('selected-green');
-    $('btn-red-flag').classList.add('disabled');
-  }else{
-    $('btn-red-flag').classList.add('selected-red');
-    $('btn-green-flag').classList.add('disabled');
-  }
-
-  if(currentVoter===1){
-    p1Answer=choice;
-    // Show handoff
-    setTimeout(()=>{
-      showHandoff(p2Name);
-    },500);
-  }else{
-    // Both answered — reveal!
-    const p2Answer=choice;
-    answers.push({
-      prompt:roundPrompts[currentRound],
-      p1:p1Answer,
-      p2:p2Answer,
-      match:p1Answer===p2Answer
-    });
-
-    setTimeout(()=>{
-      showReveal(answers[answers.length-1]);
-    },500);
-  }
-}
-
-$('btn-green-flag').onclick=()=>vote('green');
-$('btn-red-flag').onclick=()=>vote('red');
-
-// ══════════════════════════════════
-// HANDOFF
-// ══════════════════════════════════
-function showHandoff(playerName){
-  const overlay=$('handoff-overlay');
-  $('handoff-emoji').textContent='📱';
-  $('handoff-title').textContent=`Pass to ${playerName}!`;
-  $('handoff-sub').textContent=`Don't let ${p1Name} see your answer!`;
-  overlay.style.display='flex';
-}
-
-$('btn-handoff-ready').onclick=()=>{
-  $('handoff-overlay').style.display='none';
-  currentVoter=2;
-  showVotingUI();
+  send({type:'start',rounds:roundPrompts});
+  beginRound();
 };
 
 // ══════════════════════════════════
-// REVEAL
+// GAME LOGIC
 // ══════════════════════════════════
-function showReveal(round){
-  $('flag-buttons').style.display='none';
-  $('who-voting').style.display='none';
-  $('waiting-msg').style.display='none';
-  $('prompt-card').style.display='flex';
-  $('reveal-container').style.display='block';
+function beginRound(){
+  myAnswer=null;
+  oppAnswer=null;
+  submitted=false;
+  waitingNextReady=false;
+  nextReadyCount=0;
 
-  const p1Flag=round.p1==='green'?'🟢':'🔴';
-  const p2Flag=round.p2==='green'?'🟢':'🔴';
-  const p1Class=round.p1==='green'?'green-bg':'red-bg';
-  const p2Class=round.p2==='green'?'green-bg':'red-bg';
-  const p1Label=round.p1==='green'?'Green Flag':'Red Flag';
-  const p2Label=round.p2==='green'?'Green Flag':'Red Flag';
+  const round=roundPrompts[currentRound];
 
-  const matchText=round.match?
-    `<div class="match-result matched">✅ You both agree!</div>`:
-    `<div class="match-result different">❌ You see it differently!</div>`;
+  $('round-counter').textContent=`Round ${currentRound+1} / ${totalRounds}`;
+  $('progress-fill').style.width=((currentRound)/totalRounds*100)+'%';
 
-  $('reveal-container').innerHTML=`
-    <div class="reveal-card">
-      <div class="reveal-answers">
-        <div class="reveal-answer ${p1Class}">
-          <div class="player-name">${p1Name}</div>
-          <div class="answer-flag">${p1Flag}</div>
-          <div class="answer-label">${p1Label}</div>
-        </div>
-        <div class="reveal-answer ${p2Class}">
-          <div class="player-name">${p2Name}</div>
-          <div class="answer-flag">${p2Flag}</div>
-          <div class="answer-label">${p2Label}</div>
-        </div>
-      </div>
-      ${matchText}
-      <button class="btn btn-next" id="btn-next-round">${currentRound+1<totalRounds?'Next Round ➜':'See Results 🏆'}</button>
+  $('game-cat-badge').textContent=`${round.emoji} ${round.category}`;
+
+  const card=$('prompt-card');
+  card.style.animation='none';
+  card.offsetHeight;
+  card.style.animation='slideUp .4s ease';
+  $('prompt-text').textContent=round.text;
+
+  // Reset buttons
+  $('btn-green').className='flag-btn green-flag';
+  $('btn-red').className='flag-btn red-flag';
+  $('btn-green').style.pointerEvents='';
+  $('btn-red').style.pointerEvents='';
+  $('flag-buttons').style.display='flex';
+  $('game-status').style.display='none';
+
+  showScreen('screen-game');
+}
+
+function vote(choice){
+  if(submitted)return;
+  submitted=true;
+  myAnswer=choice;
+
+  if(choice==='green'){
+    $('btn-green').classList.add('selected-green');
+    $('btn-red').classList.add('disabled');
+  }else{
+    $('btn-red').classList.add('selected-red');
+    $('btn-green').classList.add('disabled');
+  }
+  $('btn-green').style.pointerEvents='none';
+  $('btn-red').style.pointerEvents='none';
+
+  send({type:'answer',answer:myAnswer});
+
+  if(oppAnswer!==null){
+    tryReveal();
+  }else{
+    $('game-status').style.display='flex';
+    $('game-status-text').textContent='Waiting for '+oppName+'…';
+  }
+}
+
+$('btn-green').onclick=()=>vote('green');
+$('btn-red').onclick=()=>vote('red');
+
+function tryReveal(){
+  if(myAnswer===null||oppAnswer===null)return;
+
+  const round=roundPrompts[currentRound];
+  const match=myAnswer===oppAnswer;
+
+  answers.push({
+    text:round.text,
+    category:round.category,
+    emoji:round.emoji,
+    my:myAnswer,
+    opp:oppAnswer,
+    match:match
+  });
+
+  currentRound++;
+
+  // Show reveal
+  $('reveal-round-label').textContent=`Round ${currentRound} / ${totalRounds}`;
+  $('reveal-prompt').textContent=round.text;
+
+  const myFlag=myAnswer==='green'?'🟢':'🔴';
+  const oppFlag=oppAnswer==='green'?'🟢':'🔴';
+  const myClass=myAnswer==='green'?'green-bg':'red-bg';
+  const oppClass=oppAnswer==='green'?'green-bg':'red-bg';
+  const myLabel=myAnswer==='green'?'Green Flag':'Red Flag';
+  const oppLabel=oppAnswer==='green'?'Green Flag':'Red Flag';
+
+  $('reveal-answers').innerHTML=`
+    <div class="reveal-card ${myClass}">
+      <div class="player-name">${esc(myName)}</div>
+      <div class="answer-flag">${myFlag}</div>
+      <div class="answer-label">${myLabel}</div>
+    </div>
+    <div class="reveal-card ${oppClass}">
+      <div class="player-name">${esc(oppName)}</div>
+      <div class="answer-flag">${oppFlag}</div>
+      <div class="answer-label">${oppLabel}</div>
     </div>
   `;
 
-  $('btn-next-round').onclick=()=>{
-    currentRound++;
-    if(currentRound>=totalRounds){
-      showResults();
+  const mr=$('match-result');
+  if(match){
+    mr.className='match-result yes';
+    mr.innerHTML='✅ You both agree!';
+  }else{
+    mr.className='match-result no';
+    mr.innerHTML='❌ You see it differently!';
+  }
+
+  const isLast=currentRound>=totalRounds;
+  const btn=$('btn-next-round');
+  btn.innerHTML=isLast?'🏆 See Results':'➡️ Next Round';
+  btn.disabled=false;
+  $('reveal-status').style.display='none';
+
+  showScreen('screen-reveal');
+}
+
+// ══════════════════════════════════
+// NEXT ROUND
+// ══════════════════════════════════
+$('btn-next-round').onclick=()=>{
+  const btn=$('btn-next-round');
+  btn.disabled=true;
+  const isLast=currentRound>=totalRounds;
+
+  if(isHost){
+    if(nextReadyCount>0){
+      nextReadyCount=0;
+      waitingNextReady=false;
+      if(isLast){
+        send({type:'show-results'});
+        showResults();
+      }else{
+        send({type:'next-go'});
+        beginRound();
+      }
     }else{
-      $('reveal-container').style.display='none';
-      // Handoff back to player 1
-      showHandoffP1();
+      waitingNextReady=true;
+      send({type:'host-ready'});
+      btn.innerHTML='⏳ Waiting for '+oppName+'…';
+      $('reveal-status').style.display='flex';
+      $('reveal-status-text').textContent='Waiting for '+oppName+'…';
     }
-  };
-}
-
-function showHandoffP1(){
-  const overlay=$('handoff-overlay');
-  $('handoff-emoji').textContent='🔄';
-  $('handoff-title').textContent=`Pass to ${p1Name}!`;
-  $('handoff-sub').textContent=`Round ${currentRound+1} of ${totalRounds} coming up`;
-  overlay.style.display='flex';
-
-  $('btn-handoff-ready').onclick=()=>{
-    overlay.style.display='none';
-    $('btn-handoff-ready').onclick=()=>{
-      $('handoff-overlay').style.display='none';
-      currentVoter=2;
-      showVotingUI();
-    };
-    showRound();
-  };
-}
+  }else{
+    send({type:'next-ready'});
+    btn.innerHTML='⏳ Waiting for host…';
+    $('reveal-status').style.display='flex';
+    $('reveal-status-text').textContent='Waiting for host…';
+  }
+};
 
 // ══════════════════════════════════
 // RESULTS
 // ══════════════════════════════════
-const COMPAT_RANKS=[
-  {min:90,title:'Soulmates 💕',desc:'You two are basically the same person!'},
-  {min:75,title:'Best Friends 🤝',desc:'You see the world through very similar eyes!'},
-  {min:60,title:'Good Match 👍',desc:'More alike than different — solid compatibility!'},
-  {min:40,title:'Interesting Duo 🤔',desc:'Some differences but that keeps things spicy!'},
-  {min:20,title:'Opposites Attract? 😬',desc:"You don't agree on much — but hey, variety is fun!"},
-  {min:0,title:'Total Opposites 💥',desc:"One person's green flag is the other's red flag!"},
-];
-
-const RESULT_FACTS=[
-  "Couples who agree on <strong>70%+ of values</strong> report higher relationship satisfaction",
-  "Disagreeing on flags doesn't mean incompatibility — it means <strong>interesting conversations</strong>!",
-  "Research shows that <strong>healthy debate</strong> actually strengthens relationships",
-  "People in strong relationships disagree on about <strong>30% of topics</strong> on average",
-  "The things you both flag as red are the <strong>shared values</strong> that bond you",
-  "Matching on green flags shows you appreciate the <strong>same qualities</strong> in people",
-  "Psychologists say it's more important to agree on <strong>dealbreakers</strong> than preferences",
-  "Partners who discuss their flags openly have <strong>40% fewer surprises</strong> in relationships",
-  "Your red flags often reflect <strong>past experiences</strong> — comparing them can be eye-opening",
-  "Studies show couples who play games together feel <strong>26% more connected</strong>",
-];
-
 function showResults(){
   const matched=answers.filter(a=>a.match).length;
   const diff=answers.length-matched;
-  const pct=Math.round((matched/answers.length)*100);
+  const pct=answers.length>0?Math.round((matched/answers.length)*100):0;
 
-  // Animate compat circle
   $('compat-pct').textContent=pct+'%';
   const circle=$('compat-circle');
   circle.style.setProperty('--pct','0%');
   setTimeout(()=>circle.style.setProperty('--pct',pct+'%'),100);
 
-  // Color based on score
   if(pct>=70)$('compat-pct').style.color='#22c55e';
   else if(pct>=40)$('compat-pct').style.color='#facc15';
   else $('compat-pct').style.color='#ef4444';
@@ -736,14 +903,14 @@ function showResults(){
   const recap=$('recap-list');
   recap.innerHTML='';
   answers.forEach((a,i)=>{
-    const p1Flag=a.p1==='green'?'🟢':'🔴';
-    const p2Flag=a.p2==='green'?'🟢':'🔴';
+    const myFlag=a.my==='green'?'🟢':'🔴';
+    const oppFlag=a.opp==='green'?'🟢':'🔴';
     const item=document.createElement('div');
     item.className='recap-item '+(a.match?'match':'diff');
     item.innerHTML=`
       <span class="recap-num">#${i+1}</span>
-      <span class="recap-prompt">${a.prompt}</span>
-      <span class="recap-flags">${p1Flag}${p2Flag}</span>
+      <span class="recap-prompt">${esc(a.text)}</span>
+      <span class="recap-flags">${myFlag}${oppFlag}</span>
     `;
     recap.appendChild(item);
   });
@@ -766,7 +933,6 @@ function generateShareCard(pct,matched,diff,rank){
   const w=600,h=400;
   canvas.width=w;canvas.height=h;
 
-  // Bg
   const grad=ctx.createLinearGradient(0,0,w,h);
   grad.addColorStop(0,'#0f0c29');
   grad.addColorStop(0.5,'#1a1a3e');
@@ -774,7 +940,6 @@ function generateShareCard(pct,matched,diff,rank){
   ctx.fillStyle=grad;
   ctx.fillRect(0,0,w,h);
 
-  // Deco
   ctx.globalAlpha=0.08;
   ctx.fillStyle='#ef4444';
   ctx.beginPath();ctx.arc(500,60,120,0,Math.PI*2);ctx.fill();
@@ -782,37 +947,32 @@ function generateShareCard(pct,matched,diff,rank){
   ctx.beginPath();ctx.arc(80,350,100,0,Math.PI*2);ctx.fill();
   ctx.globalAlpha=1;
 
-  // Title
-  ctx.font='900 28px Nunito, sans-serif';
+  ctx.font='900 26px Nunito, sans-serif';
   ctx.textAlign='center';
   ctx.fillStyle='#ef4444';
-  ctx.fillText('🚩 Red Flag',w/2-80,45);
+  ctx.fillText('🚩 Red Flag',w/2-70,42);
   ctx.fillStyle='#22c55e';
-  ctx.fillText('Green Flag',w/2+90,45);
+  ctx.fillText('Green Flag',w/2+85,42);
 
-  // Names
   ctx.font='700 18px Nunito, sans-serif';
   ctx.fillStyle='#a855f7';
-  ctx.fillText(`${p1Name} & ${p2Name}`,w/2,80);
+  ctx.fillText(`${myName} & ${oppName}`,w/2,78);
 
-  // Big percentage
   ctx.font='900 72px Nunito, sans-serif';
   if(pct>=70)ctx.fillStyle='#22c55e';
   else if(pct>=40)ctx.fillStyle='#facc15';
   else ctx.fillStyle='#ef4444';
-  ctx.fillText(pct+'%',w/2,170);
+  ctx.fillText(pct+'%',w/2,168);
 
   ctx.font='700 16px Nunito, sans-serif';
   ctx.fillStyle='#94a1b2';
-  ctx.fillText('COMPATIBILITY',w/2,195);
+  ctx.fillText('COMPATIBILITY',w/2,193);
 
-  // Rank
   ctx.font='900 22px Nunito, sans-serif';
   ctx.fillStyle='#fff';
-  ctx.fillText(rank.title,w/2,235);
+  ctx.fillText(rank.title,w/2,232);
 
-  // Stats
-  const statY=280;
+  const statY=275;
   ctx.font='700 14px Nunito, sans-serif';
   ctx.fillStyle='#94a1b2';
   ctx.fillText('MATCHED',200,statY);
@@ -827,13 +987,12 @@ function generateShareCard(pct,matched,diff,rank){
   ctx.fillStyle='#ef4444';
   ctx.fillText(String(diff),400,statY+36);
 
-  // URL
   ctx.font='800 14px Nunito, sans-serif';
   ctx.fillStyle='#a855f788';
-  ctx.fillText('Do you see the same red flags? 🚩',w/2,360);
+  ctx.fillText('Do you see the same red flags? 🚩',w/2,358);
   ctx.font='700 12px Nunito, sans-serif';
   ctx.fillStyle='#94a1b2';
-  ctx.fillText(window.location.href.replace(/\/$/,''),w/2,380);
+  ctx.fillText(window.location.href.replace(/\/$/,''),w/2,378);
 
   const img=$('share-preview');
   img.src=canvas.toDataURL('image/png');
@@ -841,42 +1000,71 @@ function generateShareCard(pct,matched,diff,rank){
 }
 
 // Save img
-  $('btn-save-img').onclick=()=>{
-    const link=document.createElement('a');
-    link.download='red-flag-green-flag-result.png';
-    link.href=$('share-canvas').toDataURL('image/png');
-    link.click();
-    $('btn-save-img').innerHTML='✅ Saved!';
-    setTimeout(()=>$('btn-save-img').innerHTML='📸 Save Image',2000);
-  };
+$('btn-save-img').onclick=()=>{
+  const link=document.createElement('a');
+  link.download='red-flag-green-flag-result.png';
+  link.href=$('share-canvas').toDataURL('image/png');
+  link.click();
+  $('btn-save-img').innerHTML='✅ Saved!';
+  setTimeout(()=>$('btn-save-img').innerHTML='📸 Save Image',2000);
+};
 
-  // Copy text
-  $('btn-copy-text').onclick=()=>{
-    const matched=answers.filter(a=>a.match).length;
-    const diff=answers.length-matched;
-    const pct=Math.round((matched/answers.length)*100);
-    const rank=COMPAT_RANKS.find(r=>pct>=r.min)||COMPAT_RANKS[COMPAT_RANKS.length-1];
+// Copy text
+$('btn-copy-text').onclick=()=>{
+  const matched=answers.filter(a=>a.match).length;
+  const diff=answers.length-matched;
+  const pct=answers.length>0?Math.round((matched/answers.length)*100):0;
+  const rank=COMPAT_RANKS.find(r=>pct>=r.min)||COMPAT_RANKS[COMPAT_RANKS.length-1];
 
-    let text=`🚩 Red Flag Green Flag\n\n`;
-    text+=`${p1Name} & ${p2Name}\n`;
-    text+=`${rank.title}\n`;
-    text+=`${pct}% Compatible\n`;
-    text+=`✅ Matched: ${matched} | ❌ Different: ${diff}\n\n`;
-    text+=`Do you see the same red flags?\n${window.location.href}`;
+  let text=`🚩 Red Flag Green Flag\n\n`;
+  text+=`${myName} & ${oppName}\n`;
+  text+=`${rank.title}\n`;
+  text+=`${pct}% Compatible\n`;
+  text+=`✅ Matched: ${matched} | ❌ Different: ${diff}\n\n`;
+  text+=`Do you see the same red flags?\n${window.location.href}`;
 
-    navigator.clipboard.writeText(text).then(()=>{
-      $('btn-copy-text').innerHTML='✅ Copied!';
-      setTimeout(()=>$('btn-copy-text').innerHTML='📋 Copy Result',2000);
-    }).catch(()=>{});
-  };
+  navigator.clipboard.writeText(text).then(()=>{
+    $('btn-copy-text').innerHTML='✅ Copied!';
+    setTimeout(()=>$('btn-copy-text').innerHTML='📋 Copy Result',2000);
+  }).catch(()=>{});
+};
 
-  // Navigation
-  $('btn-start').onclick=()=>startGame();
-  $('btn-again').onclick=()=>{
-    showScreen('screen-home');
-    setTimeout(()=>startGame(),100);
-  };
-  $('btn-home-end').onclick=()=>showScreen('screen-home');
+// Copy lobby code
+$('btn-copy').onclick=()=>{
+  navigator.clipboard.writeText(gameCode).then(()=>{
+    $('btn-copy').innerHTML='✅ Copied!';
+    setTimeout(()=>$('btn-copy').innerHTML='📋 Copy Code',2000);
+  }).catch(()=>{});
+};
+
+// ══════════════════════════════════
+// PLAY AGAIN / HOME
+// ══════════════════════════════════
+$('btn-play-again').onclick=()=>{
+  $('btn-play-again').disabled=true;
+  $('btn-play-again').innerHTML='⏳ Waiting…';
+
+  if(isHost){
+    roundPrompts=buildRounds();
+    currentRound=0;
+    answers=[];
+    send({type:'replay-start',rounds:roundPrompts});
+    beginRound();
+  }else{
+    send({type:'replay-request'});
+  }
+};
+
+$('btn-home-end').onclick=()=>{
+  cleanup();
+  $('input-name').value=myName;
+  $('input-code').value='';
+  showScreen('screen-home');
+};
+
+// Keyboard shortcuts
+$('input-name').onkeydown=e=>{if(e.key==='Enter')$('btn-create').click()};
+$('input-code').onkeydown=e=>{if(e.key==='Enter')$('btn-join').click()};
 
 })();
 </script>
