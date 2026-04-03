@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-19MTMYDQ3S"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-19MTMYDQ3S');
+</script>
+<link rel="icon" type="image/png" href="/my-game-arcade/favicon.png">
+<title>Reaction Time ⚡</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient(135deg,#0a0a1a,#1a1a3e,#0f0f2e);color:#fff;display:flex;justify-content:center;align-items:center;overflow:hidden;user-select:none;-webkit-user-select:none}
+
+.container{position:relative;z-index:1;width:100%;max-width:520px;padding:20px;display:flex;flex-direction:column;align-items:center;min-height:100vh;justify-content:center}
+.screen{display:none;width:100%;animation:fadeIn .4s ease}
+.screen.active{display:flex;flex-direction:column;align-items:center}
+@keyframes fadeIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+@keyframes countPop{0%{transform:scale(1)}50%{transform:scale(1.3)}100%{transform:scale(1)}}
+
+.logo{font-size:2.2rem;font-weight:900;text-align:center;line-height:1.15;margin-bottom:8px;background:linear-gradient(135deg,#facc15,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{font-size:.95rem;color:#94a1b2;text-align:center;margin-bottom:36px}
+
+.card{background:rgba(255,255,255,.06);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:32px 28px;width:100%;margin-bottom:18px;box-shadow:0 8px 32px rgba(0,0,0,.25)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 32px;border:none;border-radius:14px;font-family:inherit;font-size:1rem;font-weight:800;cursor:pointer;transition:all .2s;width:100%}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,#facc15,#f97316);color:#1a1a2e;box-shadow:0 4px 20px rgba(250,204,21,.4)}
+.btn-primary:hover{box-shadow:0 6px 28px rgba(250,204,21,.55)}
+.btn-outline{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.2)}
+.btn-outline:hover{border-color:#facc15;color:#facc15}
+.btn-green{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;box-shadow:0 4px 20px rgba(34,197,94,.4)}
+.btn-share{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;box-shadow:0 4px 20px rgba(139,92,246,.3)}
+.btn-share:hover{box-shadow:0 6px 28px rgba(139,92,246,.5)}
+.btn+.btn{margin-top:12px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+.instructions{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 20px;margin:0 0 18px;width:100%}
+.instructions h3{font-size:.85rem;color:#facc15;margin-bottom:8px;text-transform:uppercase;letter-spacing:.1em}
+.instructions p{font-size:.82rem;color:#94a1b2;line-height:1.6}
+.instructions strong{color:#fff}
+
+/* Round picker */
+.round-picker{display:flex;gap:8px;margin:12px 0;width:100%}
+.round-pick{flex:1;padding:14px;border:2px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-weight:800;font-size:1.1rem;cursor:pointer;transition:all .2s;text-align:center}
+.round-pick:hover{border-color:#facc15}
+.round-pick.active{background:rgba(250,204,21,.15);border-color:#facc15}
+
+/* Best score */
+.best-score{text-align:center;margin:12px 0;font-size:.85rem;color:#94a1b2;font-weight:700}
+.best-score span{color:#facc15;font-weight:900;font-size:1rem}
+
+/* Game area */
+.game-zone{
+  width:100%;height:400px;border-radius:24px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;transition:background .15s;
+  position:relative;overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
+}
+.game-zone.waiting{background:linear-gradient(135deg,#dc2626,#b91c1c)}
+.game-zone.ready{background:linear-gradient(135deg,#22c55e,#16a34a)}
+.game-zone.result{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);cursor:default}
+.game-zone.too-early{background:linear-gradient(135deg,#f97316,#ea580c);animation:shake .4s ease}
+
+.game-zone-text{font-size:1.6rem;font-weight:900;text-align:center;padding:20px;pointer-events:none}
+.game-zone-sub{font-size:.9rem;font-weight:600;color:rgba(255,255,255,.7);text-align:center;pointer-events:none}
+
+.time-display{font-size:5rem;font-weight:900;text-align:center;pointer-events:none;animation:popIn .4s cubic-bezier(.17,.67,.29,1.27)}
+.time-unit{font-size:1.2rem;font-weight:700;color:rgba(255,255,255,.7);pointer-events:none}
+
+/* Progress dots */
+.progress-dots{display:flex;gap:8px;margin:16px 0;justify-content:center}
+.dot{width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,.15);transition:all .3s}
+.dot.done{background:#22c55e}
+.dot.fail{background:#ef4444}
+.dot.current{background:#facc15;animation:pulse 1s ease-in-out infinite}
+
+/* Attempt counter */
+.attempt-info{text-align:center;font-size:.85rem;color:#94a1b2;font-weight:700;margin:8px 0}
+
+/* Results */
+.results-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;width:100%;margin:16px 0}
+.result-box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px 12px;text-align:center}
+.result-box .label{font-size:.7rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.result-box .value{font-size:1.6rem;font-weight:900;background:linear-gradient(135deg,#facc15,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+.rank-badge{text-align:center;padding:20px;border-radius:16px;margin:12px 0;animation:popIn .5s ease;width:100%}
+.rank-emoji{font-size:3rem;margin-bottom:8px}
+.rank-title{font-size:1.4rem;font-weight:900}
+.rank-desc{font-size:.85rem;color:#94a1b2;margin-top:4px;font-weight:600}
+
+.rank-badge.snail{background:rgba(239,68,68,.1);border:2px solid rgba(239,68,68,.2)}
+.rank-badge.snail .rank-title{color:#ef4444}
+.rank-badge.human{background:rgba(59,130,246,.1);border:2px solid rgba(59,130,246,.2)}
+.rank-badge.human .rank-title{color:#60a5fa}
+.rank-badge.fast{background:rgba(34,197,94,.1);border:2px solid rgba(34,197,94,.2)}
+.rank-badge.fast .rank-title{color:#22c55e}
+.rank-badge.lightning{background:rgba(250,204,21,.1);border:2px solid rgba(250,204,21,.2)}
+.rank-badge.lightning .rank-title{color:#facc15}
+.rank-badge.inhuman{background:rgba(168,85,247,.1);border:2px solid rgba(168,85,247,.2)}
+.rank-badge.inhuman .rank-title{color:#a855f7}
+
+.fun-fact{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 18px;margin:12px 0;width:100%;text-align:center;font-size:.82rem;color:#94a1b2;line-height:1.5}
+.fun-fact strong{color:#facc15}
+
+.new-best{text-align:center;font-size:1rem;font-weight:800;color:#22c55e;margin:8px 0;animation:popIn .5s ease}
+
+/* Share card (canvas-generated) */
+.share-section{width:100%;margin:16px 0;text-align:center}
+.share-preview{width:100%;border-radius:16px;margin-bottom:12px;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.share-buttons{display:flex;gap:8px}
+.share-buttons .btn{flex:1}
+
+/* History */
+.history{width:100%;margin:12px 0}
+.history-title{font-size:.8rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;text-align:center}
+.history-list{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.history-item{padding:6px 12px;border-radius:10px;font-size:.8rem;font-weight:800;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
+.history-item.best{background:rgba(250,204,21,.15);border-color:rgba(250,204,21,.3);color:#facc15}
+
+.error-msg{background:rgba(225,97,98,.15);color:#e16162;padding:12px 18px;border-radius:12px;font-size:.85rem;font-weight:700;text-align:center;margin:12px 0;display:none}
+.error-msg.show{display:block;animation:fadeIn .3s ease}
+
+@media(max-width:480px){
+  .logo{font-size:1.7rem}
+  .game-zone{height:350px}
+  .time-display{font-size:3.5rem}
+  .card{padding:24px 20px}
+  .results-grid{gap:8px}
+  .result-box .value{font-size:1.3rem}
+}
+</style>
+</head>
+<body>
+
+<a href="../" id="arcade-home-btn" style="position:fixed;top:16px;left:16px;z-index:999;background:rgba(255,255,255,.06);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:10px 16px;color:#fff;text-decoration:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:.85rem;display:flex;align-items:center;gap:6px;transition:all .3s;box-shadow:0 4px 15px rgba(0,0,0,.2)">🏠 Arcade</a>
+<style>#arcade-home-btn:hover{background:rgba(255,255,255,.12);transform:translateY(-2px)}</style>
+
+<div class="container">
+
+<!-- HOME -->
+<div class="screen active" id="screen-home">
+<div class="logo">Reaction<br>Time ⚡</div>
+<p class="subtitle">How fast are your reflexes?</p>
+<div class="instructions">
+<h3>📖 How to play</h3>
+<p>Wait for <strong>red</strong> to turn <strong>green</strong>, then tap as fast as you can! Click too early and you <strong>lose that attempt</strong>.</p>
+</div>
+<div class="card">
+<label style="font-weight:700;font-size:.85rem;color:#ffffffcc;display:block;margin-bottom:8px">Number of Attempts</label>
+<div class="round-picker">
+<button class="round-pick" data-rounds="3">3</button>
+<button class="round-pick active" data-rounds="5">5</button>
+<button class="round-pick" data-rounds="10">10</button>
+</div>
+</div>
+<div class="best-score" id="best-score-display"></div>
+<button class="btn btn-primary" id="btn-start">⚡ Start Test</button>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="screen-game">
+<div class="attempt-info" id="attempt-info">Attempt 1 / 5</div>
+<div class="progress-dots" id="progress-dots"></div>
+<div class="game-zone waiting" id="game-zone">
+<div class="game-zone-text" id="zone-text">Wait for green...</div>
+<div class="game-zone-sub" id="zone-sub">Tap/click when the screen turns green</div>
+</div>
+</div>
+
+<!-- RESULTS -->
+<div class="screen" id="screen-results">
+<div class="logo">Results ⚡</div>
+
+<div class="rank-badge" id="rank-badge">
+<div class="rank-emoji" id="rank-emoji">⚡</div>
+<div class="rank-title" id="rank-title">Lightning Fast</div>
+<div class="rank-desc" id="rank-desc">You're faster than most people!</div>
+</div>
+
+<div class="new-best" id="new-best" style="display:none">🏆 New Personal Best!</div>
+
+<div class="results-grid">
+<div class="result-box">
+<div class="label">Best</div>
+<div class="value" id="res-best">0ms</div>
+</div>
+<div class="result-box">
+<div class="label">Average</div>
+<div class="value" id="res-avg">0ms</div>
+</div>
+<div class="result-box">
+<div class="label">Slowest</div>
+<div class="value" id="res-slow">0ms</div>
+</div>
+</div>
+
+<div class="history" id="history-section">
+<div class="history-title">All Attempts</div>
+<div class="history-list" id="history-list"></div>
+</div>
+
+<div class="fun-fact" id="fun-fact"></div>
+
+<div class="share-section" id="share-section">
+<canvas id="share-canvas" style="display:none"></canvas>
+<img id="share-preview" class="share-preview" style="display:none" alt="Result card"/>
+<div class="share-buttons">
+<button class="btn btn-share" id="btn-save-img">📸 Save Image</button>
+<button class="btn btn-outline" id="btn-copy-text">📋 Copy Result</button>
+</div>
+</div>
+
+<button class="btn btn-primary" id="btn-again">🔄 Try Again</button>
+<button class="btn btn-outline" id="btn-home">🏠 Back to Menu</button>
+</div>
+
+  <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+              border-radius:14px; padding:16px 20px; margin:20px 0; 
+              text-align:center; width:100%;">
+    <p style="color:#94a1b2; font-size:0.85rem; margin-bottom:10px;">
+      Enjoying the game? 🎉
+    </p>
+    <a href="https://ko-fi.com/restlessrusty" target="_blank"
+       style="color:#7f5af0; font-weight:700; text-decoration:none;">
+      ☕ Buy me a coffee to make more games!
+    </a>
+  </div>
+</div>
+
+<script>
+(function(){
+
+const FUN_FACTS=[
+  "The average human reaction time is <strong>200-250ms</strong>",
+  "Fighter pilots average around <strong>180ms</strong> reaction time",
+  "A housefly reacts in about <strong>30ms</strong> — 8x faster than humans",
+  "Usain Bolt's reaction time at the 2009 World Championship was <strong>146ms</strong>",
+  "The fastest human reaction time ever recorded is about <strong>100ms</strong>",
+  "Your reaction time is faster when you're <strong>warm</strong> vs cold",
+  "Caffeine can improve your reaction time by <strong>10-15%</strong>",
+  "Gamers tend to have <strong>15% faster</strong> reaction times than non-gamers",
+  "Your reaction time peaks in your <strong>mid-20s</strong>",
+  "A cheetah's reaction time is about <strong>60ms</strong>",
+  "Reaction time slows by about <strong>1ms per year</strong> after age 24",
+  "Sound triggers faster reactions than sight — by about <strong>40ms</strong>",
+  "Tired people have reaction times <strong>50% slower</strong> than rested people",
+  "A rattlesnake strikes in about <strong>50-70ms</strong>",
+  "Formula 1 drivers react in about <strong>150ms</strong> at 200mph",
+  "Your brain needs <strong>13ms</strong> just to process an image",
+  "Professional baseball batters react in about <strong>100ms</strong> to a pitch",
+  "Adrenaline can boost your reaction time by <strong>20-30%</strong>",
+  "Alcohol slows reaction time by an average of <strong>120ms</strong>",
+  "The nerve signal from your eye to brain travels at <strong>430 km/h</strong>",
+  "Table tennis players have some of the fastest reaction times: <strong>150ms</strong>",
+  "Being dehydrated can slow your reactions by <strong>15%</strong>",
+  "Your dominant hand reacts <strong>3-5ms faster</strong> than your other hand",
+  "Dogs have a reaction time of about <strong>200ms</strong> — similar to humans"
+];
+
+const RANKS=[
+  {max:150,emoji:'🤖',title:'Inhuman',desc:'Are you even human?! Unbelievable reflexes!',cls:'inhuman'},
+  {max:200,emoji:'⚡',title:'Lightning Fast',desc:"Faster than most! You'd make a great fighter pilot.",cls:'lightning'},
+  {max:250,emoji:'🏃',title:'Fast',desc:'Above average! Your reflexes are sharp.',cls:'fast'},
+  {max:350,emoji:'🧑',title:'Average Human',desc:"You're right in the normal range. Not bad!",cls:'human'},
+  {max:500,emoji:'🐢',title:'Slow & Steady',desc:'A bit slow, but practice makes perfect!',cls:'snail'},
+  {max:Infinity,emoji:'🐌',title:'Sleepy Snail',desc:'Were you napping? Try again when alert!',cls:'snail'}
+];
+
+let totalAttempts=5;
+let currentAttempt=0;
+let times=[];
+let gameState='idle'; // idle|waiting|ready|result|tooEarly
+let greenTimeout=null;
+let startTime=0;
+let allTimeBest=parseInt(localStorage.getItem('rt_best'))||null;
+
+const $=id=>document.getElementById(id);
+const screens=document.querySelectorAll('.screen');
+function showScreen(id){screens.forEach(s=>s.classList.remove('active'));$(id).classList.add('active')}
+
+// Show best score
+function showBest(){
+  const el=$('best-score-display');
+  if(allTimeBest){
+    el.innerHTML=`🏆 Personal Best: <span>${allTimeBest}ms</span>`;
+  }else{
+    el.innerHTML='No attempts yet — set your first record!';
+  }
+}
+showBest();
+
+// Round picker
+document.querySelectorAll('.round-pick').forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll('.round-pick').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    totalAttempts=parseInt(btn.dataset.rounds);
+  };
+});
+
+// Build progress dots
+function buildDots(){
+  const el=$('progress-dots');
+  el.innerHTML='';
+  for(let i=0;i<totalAttempts;i++){
+    const d=document.createElement('div');
+    d.className='dot'+(i===0?' current':'');
+    d.id='dot-'+i;
+    el.appendChild(d);
+  }
+}
+
+function updateDots(){
+  for(let i=0;i<totalAttempts;i++){
+    const d=$('dot-'+i);
+    if(!d)continue;
+    d.className='dot';
+    if(i<times.length){
+      d.classList.add(times[i]===null?'fail':'done');
+    }else if(i===times.length){
+      d.classList.add('current');
+    }
+  }
+}
+
+// ═══════════════════════════════════════════
+// GAME LOGIC
+// ═══════════════════════════════════════════
+function startGame(){
+  currentAttempt=0;
+  times=[];
+  buildDots();
+  showScreen('screen-game');
+  startAttempt();
+}
+
+function startAttempt(){
+  gameState='waiting';
+  const zone=$('game-zone');
+  zone.className='game-zone waiting';
+  $('zone-text').textContent='Wait for green...';
+  $('zone-sub').textContent='Tap/click when the screen turns green';
+  $('attempt-info').textContent=`Attempt ${currentAttempt+1} / ${totalAttempts}`;
+  updateDots();
+
+  // Random delay 1-5 seconds
+  const delay=1000+Math.random()*4000;
+  greenTimeout=setTimeout(()=>{
+    gameState='ready';
+    zone.className='game-zone ready';
+    $('zone-text').textContent='TAP NOW!';
+    $('zone-sub').textContent='';
+    startTime=performance.now();
+  },delay);
+}
+
+function handleZoneClick(){
+  if(gameState==='waiting'){
+    // Too early!
+    clearTimeout(greenTimeout);
+    gameState='tooEarly';
+    const zone=$('game-zone');
+    zone.className='game-zone too-early';
+    $('zone-text').textContent='Too early! ❌';
+    $('zone-sub').textContent='Wait for GREEN before tapping';
+    times.push(null); // lost attempt
+    updateDots();
+
+    setTimeout(()=>{
+      currentAttempt++;
+      if(currentAttempt>=totalAttempts){
+        showResults();
+      }else{
+        startAttempt();
+      }
+    },1500);
+
+  }else if(gameState==='ready'){
+    // Got it!
+    const elapsed=Math.round(performance.now()-startTime);
+    gameState='result';
+    const zone=$('game-zone');
+    zone.className='game-zone result';
+    $('zone-text').innerHTML=`<div class="time-display">${elapsed}</div><div class="time-unit">milliseconds</div>`;
+    $('zone-sub').textContent=getQuickReaction(elapsed);
+    times.push(elapsed);
+    updateDots();
+
+    setTimeout(()=>{
+      currentAttempt++;
+      if(currentAttempt>=totalAttempts){
+        showResults();
+      }else{
+        startAttempt();
+      }
+    },1500);
+
+  }
+  // Ignore clicks during result/tooEarly animation
+}
+
+function getQuickReaction(ms){
+  if(ms<150)return '🤖 Incredible!';
+  if(ms<200)return '⚡ Super fast!';
+  if(ms<250)return '🔥 Nice reflexes!';
+  if(ms<350)return '👍 Solid!';
+  if(ms<500)return '🐢 A bit slow...';
+  return '🐌 Were you sleeping?';
+}
+
+$('game-zone').addEventListener('click',handleZoneClick);
+$('game-zone').addEventListener('touchstart',(e)=>{
+  e.preventDefault();
+  handleZoneClick();
+},{passive:false});
+
+// ═══════════════════════════════════════════
+// RESULTS
+// ═══════════════════════════════════════════
+function showResults(){
+  const validTimes=times.filter(t=>t!==null);
+
+  let best=0,avg=0,slow=0;
+  if(validTimes.length>0){
+    best=Math.min(...validTimes);
+    slow=Math.max(...validTimes);
+    avg=Math.round(validTimes.reduce((a,b)=>a+b,0)/validTimes.length);
+  }
+
+  $('res-best').textContent=validTimes.length?best+'ms':'—';
+  $('res-avg').textContent=validTimes.length?avg+'ms':'—';
+  $('res-slow').textContent=validTimes.length?slow+'ms':'—';
+
+  // Rank
+  const rankTime=validTimes.length?avg:9999;
+  const rank=RANKS.find(r=>rankTime<=r.max)||RANKS[RANKS.length-1];
+  $('rank-emoji').textContent=rank.emoji;
+  $('rank-title').textContent=rank.title;
+  $('rank-desc').textContent=rank.desc;
+  $('rank-badge').className='rank-badge '+rank.cls;
+
+  // New best?
+  const nb=$('new-best');
+  if(validTimes.length>0&&(allTimeBest===null||best<allTimeBest)){
+    allTimeBest=best;
+    localStorage.setItem('rt_best',best);
+    nb.style.display='block';
+  }else{
+    nb.style.display='none';
+  }
+
+  // History
+  const hl=$('history-list');
+  hl.innerHTML='';
+  times.forEach((t,i)=>{
+    const item=document.createElement('span');
+    item.className='history-item';
+    if(t===null){
+      item.textContent=`#${i+1}: ❌ Early`;
+      item.style.color='#ef4444';
+    }else{
+      item.textContent=`#${i+1}: ${t}ms`;
+      if(t===best&&validTimes.length>1)item.classList.add('best');
+    }
+    hl.appendChild(item);
+  });
+
+  // Fun fact
+  $('fun-fact').innerHTML='💡 '+FUN_FACTS[Math.floor(Math.random()*FUN_FACTS.length)];
+
+  // Generate share image
+  generateShareCard(best,avg,slow,validTimes.length,rank);
+
+  showScreen('screen-results');
+}
+
+// ═══════════════════════════════════════════
+// SHARE CARD (Canvas)
+// ═══════════════════════════════════════════
+function generateShareCard(best,avg,slow,valid,rank){
+  const canvas=$('share-canvas');
+  const ctx=canvas.getContext('2d');
+  const w=600,h=400;
+  canvas.width=w;canvas.height=h;
+
+  // Background gradient
+  const grad=ctx.createLinearGradient(0,0,w,h);
+  grad.addColorStop(0,'#0f0c29');
+  grad.addColorStop(0.5,'#1a1a3e');
+  grad.addColorStop(1,'#0f0f2e');
+  ctx.fillStyle=grad;
+  ctx.fillRect(0,0,w,h);
+
+  // Decorative circles
+  ctx.globalAlpha=0.08;
+  ctx.fillStyle='#facc15';
+  ctx.beginPath();ctx.arc(480,60,120,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#f97316';
+  ctx.beginPath();ctx.arc(80,350,100,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=1;
+
+  // Title
+  ctx.font='900 28px Nunito, sans-serif';
+  ctx.fillStyle='#facc15';
+  ctx.textAlign='center';
+  ctx.fillText('⚡ Reaction Time Test',w/2,50);
+
+  // Rank emoji
+  ctx.font='64px serif';
+  ctx.fillText(rank.emoji,w/2,130);
+
+  // Rank title
+  ctx.font='900 26px Nunito, sans-serif';
+  ctx.fillStyle='#fff';
+  ctx.fillText(rank.title,w/2,170);
+
+  // Stats
+  ctx.font='700 16px Nunito, sans-serif';
+  ctx.fillStyle='#94a1b2';
+
+  const statY=220;
+  // Best
+  ctx.fillText('BEST',150,statY);
+  ctx.font='900 36px Nunito, sans-serif';
+  ctx.fillStyle='#22c55e';
+  ctx.fillText(valid?best+'ms':'—',150,statY+40);
+
+  // Average
+  ctx.font='700 16px Nunito, sans-serif';
+  ctx.fillStyle='#94a1b2';
+  ctx.fillText('AVERAGE',300,statY);
+  ctx.font='900 36px Nunito, sans-serif';
+  ctx.fillStyle='#facc15';
+  ctx.fillText(valid?avg+'ms':'—',300,statY+40);
+
+  // Slowest
+  ctx.font='700 16px Nunito, sans-serif';
+  ctx.fillStyle='#94a1b2';
+  ctx.fillText('SLOWEST',450,statY);
+  ctx.font='900 36px Nunito, sans-serif';
+  ctx.fillStyle='#f97316';
+  ctx.fillText(valid?slow+'ms':'—',450,statY+40);
+
+  // Valid attempts
+  ctx.font='700 14px Nunito, sans-serif';
+  ctx.fillStyle='#94a1b2';
+  ctx.fillText(`${valid} of ${totalAttempts} valid attempts`,w/2,310);
+
+  // URL
+  ctx.font='800 15px Nunito, sans-serif';
+  ctx.fillStyle='#facc1588';
+  ctx.fillText('Can you beat me? 👆',w/2,350);
+  ctx.font='700 13px Nunito, sans-serif';
+  ctx.fillStyle='#94a1b2';
+  ctx.fillText(window.location.href.replace(/\/$/,''),w/2,375);
+
+  // Show preview
+  const img=$('share-preview');
+  img.src=canvas.toDataURL('image/png');
+  img.style.display='block';
+}
+
+// Save image
+$('btn-save-img').onclick=()=>{
+  const canvas=$('share-canvas');
+  const link=document.createElement('a');
+  link.download='reaction-time-result.png';
+  link.href=canvas.toDataURL('image/png');
+  link.click();
+  $('btn-save-img').innerHTML='✅ Saved!';
+  setTimeout(()=>$('btn-save-img').innerHTML='📸 Save Image',2000);
+};
+
+// Copy text
+$('btn-copy-text').onclick=()=>{
+  const validTimes=times.filter(t=>t!==null);
+  let text='⚡ Reaction Time Test\n\n';
+  if(validTimes.length){
+    const best=Math.min(...validTimes);
+    const avg=Math.round(validTimes.reduce((a,b)=>a+b,0)/validTimes.length);
+    const rank=RANKS.find(r=>avg<=r.max)||RANKS[RANKS.length-1];
+    text+=`${rank.emoji} ${rank.title}\n`;
+    text+=`Best: ${best}ms | Average: ${avg}ms\n`;
+    text+=`${validTimes.length}/${totalAttempts} valid attempts\n\n`;
+  }else{
+    text+='❌ No valid attempts!\n\n';
+  }
+  text+=`Can you beat me?\n${window.location.href}`;
+
+  navigator.clipboard.writeText(text).then(()=>{
+    $('btn-copy-text').innerHTML='✅ Copied!';
+    setTimeout(()=>$('btn-copy-text').innerHTML='📋 Copy Result',2000);
+  }).catch(()=>{});
+};
+
+// Navigation
+$('btn-start').onclick=()=>startGame();
+$('btn-again').onclick=()=>{showBest();startGame()};
+$('btn-home').onclick=()=>{showBest();showScreen('screen-home')};
+
+})();
+</script>
+</body>
+</html>
