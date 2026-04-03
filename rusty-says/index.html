@@ -63,7 +63,6 @@ body{
 .instructions p{font-size:.82rem;color:#94a1b2;line-height:1.6}
 .instructions strong{color:#fff}
 
-/* Grid size picker */
 .grid-picker{display:flex;gap:8px;margin:12px 0;width:100%}
 .grid-pick{
   flex:1;padding:16px 12px;border:2px solid rgba(255,255,255,.12);border-radius:14px;
@@ -128,19 +127,18 @@ body{
 .tile:active:not(.disabled){transform:scale(.95)}
 .tile.disabled{cursor:default;pointer-events:none}
 
-/* Tile colors — theme matched */
-.tile.lit-0{background:rgba(124,58,237,.7);border-color:rgba(124,58,237,.9);box-shadow:0 0 20px rgba(124,58,237,.5)}
-.tile.lit-1{background:rgba(6,182,212,.7);border-color:rgba(6,182,212,.9);box-shadow:0 0 20px rgba(6,182,212,.5)}
-.tile.lit-2{background:rgba(167,139,250,.7);border-color:rgba(167,139,250,.9);box-shadow:0 0 20px rgba(167,139,250,.5)}
-.tile.lit-3{background:rgba(34,211,238,.7);border-color:rgba(34,211,238,.9);box-shadow:0 0 20px rgba(34,211,238,.5)}
-.tile.lit-4{background:rgba(139,92,246,.7);border-color:rgba(139,92,246,.9);box-shadow:0 0 20px rgba(139,92,246,.5)}
-.tile.lit-5{background:rgba(14,165,233,.7);border-color:rgba(14,165,233,.9);box-shadow:0 0 20px rgba(14,165,233,.5)}
-.tile.lit-6{background:rgba(192,132,252,.7);border-color:rgba(192,132,252,.9);box-shadow:0 0 20px rgba(192,132,252,.5)}
-.tile.lit-7{background:rgba(56,189,248,.7);border-color:rgba(56,189,248,.9);box-shadow:0 0 20px rgba(56,189,248,.5)}
-.tile.lit-8{background:rgba(109,40,217,.7);border-color:rgba(109,40,217,.9);box-shadow:0 0 20px rgba(109,40,217,.5)}
-
-.tile.lit-correct{background:rgba(34,197,94,.7);border-color:rgba(34,197,94,.9);box-shadow:0 0 20px rgba(34,197,94,.5)}
-.tile.lit-wrong{background:rgba(239,68,68,.7);border-color:rgba(239,68,68,.9);box-shadow:0 0 20px rgba(239,68,68,.5);animation:shake .3s ease}
+.tile.lit{animation:tileFlash .15s ease}
+.tile.lit-correct{
+  background:rgba(34,197,94,.7)!important;
+  border-color:rgba(34,197,94,.9)!important;
+  box-shadow:0 0 24px rgba(34,197,94,.5)!important;
+}
+.tile.lit-wrong{
+  background:rgba(239,68,68,.7)!important;
+  border-color:rgba(239,68,68,.9)!important;
+  box-shadow:0 0 24px rgba(239,68,68,.5)!important;
+  animation:shake .3s ease!important;
+}
 
 /* ══════ RESULTS ══════ */
 .results-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;width:100%;margin:16px 0}
@@ -310,9 +308,6 @@ body{
 <script>
 (function(){
 
-// ══════════════════════════════════
-// CONSTANTS
-// ══════════════════════════════════
 const RANKS=[
   {min:20,emoji:'🧙‍♂️',title:'Memory Legend',desc:'Unbelievable! Your memory is god-tier!',cls:'legend'},
   {min:14,emoji:'🧠',title:'Memory Master',desc:'Incredible recall — top tier performance!',cls:'master'},
@@ -348,16 +343,42 @@ const FUN_FACTS=[
   "A chimpanzee named Ayumu can memorize sequences <strong>faster than most humans</strong>",
 ];
 
-// ══════════════════════════════════
-// STATE
-// ══════════════════════════════════
+// Tile color palette — generates unique colors per tile
+const TILE_COLORS=[
+  {bg:'rgba(124,58,237,.75)',border:'rgba(124,58,237,.95)',glow:'rgba(124,58,237,.5)'},
+  {bg:'rgba(6,182,212,.75)',border:'rgba(6,182,212,.95)',glow:'rgba(6,182,212,.5)'},
+  {bg:'rgba(167,139,250,.75)',border:'rgba(167,139,250,.95)',glow:'rgba(167,139,250,.5)'},
+  {bg:'rgba(34,211,238,.75)',border:'rgba(34,211,238,.95)',glow:'rgba(34,211,238,.5)'},
+  {bg:'rgba(139,92,246,.75)',border:'rgba(139,92,246,.95)',glow:'rgba(139,92,246,.5)'},
+  {bg:'rgba(14,165,233,.75)',border:'rgba(14,165,233,.95)',glow:'rgba(14,165,233,.5)'},
+  {bg:'rgba(192,132,252,.75)',border:'rgba(192,132,252,.95)',glow:'rgba(192,132,252,.5)'},
+  {bg:'rgba(56,189,248,.75)',border:'rgba(56,189,248,.95)',glow:'rgba(56,189,248,.5)'},
+  {bg:'rgba(109,40,217,.75)',border:'rgba(109,40,217,.95)',glow:'rgba(109,40,217,.5)'},
+  {bg:'rgba(8,145,178,.75)',border:'rgba(8,145,178,.95)',glow:'rgba(8,145,178,.5)'},
+  {bg:'rgba(147,51,234,.75)',border:'rgba(147,51,234,.95)',glow:'rgba(147,51,234,.5)'},
+  {bg:'rgba(2,132,199,.75)',border:'rgba(2,132,199,.95)',glow:'rgba(2,132,199,.5)'},
+  {bg:'rgba(168,85,247,.75)',border:'rgba(168,85,247,.95)',glow:'rgba(168,85,247,.5)'},
+  {bg:'rgba(59,130,246,.75)',border:'rgba(59,130,246,.95)',glow:'rgba(59,130,246,.5)'},
+  {bg:'rgba(99,102,241,.75)',border:'rgba(99,102,241,.95)',glow:'rgba(99,102,241,.5)'},
+  {bg:'rgba(79,70,229,.75)',border:'rgba(79,70,229,.95)',glow:'rgba(79,70,229,.5)'},
+  {bg:'rgba(37,99,235,.75)',border:'rgba(37,99,235,.95)',glow:'rgba(37,99,235,.5)'},
+  {bg:'rgba(67,56,202,.75)',border:'rgba(67,56,202,.95)',glow:'rgba(67,56,202,.5)'},
+  {bg:'rgba(29,78,216,.75)',border:'rgba(29,78,216,.95)',glow:'rgba(29,78,216,.5)'},
+  {bg:'rgba(88,28,135,.75)',border:'rgba(88,28,135,.95)',glow:'rgba(88,28,135,.5)'},
+  {bg:'rgba(30,64,175,.75)',border:'rgba(30,64,175,.95)',glow:'rgba(30,64,175,.5)'},
+  {bg:'rgba(126,34,206,.75)',border:'rgba(126,34,206,.95)',glow:'rgba(126,34,206,.5)'},
+  {bg:'rgba(76,29,149,.75)',border:'rgba(76,29,149,.95)',glow:'rgba(76,29,149,.5)'},
+  {bg:'rgba(15,118,110,.75)',border:'rgba(15,118,110,.95)',glow:'rgba(15,118,110,.5)'},
+  {bg:'rgba(13,148,136,.75)',border:'rgba(13,148,136,.95)',glow:'rgba(13,148,136,.5)'},
+];
+
 let gridSize=3;
 let level=1;
 let score=0;
 let lives=3;
 let sequence=[];
 let playerIndex=0;
-let isPlaying=false; // sequence is playing
+let isPlaying=false;
 let isPlayerTurn=false;
 let longestSequence=0;
 let gameActive=false;
@@ -400,7 +421,7 @@ document.querySelectorAll('.grid-pick').forEach(btn=>{
 });
 
 // ══════════════════════════════════
-// AUDIO (Web Audio API — simple tones)
+// AUDIO
 // ══════════════════════════════════
 let audioCtx=null;
 function initAudio(){
@@ -409,19 +430,20 @@ function initAudio(){
 
 function playTone(freq,duration){
   if(!audioCtx)return;
-  const osc=audioCtx.createOscillator();
-  const gain=audioCtx.createGain();
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  osc.type='sine';
-  osc.frequency.value=freq;
-  gain.gain.value=0.15;
-  gain.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+duration);
-  osc.start();
-  osc.stop(audioCtx.currentTime+duration);
+  try{
+    const osc=audioCtx.createOscillator();
+    const gain=audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type='sine';
+    osc.frequency.value=freq;
+    gain.gain.value=0.15;
+    gain.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+duration);
+    osc.start();
+    osc.stop(audioCtx.currentTime+duration);
+  }catch(e){}
 }
 
-// Frequencies for each tile index
 function getTileFreq(index){
   const baseFreqs=[261.63,293.66,329.63,349.23,392.00,440.00,493.88,523.25,587.33,
                    659.25,698.46,783.99,880.00,987.77,1046.50,1174.66,1318.51,
@@ -431,20 +453,22 @@ function getTileFreq(index){
 
 function playWrongSound(){
   if(!audioCtx)return;
-  const osc=audioCtx.createOscillator();
-  const gain=audioCtx.createGain();
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  osc.type='square';
-  osc.frequency.value=150;
-  gain.gain.value=0.12;
-  gain.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.4);
-  osc.start();
-  osc.stop(audioCtx.currentTime+0.4);
+  try{
+    const osc=audioCtx.createOscillator();
+    const gain=audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type='square';
+    osc.frequency.value=150;
+    gain.gain.value=0.12;
+    gain.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.4);
+    osc.start();
+    osc.stop(audioCtx.currentTime+0.4);
+  }catch(e){}
 }
 
 // ══════════════════════════════════
-// BUILD GRID
+// GRID
 // ══════════════════════════════════
 function buildGrid(){
   const container=$('grid-container');
@@ -472,11 +496,17 @@ function getTile(index){
 function lightTile(index,duration){
   const tile=getTile(index);
   if(!tile)return;
-  const colorClass='lit-'+(index%(gridSize*gridSize));
-  tile.classList.add(colorClass);
+  const color=TILE_COLORS[index%TILE_COLORS.length];
+  tile.style.background=color.bg;
+  tile.style.borderColor=color.border;
+  tile.style.boxShadow=`0 0 24px ${color.glow}`;
+  tile.classList.add('lit');
   playTone(getTileFreq(index),duration/1000);
   setTimeout(()=>{
-    tile.classList.remove(colorClass);
+    tile.style.background='';
+    tile.style.borderColor='';
+    tile.style.boxShadow='';
+    tile.classList.remove('lit');
   },duration*0.8);
 }
 
@@ -530,7 +560,6 @@ function updateHUD(){
 }
 
 function getPlaybackSpeed(){
-  // Start at 600ms, slowly decrease, minimum 250ms
   const speed=600-((level-1)*18);
   return Math.max(250,speed);
 }
@@ -538,13 +567,11 @@ function getPlaybackSpeed(){
 function nextLevel(){
   if(!gameActive)return;
 
-  // Add one random tile to sequence
   const total=gridSize*gridSize;
   sequence.push(Math.floor(Math.random()*total));
 
   updateHUD();
 
-  // Play sequence
   const msg=$('game-msg');
   msg.textContent='🔮 Rusty says…';
   msg.className='game-msg watching';
@@ -558,9 +585,10 @@ function nextLevel(){
 
   let i=0;
   function playNext(){
+    if(!gameActive)return;
     if(i>=sequence.length){
-      // Done playing — player's turn
       setTimeout(()=>{
+        if(!gameActive)return;
         isPlaying=false;
         isPlayerTurn=true;
         playerIndex=0;
@@ -582,16 +610,13 @@ function onTileClick(index){
   if(!isPlayerTurn||isPlaying||!gameActive)return;
 
   if(index===sequence[playerIndex]){
-    // Correct
     flashCorrect(index);
     playerIndex++;
 
     if(playerIndex>=sequence.length){
-      // Completed the sequence!
       isPlayerTurn=false;
       setTilesEnabled(false);
 
-      // Score: more points for longer sequences
       score+=level;
       if(sequence.length>longestSequence)longestSequence=sequence.length;
 
@@ -605,7 +630,6 @@ function onTileClick(index){
       setTimeout(()=>nextLevel(),1000);
     }
   }else{
-    // Wrong!
     flashWrong(index);
     isPlayerTurn=false;
     setTilesEnabled(false);
@@ -614,7 +638,6 @@ function onTileClick(index){
     const msg=$('game-msg');
     updateHUD();
 
-    // Animate life loss
     $('hud-lives').style.animation='none';
     $('hud-lives').offsetHeight;
     $('hud-lives').style.animation='loseLife .4s ease';
@@ -627,13 +650,7 @@ function onTileClick(index){
     }else{
       msg.textContent=`❌ Wrong! ${lives} ${lives===1?'life':'lives'} left — watch again…`;
       msg.className='game-msg wrong';
-
-      // Replay the same sequence (don't add new step)
-      level--; // stay on same level
-      setTimeout(()=>{
-        level++;
-        replaySequence();
-      },1500);
+      setTimeout(()=>replaySequence(),1500);
     }
   }
 }
@@ -654,8 +671,10 @@ function replaySequence(){
 
   let i=0;
   function playNext(){
+    if(!gameActive)return;
     if(i>=sequence.length){
       setTimeout(()=>{
+        if(!gameActive)return;
         isPlaying=false;
         isPlayerTurn=true;
         playerIndex=0;
@@ -689,7 +708,6 @@ function showResultsScreen(){
   $('res-score').textContent=score;
   $('res-longest').textContent=longestSequence;
 
-  // New best?
   const key='rs_best_'+gridSize;
   const nb=$('new-best');
   if(finalLevel>bestScores[gridSize]){
@@ -700,10 +718,8 @@ function showResultsScreen(){
     nb.style.display='none';
   }
 
-  // Fun fact
   $('fun-fact').innerHTML='💡 '+FUN_FACTS[Math.floor(Math.random()*FUN_FACTS.length)];
 
-  // Share card
   generateShareCard(finalLevel,score,longestSequence,rank);
 
   showScreen('screen-results');
@@ -712,7 +728,7 @@ function showResultsScreen(){
 // ══════════════════════════════════
 // SHARE CARD
 // ══════════════════════════════════
-function generateShareCard(finalLevel,score,longest,rank){
+function generateShareCard(finalLevel,sc,longest,rank){
   const canvas=$('share-canvas');
   const ctx=canvas.getContext('2d');
   const w=600,h=400;
@@ -759,7 +775,7 @@ function generateShareCard(finalLevel,score,longest,rank){
   ctx.fillText('SCORE',300,statY);
   ctx.font='900 36px Nunito, sans-serif';
   ctx.fillStyle='#22d3ee';
-  ctx.fillText(String(score),300,statY+40);
+  ctx.fillText(String(sc),300,statY+40);
 
   ctx.font='700 14px Nunito, sans-serif';
   ctx.fillStyle='#94a1b2';
@@ -780,7 +796,6 @@ function generateShareCard(finalLevel,score,longest,rank){
   img.style.display='block';
 }
 
-// Save img
 $('btn-save-img').onclick=()=>{
   const link=document.createElement('a');
   link.download='rusty-says-result.png';
@@ -790,7 +805,6 @@ $('btn-save-img').onclick=()=>{
   setTimeout(()=>$('btn-save-img').innerHTML='📸 Save Image',2000);
 };
 
-// Copy text
 $('btn-copy-text').onclick=()=>{
   const finalLevel=level-1;
   const rank=RANKS.find(r=>finalLevel>=r.min)||RANKS[RANKS.length-1];
@@ -808,7 +822,6 @@ $('btn-copy-text').onclick=()=>{
   }).catch(()=>{});
 };
 
-// Navigation
 $('btn-start').onclick=()=>startGame();
 $('btn-again').onclick=()=>{showBest();startGame()};
 $('btn-home').onclick=()=>{showBest();showScreen('screen-home')};
