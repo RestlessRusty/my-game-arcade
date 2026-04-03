@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-19MTMYDQ3S"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-19MTMYDQ3S');
+</script>
+  
+<title>Song Association 🎵</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Nunito',sans-serif;min-height:100vh;
+  background:linear-gradient(135deg,#1a0a2e,#2d1b69,#1a1a2e);
+  color:#fff;display:flex;justify-content:center;align-items:center;overflow-x:hidden;
+}
+.bg-blob{position:fixed;border-radius:50%;filter:blur(100px);opacity:.3;pointer-events:none;z-index:0}
+.bg-blob.a{width:500px;height:500px;background:#e91e63;top:-120px;left:-100px;animation:fA 18s ease-in-out infinite}
+.bg-blob.b{width:400px;height:400px;background:#ff9800;bottom:-80px;right:-80px;animation:fB 22s ease-in-out infinite}
+.bg-blob.c{width:300px;height:300px;background:#00bcd4;top:50%;left:55%;animation:fC 20s ease-in-out infinite}
+@keyframes fA{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,80px)}}
+@keyframes fB{0%,100%{transform:translate(0,0)}50%{transform:translate(-50px,-60px)}}
+@keyframes fC{0%,100%{transform:translate(0,0)}50%{transform:translate(-40px,50px)}}
+
+.container{position:relative;z-index:1;width:100%;max-width:520px;padding:20px;display:flex;flex-direction:column;align-items:center;min-height:100vh;justify-content:center}
+.screen{display:none;width:100%;animation:fadeIn .4s ease}
+.screen.active{display:flex;flex-direction:column;align-items:center}
+@keyframes fadeIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+.logo{font-size:2.2rem;font-weight:900;text-align:center;line-height:1.15;margin-bottom:8px;background:linear-gradient(135deg,#e91e63,#ff9800);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{font-size:.95rem;color:#94a1b2;text-align:center;margin-bottom:36px}
+
+.card{background:rgba(255,255,255,.06);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:32px 28px;width:100%;margin-bottom:18px;box-shadow:0 8px 32px rgba(0,0,0,.25)}
+
+label{font-weight:700;font-size:.85rem;margin-bottom:6px;display:block;color:#ffffffcc}
+input[type="text"]{width:100%;padding:14px 18px;border:2px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.07);color:#fff;font-size:1rem;font-family:inherit;font-weight:600;outline:none;transition:border .2s}
+input[type="text"]:focus{border-color:#e91e63}
+input[type="text"]::placeholder{color:#ffffff44}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 32px;border:none;border-radius:14px;font-family:inherit;font-size:1rem;font-weight:800;cursor:pointer;transition:all .2s;width:100%}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,#e91e63,#c2185b);color:#fff;box-shadow:0 4px 20px rgba(233,30,99,.4)}
+.btn-primary:hover{box-shadow:0 6px 28px rgba(233,30,99,.55)}
+.btn-secondary{background:linear-gradient(135deg,#ff9800,#e65100);color:#fff;box-shadow:0 4px 20px rgba(255,152,0,.3)}
+.btn-secondary:hover{box-shadow:0 6px 28px rgba(255,152,0,.5)}
+.btn-outline{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.2)}
+.btn-outline:hover{border-color:#e91e63;color:#e91e63}
+.btn+.btn{margin-top:12px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+.code-display{font-size:2.4rem;font-weight:900;letter-spacing:.3em;text-align:center;padding:18px;background:rgba(233,30,99,.15);border:2px dashed rgba(233,30,99,.4);border-radius:16px;margin:18px 0;color:#f48fb1;user-select:all}
+
+.status{text-align:center;color:#94a1b2;font-size:.9rem;margin:12px 0;display:flex;align-items:center;justify-content:center;gap:8px}
+.dot-pulse{width:8px;height:8px;border-radius:50%;background:#e91e63;animation:pulse 1.2s ease-in-out infinite}
+
+.round-header{text-align:center;margin-bottom:22px}
+.round-label{font-size:.8rem;font-weight:700;color:#e91e63;text-transform:uppercase;letter-spacing:.15em}
+.round-number{font-size:1rem;color:#94a1b2;font-weight:600}
+
+.prompt-container{text-align:center;margin:8px 0 24px}
+.prompt-icon{font-size:2rem;margin-bottom:8px;animation:float 3s ease-in-out infinite}
+.prompt-word{font-size:3rem;font-weight:900;background:linear-gradient(135deg,#fff,#f48fb1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-transform:uppercase;letter-spacing:.05em;animation:popIn .5s cubic-bezier(.17,.67,.29,1.27)}
+.prompt-hint{font-size:.8rem;color:#94a1b2;margin-top:8px}
+
+.timer-bar-container{width:100%;height:6px;border-radius:3px;background:rgba(255,255,255,.1);margin:12px 0 20px;overflow:hidden}
+.timer-bar{height:100%;border-radius:3px;background:linear-gradient(90deg,#ff9800,#e91e63);transition:width .3s linear}
+.timer-text{text-align:center;font-size:.85rem;color:#94a1b2;font-weight:700;font-variant-numeric:tabular-nums}
+
+.scoreboard{display:flex;justify-content:center;gap:30px;margin:16px 0}
+.score-item{text-align:center}
+.score-name{font-size:.8rem;color:#94a1b2;font-weight:600;margin-bottom:2px}
+.score-value{font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,#e91e63,#ff9800);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+.reveal-container{display:flex;gap:16px;margin:20px 0;width:100%}
+.reveal-card{flex:1;padding:20px 16px;border-radius:16px;text-align:center;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.08);animation:slideUp .5s ease}
+.reveal-card .player-name{font-size:.75rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.1em}
+.reveal-card .player-answer{font-size:1.1rem;font-weight:800;margin-top:8px;word-break:break-word}
+.reveal-card .score-change{font-size:.85rem;font-weight:800;margin-top:8px;padding:4px 12px;border-radius:20px;display:inline-block}
+.score-change.positive{background:rgba(44,182,125,.15);color:#2cb67d}
+.score-change.negative{background:rgba(225,97,98,.15);color:#e16162}
+.score-change.bonus{background:rgba(255,152,0,.15);color:#ff9800}
+
+.match-result{text-align:center;padding:18px;border-radius:16px;font-size:1.3rem;font-weight:800;margin:10px 0 20px;animation:popIn .6s cubic-bezier(.17,.67,.29,1.27)}
+.match-result.matched{background:rgba(255,152,0,.15);color:#ff9800;border:2px solid rgba(255,152,0,.3)}
+.match-result.both-valid{background:rgba(44,182,125,.1);color:#94a1b2;border:2px solid rgba(255,255,255,.1)}
+.match-result.someone-missed{background:rgba(225,97,98,.1);color:#94a1b2;border:2px solid rgba(255,255,255,.1)}
+.match-result.both-missed{background:rgba(225,97,98,.15);color:#e16162;border:2px solid rgba(225,97,98,.3)}
+
+.final-score{font-size:4rem;font-weight:900;text-align:center;background:linear-gradient(135deg,#e91e63,#ff9800);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:10px 0}
+.final-label{text-align:center;font-size:1rem;color:#94a1b2;font-weight:700}
+.emoji-rain{font-size:2.5rem;text-align:center;margin:10px 0;animation:popIn .5s ease}
+
+.error-msg{background:rgba(225,97,98,.15);color:#e16162;padding:12px 18px;border-radius:12px;font-size:.85rem;font-weight:700;text-align:center;margin:12px 0;display:none}
+.error-msg.show{display:block;animation:fadeIn .3s ease}
+
+.divider{display:flex;align-items:center;gap:14px;margin:20px 0;width:100%;color:#94a1b2;font-size:.8rem;font-weight:700}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.1)}
+.gap-sm{height:10px}
+
+.instructions{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 20px;margin:0 0 18px;width:100%}
+.instructions h3{font-size:.85rem;color:#e91e63;margin-bottom:8px;text-transform:uppercase;letter-spacing:.1em}
+.instructions p{font-size:.82rem;color:#94a1b2;line-height:1.6}
+.instructions strong{color:#fff}
+
+.scoring{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin:8px 0 4px;font-size:.75rem;font-weight:700}
+.scoring span{padding:3px 10px;border-radius:12px}
+.scoring .s-match{background:rgba(255,152,0,.15);color:#ff9800}
+.scoring .s-valid{background:rgba(44,182,125,.15);color:#2cb67d}
+.scoring .s-miss{background:rgba(225,97,98,.15);color:#e16162}
+
+.winner-banner{text-align:center;padding:14px;border-radius:14px;font-size:1.1rem;font-weight:800;margin:10px 0;background:rgba(255,152,0,.1);border:2px solid rgba(255,152,0,.2);color:#ff9800;animation:popIn .5s ease}
+
+@media(max-width:480px){
+  .logo{font-size:1.7rem}
+  .prompt-word{font-size:2.2rem}
+  .card{padding:24px 20px}
+  .code-display{font-size:1.8rem;letter-spacing:.2em}
+  .reveal-container{gap:10px}
+  .reveal-card .player-answer{font-size:.95rem}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-blob a"></div>
+<div class="bg-blob b"></div>
+<div class="bg-blob c"></div>
+
+<div class="container">
+
+  <!-- HOME -->
+  <div class="screen active" id="screen-home">
+    <div class="logo">Song<br>Association 🎵</div>
+    <p class="subtitle">Name a song — do you pick the same one?</p>
+    <div class="instructions">
+      <h3>📖 How to play</h3>
+      <p>Each round shows a word. Both players type a <strong>song title</strong> containing that word. Name the <strong>same song</strong> for bonus points!</p>
+      <div class="scoring">
+        <span class="s-match">🎵 Same Song +3</span>
+        <span class="s-valid">✅ Valid +1</span>
+        <span class="s-miss">❌ No Answer −1</span>
+      </div>
+    </div>
+    <div class="card">
+      <label for="input-name">Your Name</label>
+      <input type="text" id="input-name" placeholder="Enter your name…" maxlength="20" autocomplete="off"/>
+    </div>
+    <button class="btn btn-primary" id="btn-create">✨ Create Game</button>
+    <div class="divider">OR</div>
+    <div class="card">
+      <label for="input-code">Invite Code</label>
+      <input type="text" id="input-code" placeholder="e.g. A3BX9K" maxlength="6" autocomplete="off" style="text-transform:uppercase;letter-spacing:.15em;text-align:center"/>
+    </div>
+    <button class="btn btn-secondary" id="btn-join">🤝 Join Game</button>
+    <div class="error-msg" id="home-error"></div>
+  </div>
+
+  <!-- LOBBY -->
+  <div class="screen" id="screen-lobby">
+    <div class="logo">Song<br>Association 🎵</div>
+    <p class="subtitle">Share this code with a friend</p>
+    <div class="card" style="text-align:center">
+      <label>Invite Code</label>
+      <div class="code-display" id="lobby-code"></div>
+      <button class="btn btn-outline" id="btn-copy" style="margin-top:12px;width:auto;padding:10px 24px;display:inline-flex">📋 Copy Code</button>
+    </div>
+    <div class="status"><div class="dot-pulse"></div><span id="lobby-status">Waiting for opponent…</span></div>
+  </div>
+
+  <!-- CONNECTING -->
+  <div class="screen" id="screen-connecting">
+    <div class="logo">Connecting… ⏳</div>
+    <div class="status"><div class="dot-pulse"></div><span id="connecting-status">Please wait…</span></div>
+  </div>
+
+  <!-- PLAY -->
+  <div class="screen" id="screen-play">
+    <div class="round-header">
+      <div class="round-label">Round</div>
+      <div class="round-number" id="round-info">1 / 10</div>
+    </div>
+    <div class="scoreboard" id="scoreboard"></div>
+    <div class="card">
+      <div class="prompt-container">
+        <div class="prompt-icon">🎵</div>
+        <div class="prompt-word" id="prompt-word">LOVE</div>
+        <div class="prompt-hint">Name a song containing this word</div>
+      </div>
+      <div class="timer-text" id="timer-text">30s</div>
+      <div class="timer-bar-container"><div class="timer-bar" id="timer-bar" style="width:100%"></div></div>
+      <label for="input-answer">Song Title</label>
+      <input type="text" id="input-answer" placeholder="Type a song title…" maxlength="80" autocomplete="off"/>
+      <div class="gap-sm"></div>
+      <button class="btn btn-primary" id="btn-submit">🚀 Submit</button>
+      <div class="status" id="play-status" style="display:none"><div class="dot-pulse"></div><span id="play-status-text">Waiting for opponent…</span></div>
+    </div>
+  </div>
+
+  <!-- REVEAL -->
+  <div class="screen" id="screen-reveal">
+    <div class="round-header">
+      <div class="round-label" id="reveal-round-label">Round 1 Result</div>
+    </div>
+    <div class="prompt-container">
+      <div class="prompt-icon">🎵</div>
+      <div class="prompt-word" id="reveal-word" style="font-size:2rem">LOVE</div>
+    </div>
+    <div class="reveal-container" id="reveal-answers"></div>
+    <div class="match-result" id="match-result"></div>
+    <div class="scoreboard" id="reveal-scoreboard"></div>
+    <button class="btn btn-primary" id="btn-next-round">➡️ Next Round</button>
+    <div class="status" id="reveal-status" style="display:none"><div class="dot-pulse"></div><span id="reveal-status-text">Waiting…</span></div>
+  </div>
+
+  <!-- FINAL -->
+  <div class="screen" id="screen-final">
+    <div class="logo">Game Over! 🎵</div>
+    <div class="emoji-rain" id="emoji-rain"></div>
+    <div class="card" style="text-align:center">
+      <div class="final-label" id="final-top-label">Final Scores</div>
+      <div class="final-score" id="final-score-display">0 — 0</div>
+      <div class="final-label" id="final-msg">Great game!</div>
+    </div>
+    <div class="winner-banner" id="winner-banner"></div>
+    <div class="card" style="text-align:center">
+      <div class="final-label">Songs Matched</div>
+      <div class="final-score" id="final-matches" style="font-size:2.5rem">0</div>
+    </div>
+    <button class="btn btn-primary" id="btn-play-again">🔄 Play Again</button>
+    <button class="btn btn-outline" id="btn-home">🏠 Back to Home</button>
+    <div class="status" id="final-status" style="display:none"><div class="dot-pulse"></div><span id="final-status-text">Waiting…</span></div>
+  </div>
+  <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+             border-radius:14px; padding:16px 20px; margin:20px 0; 
+             text-align:center; width:100%;">
+   <p style="color:#94a1b2; font-size:0.85rem; margin-bottom:10px;">
+     Enjoying the game? 🎉
+   </p>
+   <a href="https://ko-fi.com/restlessrusty" target="_blank"
+      style="color:#7f5af0; font-weight:700; text-decoration:none;">
+     ☕ Buy me a coffee to make more games!
+   </a>
+  </div>
+
+</div>
+
+<script>
+(function(){
+
+  // ═══════════════════════════════════════════
+  // WORD BANK
+  // ═══════════════════════════════════════════
+  const PROMPT_WORDS = [
+    // Emotions
+    'love','happy','sad','crazy','lonely','jealous','sorry','afraid','angry','hurt',
+    'proud','free','alive','lost','wild','broken','perfect','beautiful','wicked','dangerous',
+    'hopeful','mad','lucky','blessed','fearless','numb','confused','obsessed','paranoid','drunk',
+    // Nature & Weather
+    'fire','rain','sun','moon','star','thunder','storm','ocean','river','mountain',
+    'sky','snow','ice','wind','water','rainbow','desert','island','garden','wave',
+    'lightning','sunshine','moonlight','starlight','summer','winter','spring','flower','rose','cherry',
+    // Time & Place
+    'night','morning','midnight','friday','saturday','sunday','forever','heaven','paradise','home',
+    'street','city','california','london','paris','tokyo','hotel','church','highway','bridge',
+    // People & Relationships
+    'baby','girl','boy','man','woman','friend','enemy','stranger','angel','devil',
+    'queen','king','hero','fighter','lover','dancer','dreamer','champion','monster','saint',
+    // Body & Action
+    'heart','eyes','hands','blood','tears','kiss','touch','dance','run','fall',
+    'fly','fight','cry','smile','scream','breathe','shake','burn','break','bleed',
+    // Things & Concepts
+    'money','gold','diamond','crown','magic','dream','secret','power','fame','trouble',
+    'freedom','poison','sugar','honey','candy','smoke','mirror','shadow','ghost','light',
+    'clock','phone','radio','car','train','ship','rocket','gun','knife','bomb',
+    // Colors
+    'black','white','red','blue','green','gold','silver','purple','yellow','pink',
+    // Music Related
+    'song','music','beat','rhythm','rock','roll','jazz','blues','party','electric',
+    // Feelings & States
+    'high','low','fast','slow','loud','quiet','strong','weak','rich','poor',
+    'young','old','new','true','fake','real','deep','cold','hot','sweet',
+    // More Common Song Words
+    'world','life','death','time','road','way','game','war','peace','story',
+    'believe','remember','forget','promise','pray','hope','wish','wait','stay','leave',
+    'tonight','yesterday','tomorrow','always','never','sometimes','again','away','back','down',
+    'around','under','over','through','together','alone','inside','outside','hello','goodbye'
+  ];
+
+  const TOTAL_ROUNDS = 10;
+  const ROUND_TIME = 30;
+  const PEER_PREFIX = 'songassoc2024z';
+
+  // ═══════════════════════════════════════════
+  // STATE
+  // ═══════════════════════════════════════════
+  let peer = null;
+  let conn = null;
+  let isHost = false;
+  let myName = '';
+  let opponentName = '';
+  let gameCode = '';
+  let rounds = [];
+  let currentRound = 0;
+  let myScore = 0;
+  let oppScore = 0;
+  let matchCount = 0;
+  let myAnswer = null;
+  let oppAnswer = null;
+  let submitted = false;
+  let timerInterval = null;
+  let timeLeft = ROUND_TIME;
+  let currentWord = '';
+  let waitingNextReady = false;
+  let nextReadyCount = 0;
+
+  // ═══════════════════════════════════════════
+  // HELPERS
+  // ═══════════════════════════════════════════
+  const $ = id => document.getElementById(id);
+  const screens = document.querySelectorAll('.screen');
+
+  function showScreen(id) {
+    screens.forEach(s => s.classList.remove('active'));
+    $(id).classList.add('active');
+  }
+
+  function showError(id, msg) {
+    const el = $(id);
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 5000);
+  }
+
+  function esc(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function genCode() {
+    const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let r = '';
+    for (let i = 0; i < 6; i++) r += c[Math.floor(Math.random() * c.length)];
+    return r;
+  }
+
+  function buildRounds() {
+    const r = [];
+    const used = new Set();
+    const pool = [...PROMPT_WORDS];
+    while (r.length < TOTAL_ROUNDS && pool.length > 0) {
+      const idx = Math.floor(Math.random() * pool.length);
+      const w = pool.splice(idx, 1)[0];
+      if (!used.has(w)) {
+        used.add(w);
+        r.push(w);
+      }
+    }
+    return r;
+  }
+
+  function renderScoreboard(id) {
+    $(id).innerHTML = `
+      <div class="score-item"><div class="score-name">${esc(myName)}</div><div class="score-value">${myScore}</div></div>
+      <div class="score-item"><div class="score-name">${esc(opponentName)}</div><div class="score-value">${oppScore}</div></div>`;
+  }
+
+  function normalize(str) {
+    return str.trim().toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function answerContainsWord(answer, word) {
+    const a = normalize(answer);
+    const w = word.toLowerCase();
+    const words = a.split(' ');
+    // Check if any word in the answer starts with or matches the prompt word
+    // Also check the full string for the word
+    return a.includes(w);
+  }
+
+  function send(obj) {
+    if (conn && conn.open) conn.send(JSON.stringify(obj));
+  }
+
+  // ═══════════════════════════════════════════
+  // ROUND MANAGEMENT
+  // ═══════════════════════════════════════════
+  function beginRound() {
+    myAnswer = null;
+    oppAnswer = null;
+    submitted = false;
+    waitingNextReady = false;
+    nextReadyCount = 0;
+
+    currentWord = rounds[currentRound];
+
+    $('round-info').textContent = `${currentRound + 1} / ${TOTAL_ROUNDS}`;
+    $('prompt-word').textContent = currentWord.toUpperCase();
+    renderScoreboard('scoreboard');
+
+    $('input-answer').value = '';
+    $('input-answer').disabled = false;
+    $('btn-submit').disabled = false;
+    $('btn-submit').innerHTML = '🚀 Submit';
+    $('play-status').style.display = 'none';
+
+    timeLeft = ROUND_TIME;
+    $('timer-text').textContent = ROUND_TIME + 's';
+    $('timer-bar').style.width = '100%';
+    $('timer-bar').style.background = 'linear-gradient(90deg,#ff9800,#e91e63)';
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      if (timeLeft < 0) timeLeft = 0;
+      $('timer-text').textContent = timeLeft + 's';
+      $('timer-bar').style.width = ((timeLeft / ROUND_TIME) * 100) + '%';
+      if (timeLeft <= 5) $('timer-bar').style.background = 'linear-gradient(90deg,#e16162,#e16162)';
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        if (!submitted) doSubmit('');
+      }
+    }, 1000);
+
+    showScreen('screen-play');
+    setTimeout(() => $('input-answer').focus(), 300);
+  }
+
+  function doSubmit(answer) {
+    if (submitted) return;
+    submitted = true;
+    clearInterval(timerInterval);
+
+    myAnswer = normalize(answer);
+    send({ type: 'answer', answer: myAnswer });
+
+    $('input-answer').disabled = true;
+    $('btn-submit').disabled = true;
+    $('btn-submit').innerHTML = myAnswer ? '✅ Submitted!' : '⏰ Time\'s up!';
+
+    tryReveal();
+  }
+
+  function tryReveal() {
+    if (myAnswer === null || oppAnswer === null) {
+      $('play-status').style.display = 'flex';
+      $('play-status-text').textContent = oppAnswer !== null ? 'Processing…' : 'Waiting for opponent…';
+      return;
+    }
+
+    clearInterval(timerInterval);
+
+    const myValid = myAnswer !== '' && answerContainsWord(myAnswer, currentWord);
+    const oppValid = oppAnswer !== '' && answerContainsWord(oppAnswer, currentWord);
+    const sameAnswer = myValid && oppValid && normalize(myAnswer) === normalize(oppAnswer);
+
+    // Scoring
+    let myChange = 0;
+    let oppChange = 0;
+
+    if (sameAnswer) {
+      myChange = 3;
+      oppChange = 3;
+      matchCount++;
+    } else {
+      if (myValid) myChange = 1; 
+      else if (myAnswer === '') myChange = -1;
+      else myChange = 0; // typed something that doesn't contain the word
+
+      if (oppValid) oppChange = 1;
+      else if (oppAnswer === '') oppChange = -1;
+      else oppChange = 0;
+    }
+
+    myScore += myChange;
+    oppScore += oppChange;
+
+    const roundNum = currentRound + 1;
+    currentRound++;
+
+    // Build reveal
+    $('reveal-round-label').textContent = `Round ${roundNum} Result`;
+    $('reveal-word').textContent = currentWord.toUpperCase();
+
+    function buildRevealCard(name, answer, valid, change) {
+      let changeClass = 'positive';
+      let changeText = `+${change}`;
+      if (change < 0) { changeClass = 'negative'; changeText = `${change}`; }
+      else if (change === 0) { changeClass = 'negative'; changeText = `+0`; }
+      if (change === 3) changeClass = 'bonus';
+
+      const displayAnswer = answer === '' ? '(no answer)' : answer;
+      const validMark = answer === '' ? '❌' : (valid ? '✅' : '⚠️');
+
+      return `<div class="reveal-card">
+        <div class="player-name">${esc(name)}</div>
+        <div class="player-answer">${validMark} ${esc(displayAnswer)}</div>
+        <div class="score-change ${changeClass}">${changeText}</div>
+      </div>`;
+    }
+
+    $('reveal-answers').innerHTML =
+      buildRevealCard(myName, myAnswer, myValid, myChange) +
+      buildRevealCard(opponentName, oppAnswer, oppValid, oppChange);
+
+    const mr = $('match-result');
+    if (sameAnswer) {
+      mr.className = 'match-result matched';
+      mr.innerHTML = '🎵 Same song! +3 each!';
+    } else if (myValid && oppValid) {
+      mr.className = 'match-result both-valid';
+      mr.innerHTML = '👍 Both named a song! +1 each';
+    } else if (!myValid && !oppValid && myAnswer === '' && oppAnswer === '') {
+      mr.className = 'match-result both-missed';
+      mr.innerHTML = '😬 Nobody could think of a song!';
+    } else if (myAnswer === '' || oppAnswer === '') {
+      mr.className = 'match-result someone-missed';
+      const who = myAnswer === '' ? 'You' : opponentName;
+      mr.innerHTML = `⏰ ${esc(who)} couldn't think of one! −1`;
+    } else if (!myValid || !oppValid) {
+      mr.className = 'match-result someone-missed';
+      mr.innerHTML = `⚠️ Song title must contain "${currentWord}"`;
+    } else {
+      mr.className = 'match-result both-valid';
+      mr.innerHTML = '🎵 Different songs!';
+    }
+
+    renderScoreboard('reveal-scoreboard');
+
+    const isLast = currentRound >= TOTAL_ROUNDS;
+    const btn = $('btn-next-round');
+    btn.innerHTML = isLast ? '🏆 See Results' : '➡️ Next Round';
+    btn.disabled = false;
+    $('reveal-status').style.display = 'none';
+
+    showScreen('screen-reveal');
+  }
+
+  function showFinal() {
+    clearInterval(timerInterval);
+
+    $('final-score-display').textContent = `${myScore} — ${oppScore}`;
+    $('final-matches').textContent = matchCount;
+
+    let emoji, msg;
+    const wb = $('winner-banner');
+
+    if (myScore > oppScore) {
+      emoji = '🏆🎵🔥';
+      msg = 'You win!';
+      wb.innerHTML = `🏆 ${esc(myName)} wins!`;
+      wb.style.display = 'block';
+    } else if (oppScore > myScore) {
+      emoji = '😅🎵';
+      msg = 'Better luck next time!';
+      wb.innerHTML = `🏆 ${esc(opponentName)} wins!`;
+      wb.style.display = 'block';
+    } else {
+      emoji = '🤝🎵';
+      msg = "It's a tie!";
+      wb.innerHTML = "🤝 It's a draw!";
+      wb.style.display = 'block';
+    }
+
+    if (matchCount >= 5) { emoji = '🧠🎵🔥🔥🔥'; msg += ' Musical soulmates!'; }
+    else if (matchCount >= 3) { emoji = '🎵🎵🎵'; msg += ' Great taste!'; }
+    else if (matchCount >= 1) { emoji = '🎵'; msg += ' Some overlap!'; }
+
+    $('emoji-rain').textContent = emoji;
+    $('final-msg').textContent = msg;
+    $('final-status').style.display = 'none';
+    $('btn-play-again').disabled = false;
+    $('btn-play-again').innerHTML = '🔄 Play Again';
+
+    showScreen('screen-final');
+  }
+
+  // ═══════════════════════════════════════════
+  // PEER CONNECTION
+  // ═══════════════════════════════════════════
+  function wireConnection() {
+    conn.on('open', () => {
+      send({ type: 'hello', name: myName });
+    });
+
+    conn.on('data', (raw) => {
+      let data;
+      try { data = JSON.parse(raw); } catch { return; }
+
+      switch (data.type) {
+
+        case 'hello':
+          opponentName = data.name;
+          if (isHost) {
+            send({ type: 'hello-ack', name: myName });
+            $('lobby-status').textContent = `${opponentName} joined! Starting…`;
+            setTimeout(() => {
+              rounds = buildRounds();
+              currentRound = 0;
+              myScore = 0; oppScore = 0; matchCount = 0;
+              send({ type: 'start', rounds });
+              beginRound();
+            }, 1500);
+          }
+          break;
+
+        case 'hello-ack':
+          opponentName = data.name;
+          $('connecting-status').textContent = `Connected with ${opponentName}!`;
+          break;
+
+        case 'start':
+          rounds = data.rounds;
+          currentRound = 0;
+          myScore = 0; oppScore = 0; matchCount = 0;
+          beginRound();
+          break;
+
+        case 'answer':
+          oppAnswer = data.answer;
+          if (submitted) {
+            tryReveal();
+          } else {
+            $('play-status').style.display = 'flex';
+            $('play-status-text').textContent = 'Opponent has answered!';
+          }
+          break;
+
+        case 'host-ready':
+          break;
+
+        case 'next-ready':
+          if (isHost) {
+            if (waitingNextReady) {
+              waitingNextReady = false;
+              if (currentRound < TOTAL_ROUNDS) {
+                send({ type: 'next-go' });
+                beginRound();
+              } else {
+                send({ type: 'final' });
+                showFinal();
+              }
+            } else {
+              nextReadyCount++;
+            }
+          }
+          break;
+
+        case 'next-go':
+          beginRound();
+          break;
+
+        case 'final':
+          showFinal();
+          break;
+
+        case 'replay-start':
+          rounds = data.rounds;
+          currentRound = 0;
+          myScore = 0; oppScore = 0; matchCount = 0;
+          beginRound();
+          break;
+
+        case 'replay-request':
+          $('final-status').style.display = 'flex';
+          $('final-status-text').textContent = 'Opponent wants to play again!';
+          break;
+      }
+    });
+
+    conn.on('close', () => {
+      alert('Opponent disconnected 😢');
+      cleanup();
+      showScreen('screen-home');
+    });
+  }
+
+  function cleanup() {
+    clearInterval(timerInterval);
+    if (conn) { try { conn.close(); } catch {} conn = null; }
+    if (peer) { try { peer.destroy(); } catch {} peer = null; }
+    isHost = false;
+    myScore = 0; oppScore = 0; matchCount = 0;
+    currentRound = 0; rounds = [];
+    myAnswer = null; oppAnswer = null;
+    submitted = false;
+  }
+
+  // ═══════════════════════════════════════════
+  // UI EVENTS
+  // ═══════════════════════════════════════════
+  $('btn-create').onclick = () => {
+    const name = $('input-name').value.trim();
+    if (!name) return showError('home-error', 'Please enter your name');
+    myName = name;
+    isHost = true;
+    gameCode = genCode();
+
+    showScreen('screen-connecting');
+    $('connecting-status').textContent = 'Setting up game…';
+
+    peer = new Peer(PEER_PREFIX + gameCode);
+    peer.on('open', () => {
+      $('lobby-code').textContent = gameCode;
+      showScreen('screen-lobby');
+      peer.on('connection', c => {
+        if (conn) { c.close(); return; }
+        conn = c;
+        $('lobby-status').textContent = 'Connecting…';
+        wireConnection();
+      });
+    });
+    peer.on('error', err => {
+      if (err.type === 'unavailable-id') { peer.destroy(); $('btn-create').click(); }
+      else { showScreen('screen-home'); showError('home-error', 'Error: ' + err.type); }
+    });
+  };
+
+  $('btn-join').onclick = () => {
+    const name = $('input-name').value.trim();
+    const code = $('input-code').value.trim().toUpperCase();
+    if (!name) return showError('home-error', 'Please enter your name');
+    if (!code || code.length < 4) return showError('home-error', 'Enter a valid invite code');
+    myName = name;
+    isHost = false;
+    gameCode = code;
+
+    showScreen('screen-connecting');
+    $('connecting-status').textContent = 'Connecting…';
+
+    peer = new Peer(PEER_PREFIX + 'g' + genCode());
+    peer.on('open', () => {
+      $('connecting-status').textContent = 'Joining game…';
+      conn = peer.connect(PEER_PREFIX + code, { reliable: true });
+      wireConnection();
+    });
+    peer.on('error', err => {
+      if (err.type === 'peer-unavailable') {
+        showScreen('screen-home');
+        showError('home-error', 'Game not found. Check the code.');
+      } else {
+        showScreen('screen-home');
+        showError('home-error', 'Error: ' + err.type);
+      }
+    });
+  };
+
+  $('btn-copy').onclick = () => {
+    navigator.clipboard.writeText(gameCode).then(() => {
+      $('btn-copy').innerHTML = '✅ Copied!';
+      setTimeout(() => $('btn-copy').innerHTML = '📋 Copy Code', 2000);
+    }).catch(() => {});
+  };
+
+  $('btn-submit').onclick = () => {
+    const val = $('input-answer').value.trim();
+    if (!val) return;
+    doSubmit(val);
+  };
+
+  $('btn-next-round').onclick = () => {
+    const btn = $('btn-next-round');
+    btn.disabled = true;
+    const isLast = currentRound >= TOTAL_ROUNDS;
+
+    if (isHost) {
+      if (nextReadyCount > 0) {
+        nextReadyCount = 0;
+        waitingNextReady = false;
+        if (isLast) {
+          send({ type: 'final' });
+          showFinal();
+        } else {
+          send({ type: 'next-go' });
+          beginRound();
+        }
+      } else {
+        waitingNextReady = true;
+        send({ type: 'host-ready' });
+        btn.innerHTML = '⏳ Waiting for opponent…';
+        $('reveal-status').style.display = 'flex';
+        $('reveal-status-text').textContent = 'Waiting for opponent…';
+      }
+    } else {
+      send({ type: 'next-ready' });
+      if (isLast) {
+        showFinal();
+      } else {
+        btn.innerHTML = '⏳ Waiting for host…';
+        $('reveal-status').style.display = 'flex';
+        $('reveal-status-text').textContent = 'Waiting for host…';
+      }
+    }
+  };
+
+  $('btn-play-again').onclick = () => {
+    $('btn-play-again').disabled = true;
+    $('btn-play-again').innerHTML = '⏳ Waiting…';
+    $('final-status').style.display = 'flex';
+
+    if (isHost) {
+      rounds = buildRounds();
+      currentRound = 0;
+      myScore = 0; oppScore = 0; matchCount = 0;
+      send({ type: 'replay-start', rounds });
+      beginRound();
+    } else {
+      send({ type: 'replay-request' });
+      $('final-status-text').textContent = 'Waiting for host to restart…';
+    }
+  };
+
+  $('btn-home').onclick = () => {
+    cleanup();
+    $('input-name').value = myName;
+    $('input-code').value = '';
+    showScreen('screen-home');
+  };
+
+  // Keyboard shortcuts
+  $('input-name').onkeydown = e => { if (e.key === 'Enter') $('btn-create').click(); };
+  $('input-code').onkeydown = e => { if (e.key === 'Enter') $('btn-join').click(); };
+  $('input-answer').onkeydown = e => { if (e.key === 'Enter') $('btn-submit').click(); };
+
+})();
+</script>
+</body>
+</html>
