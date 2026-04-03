@@ -326,11 +326,11 @@ body{
 
 <div class="instructions">
 <h3>📖 How to play</h3>
-<p>Use <strong>arrow keys</strong>, <strong>WASD</strong>, <strong>swipe</strong>, or the <strong>D-pad</strong> to move the snake. Eat the food to grow and score points. Don't hit the walls or yourself! The snake gets <strong>faster</strong> as you grow.</p>
+<p>Use <strong>arrow keys</strong>, <strong>WASD</strong>, the <strong>D-pad</strong>, or <strong>numpad 2-4-6-8</strong> to move the snake. Eat the food to grow and score points. Don't hit the walls or yourself! The snake gets <strong>faster</strong> as you grow.</p>
 </div>
 
 <div class="nokia-phone" id="phone-home">
-<div class="nokia-brand">NOKIA</div>
+<div class="nokia-brand">RUSTY</div>
 <div class="nokia-screen-frame">
 <div class="nokia-lcd off" style="height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center">
 <div style="font-family:'Courier New',monospace;color:#2d3a1f;text-align:center">
@@ -767,7 +767,33 @@ $('nk-center').addEventListener('mousedown',e=>{
   if(gameOver&&!$('lcd-overlay').classList.contains('hidden'))initGame();
   else togglePause();
 });
-
+// ── NUMPAD DIRECTIONS (2=up, 8=down, 4=left, 6=right) ──
+document.querySelectorAll('.nokia-num-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const val=btn.textContent.trim();
+    if(val==='2')setDirection('up');
+    else if(val==='8')setDirection('down');
+    else if(val==='4')setDirection('left');
+    else if(val==='6')setDirection('right');
+    else if(val==='5'){
+      if(gameOver&&!$('lcd-overlay').classList.contains('hidden'))initGame();
+      else togglePause();
+    }
+  });
+  btn.addEventListener('touchstart',e=>{
+    e.preventDefault();
+    const val=btn.textContent.trim();
+    if(val==='2')setDirection('up');
+    else if(val==='8')setDirection('down');
+    else if(val==='4')setDirection('left');
+    else if(val==='6')setDirection('right');
+    else if(val==='5'){
+      if(gameOver&&!$('lcd-overlay').classList.contains('hidden'))initGame();
+      else togglePause();
+    }
+  },{passive:false});
+});
+  
 $('nk-left-action').addEventListener('click',()=>{
   if(gameOver&&!$('lcd-overlay').classList.contains('hidden')){
     showResultsScreen();
@@ -775,27 +801,6 @@ $('nk-left-action').addEventListener('click',()=>{
     togglePause();
   }
 });
-
-// ── SWIPE ──
-let touchStartX=0,touchStartY=0;
-const swipeArea=$('nokia-lcd');
-
-swipeArea.addEventListener('touchstart',e=>{
-  touchStartX=e.touches[0].clientX;
-  touchStartY=e.touches[0].clientY;
-},{passive:true});
-
-swipeArea.addEventListener('touchend',e=>{
-  const dx=e.changedTouches[0].clientX-touchStartX;
-  const dy=e.changedTouches[0].clientY-touchStartY;
-  const absDx=Math.abs(dx),absDy=Math.abs(dy);
-  if(Math.max(absDx,absDy)<20)return; // too small
-  if(absDx>absDy){
-    setDirection(dx>0?'right':'left');
-  }else{
-    setDirection(dy>0?'down':'up');
-  }
-},{passive:true});
 
 // ── SCREEN NAV ──
 $('btn-start').onclick=()=>{
