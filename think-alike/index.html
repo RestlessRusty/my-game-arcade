@@ -230,9 +230,159 @@ input[type="text"]::placeholder{color:#ffffff44}
 (function() {
   // ── WORD BANK ───────────────────────────────────────────
   const WORDS = {
-    noun: ['beach','moon','fire','rain','gold','star','ocean','mountain','book','cloud','shadow','rose','diamond','thunder','ice','sun','river','tree','stone','wind','dream','flower','light','snow','heart','music','night','bridge','castle','forest','honey','rocket','pirate','robot','dragon','candy','ghost','garden','island','storm','crystal','velvet','silver','mirror','tower','planet','jungle','desert','magic','sword','crown','pearl','flame','frost','wolf','eagle','lion','whale','phoenix','maze','puzzle','riddle','secret','voyage','spirit','legend','myth','horizon','dawn','comet','arrow','shield','throne','anchor','lantern','compass','harbor','serpent','key','gate'],
-    adjective: ['dark','sweet','cold','hot','wild','soft','bright','deep','fast','slow','heavy','sharp','smooth','fresh','bitter','loud','quiet','brave','gentle','fierce','tiny','giant','ancient','modern','sacred','frozen','burning','golden','mystic','lazy','crazy','happy','angry','silly','spicy','cool','warm','fancy','plain','hollow','solid','rapid','silent','vivid','pale','bold','humble','proud','wicked','shiny'],
-    verb: ['break','fly','run','fall','sing','burn','dance','jump','swim','fight','dream','grow','hide','shine','crash','climb','drift','bloom','freeze','melt','whisper','shout','twist','spin','race','chase','hunt','build','crush','spark','float','sink','rise','drop','roll','slide','bounce','flip','catch','throw']
+  noun: [
+    // Nature
+    'beach','moon','fire','rain','gold','star','ocean','mountain','river','tree',
+    'stone','wind','flower','snow','cloud','sun','ice','thunder','storm','forest',
+    'island','desert','jungle','valley','volcano','glacier','waterfall','meadow','canyon','reef',
+    'tornado','earthquake','rainbow','sunrise','sunset','tide','wave','fog','dew','frost',
+    'pebble','boulder','cliff','cave','lake','pond','creek','swamp','prairie','tundra',
+    
+    // Animals
+    'wolf','eagle','lion','whale','phoenix','serpent','dragon','shark','tiger','bear',
+    'falcon','raven','dolphin','panther','cobra','scorpion','butterfly','spider','octopus','fox',
+    'hawk','stallion','gorilla','cheetah','penguin','owl','bat','crow','jaguar','viper',
+    'elephant','giraffe','zebra','monkey','parrot','turtle','rabbit','deer','moose','salmon',
+    
+    // Objects
+    'sword','crown','pearl','mirror','tower','shield','throne','anchor','lantern','compass',
+    'diamond','crystal','arrow','key','gate','bridge','castle','rocket','robot','cannon',
+    'telescope','microscope','hourglass','compass','torch','bell','drum','flute','harp','violin',
+    'hammer','anvil','chain','rope','ladder','wheel','clock','candle','bottle','basket',
+    'needle','thread','ribbon','blanket','pillow','curtain','carpet','chandelier','fountain','statue',
+    
+    // Concepts
+    'dream','shadow','light','heart','music','night','magic','secret','voyage','spirit',
+    'legend','myth','horizon','dawn','riddle','maze','puzzle','quest','freedom','justice',
+    'courage','wisdom','truth','chaos','peace','war','love','fear','hope','fate',
+    'silence','echo','memory','destiny','paradise','nightmare','illusion','miracle','mystery','power',
+    'wealth','poverty','hunger','thirst','pride','shame','glory','honor','mercy','revenge',
+    
+    // Food & Drink
+    'honey','candy','chocolate','pepper','cinnamon','vanilla','coffee','whiskey','wine','bread',
+    'butter','cheese','cherry','lemon','apple','grape','peach','mango','coconut','olive',
+    'sugar','salt','ginger','garlic','mushroom','pumpkin','strawberry','blueberry','raspberry','watermelon',
+    'pizza','pasta','sushi','steak','taco','burger','cookie','pancake','waffle','pretzel',
+    
+    // Places
+    'temple','prison','library','museum','theater','hospital','church','school','market','harbor',
+    'palace','fortress','dungeon','arena','stadium','airport','station','factory','warehouse','lighthouse',
+    
+    // Body
+    'skull','bone','blood','brain','spine','muscle','finger','shadow','voice','breath',
+    
+    // Space
+    'comet','planet','meteor','galaxy','nebula','asteroid','satellite','eclipse','orbit','cosmos',
+    
+    // Weather & Elements
+    'flame','spark','smoke','ash','dust','mud','sand','steel','copper','bronze',
+    
+    // Technology
+    'laser','radar','signal','code','virus','robot','drone','pixel','screen','cable',
+    
+    // Clothing
+    'crown','helmet','armor','cloak','boots','gloves','mask','ring','necklace','bracelet',
+    
+    // Music & Art
+    'melody','rhythm','chorus','symphony','portrait','sculpture','canvas','pigment','mosaic','opera',
+    
+    // Misc
+    'ghost','pirate','wizard','knight','queen','king','prince','villain','hero','angel',
+    'demon','giant','dwarf','fairy','goblin','troll','vampire','werewolf','zombie','witch',
+    'treasure','ransom','bounty','trophy','medal','token','relic','fossil','artifact','scroll'
+  ],
+
+  adjective: [
+    // Temperature & Weather
+    'dark','cold','hot','frozen','burning','warm','cool','icy','boiling','chilly',
+    'scorching','blazing','frosty','steamy','humid','dry','misty','stormy','cloudy','sunny',
+    
+    // Size & Shape
+    'tiny','giant','massive','miniature','enormous','slim','thick','narrow','wide','round',
+    'flat','curved','twisted','crooked','straight','tall','short','deep','shallow','vast',
+    
+    // Texture & Material
+    'soft','sharp','smooth','rough','silky','fuzzy','slippery','sticky','crispy','spongy',
+    'metallic','wooden','glassy','rubbery','feathery','velvety','gritty','dusty','oily','waxy',
+    
+    // Color & Light
+    'bright','golden','silver','crimson','scarlet','azure','emerald','ivory','obsidian','amber',
+    'pale','vivid','dim','glowing','shiny','dull','translucent','opaque','neon','pastel',
+    
+    // Personality & Emotion
+    'brave','gentle','fierce','wild','sweet','bitter','happy','angry','silly','crazy',
+    'lazy','proud','humble','wicked','noble','cunning','loyal','greedy','jealous','generous',
+    'patient','restless','fearless','nervous','cheerful','gloomy','playful','serious','stubborn','curious',
+    
+    // Sound
+    'loud','quiet','silent','noisy','thunderous','whispering','roaring','buzzing','crackling','echoing',
+    
+    // Speed & Time
+    'fast','slow','rapid','swift','sluggish','instant','eternal','ancient','modern','fleeting',
+    
+    // Taste & Smell
+    'spicy','sour','salty','savory','fragrant','rotten','fresh','stale','pungent','bland',
+    
+    // Quality
+    'sacred','mystic','hollow','solid','heavy','light','dense','fragile','sturdy','elastic',
+    'bold','plain','fancy','elegant','rustic','exotic','ordinary','peculiar','bizarre','sublime',
+    
+    // Condition
+    'broken','flawless','rusted','polished','tattered','pristine','crumbling','blooming','withered','thriving',
+    'soaked','parched','starving','exhausted','vibrant','faded','sparkling','murky','crystal','foggy',
+    
+    // Moral & Feeling
+    'holy','evil','guilty','innocent','toxic','pure','corrupt','divine','cursed','blessed',
+    'haunted','enchanted','forbidden','legendary','infamous','glorious','doomed','triumphant','desperate','hopeful',
+    
+    // Misc
+    'invisible','magnetic','electric','volcanic','nuclear','cosmic','alien','phantom','savage','royal',
+    'lethal','harmless','explosive','peaceful','violent','chaotic','orderly','random','precise','abstract'
+  ],
+
+  verb: [
+    // Movement
+    'break','fly','run','fall','jump','swim','dance','climb','drift','spin',
+    'roll','slide','bounce','flip','crawl','sprint','stumble','leap','dive','soar',
+    'glide','hover','charge','retreat','march','wander','roam','stalk','prowl','dash',
+    
+    // Force & Impact
+    'crash','crush','smash','shatter','explode','collide','strike','punch','kick','slam',
+    'rip','tear','split','crack','snap','bend','twist','squeeze','stretch','press',
+    
+    // Creation & Destruction
+    'build','create','forge','carve','sculpt','paint','weave','craft','design','invent',
+    'destroy','demolish','erase','dissolve','crumble','decay','corrode','wither','vanish','fade',
+    
+    // Nature & Elements
+    'burn','freeze','melt','bloom','grow','shine','spark','flood','thunder','rain',
+    'evaporate','condense','crystallize','erupt','ignite','extinguish','overflow','dry','rot','sprout',
+    
+    // Sound
+    'whisper','shout','sing','scream','roar','hum','buzz','chant','echo','murmur',
+    'growl','howl','bark','hiss','click','snap','boom','ring','chime','rattle',
+    
+    // Social
+    'fight','chase','hunt','race','hide','seek','capture','escape','rescue','betray',
+    'forgive','surrender','challenge','defend','attack','protect','ambush','spy','trick','steal',
+    
+    // Mental
+    'dream','think','imagine','remember','forget','discover','solve','predict','believe','doubt',
+    'wonder','question','analyze','observe','focus','meditate','calculate','memorize','realize','understand',
+    
+    // Transformation
+    'transform','evolve','morph','shift','convert','mutate','adapt','merge','divide','multiply',
+    'shrink','expand','inflate','deflate','warp','distort','reshape','reform','restore','renew',
+    
+    // Light & Vision
+    'glow','flash','flicker','blind','illuminate','reflect','refract','shadow','dim','brighten',
+    
+    // Misc
+    'float','sink','rise','drop','catch','throw','launch','drag','push','pull',
+    'lock','unlock','open','close','wrap','unwrap','bury','dig','pour','drain',
+    'juggle','balance','aim','shoot','reload','harvest','plant','cook','brew','stir',
+    'sail','anchor','navigate','orbit','launch','land','crash','deploy','activate','deactivate'
+  ]
   };
 
   const TOTAL_ROUNDS = 5;
