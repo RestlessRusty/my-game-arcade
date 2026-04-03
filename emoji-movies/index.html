@@ -1,1 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-19MTMYDQ3S"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
 
+  gtag('config', 'G-19MTMYDQ3S');
+</script>
+<link rel="icon" type="image/png" href="/my-game-arcade/favicon.png">
+<title>Guess the Movie 🎬</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;min-height:100vh;background:linear-gradient(135deg,#0a0a1a,#1a1a3e,#0f0f2e);color:#fff;display:flex;justify-content:center;align-items:center;overflow-x:hidden}
+.bg-blob{position:fixed;border-radius:50%;filter:blur(100px);opacity:.3;pointer-events:none;z-index:0}
+.bg-blob.a{width:500px;height:500px;background:#ff6b35;top:-120px;left:-100px;animation:fA 18s ease-in-out infinite}
+.bg-blob.b{width:400px;height:400px;background:#ffd700;bottom:-80px;right:-80px;animation:fB 22s ease-in-out infinite}
+.bg-blob.c{width:300px;height:300px;background:#e91e63;top:50%;left:55%;animation:fC 20s ease-in-out infinite}
+@keyframes fA{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,80px)}}
+@keyframes fB{0%,100%{transform:translate(0,0)}50%{transform:translate(-50px,-60px)}}
+@keyframes fC{0%,100%{transform:translate(0,0)}50%{transform:translate(-40px,50px)}}
+.container{position:relative;z-index:1;width:100%;max-width:520px;padding:20px;display:flex;flex-direction:column;align-items:center;min-height:100vh;justify-content:center}
+.screen{display:none;width:100%;animation:fadeIn .4s ease}
+.screen.active{display:flex;flex-direction:column;align-items:center}
+@keyframes fadeIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.logo{font-size:2.2rem;font-weight:900;text-align:center;line-height:1.15;margin-bottom:8px;background:linear-gradient(135deg,#ff6b35,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{font-size:.95rem;color:#94a1b2;text-align:center;margin-bottom:36px}
+.card{background:rgba(255,255,255,.06);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:32px 28px;width:100%;margin-bottom:18px;box-shadow:0 8px 32px rgba(0,0,0,.25)}
+label{font-weight:700;font-size:.85rem;margin-bottom:6px;display:block;color:#ffffffcc}
+input[type="text"]{width:100%;padding:14px 18px;border:2px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.07);color:#fff;font-size:1rem;font-family:inherit;font-weight:600;outline:none;transition:border .2s}
+input[type="text"]:focus{border-color:#ff6b35}
+input[type="text"]::placeholder{color:#ffffff44}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 32px;border:none;border-radius:14px;font-family:inherit;font-size:1rem;font-weight:800;cursor:pointer;transition:all .2s;width:100%}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,#ff6b35,#e65100);color:#fff;box-shadow:0 4px 20px rgba(255,107,53,.4)}
+.btn-primary:hover{box-shadow:0 6px 28px rgba(255,107,53,.55)}
+.btn-secondary{background:linear-gradient(135deg,#ffd700,#ff8f00);color:#1a1a2e;box-shadow:0 4px 20px rgba(255,215,0,.3)}
+.btn-secondary:hover{box-shadow:0 6px 28px rgba(255,215,0,.5)}
+.btn-outline{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.2)}
+.btn-outline:hover{border-color:#ff6b35;color:#ff6b35}
+.btn-hint{background:linear-gradient(135deg,#9c27b0,#7b1fa2);color:#fff;box-shadow:0 4px 15px rgba(156,39,176,.3);width:auto;padding:10px 20px;font-size:.85rem}
+.btn-hint:hover{box-shadow:0 6px 20px rgba(156,39,176,.5)}
+.btn+.btn{margin-top:12px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.mode-buttons{display:flex;gap:12px;width:100%;margin-bottom:18px}
+.mode-buttons .btn{flex:1}
+.code-display{font-size:2.4rem;font-weight:900;letter-spacing:.3em;text-align:center;padding:18px;background:rgba(255,107,53,.15);border:2px dashed rgba(255,107,53,.4);border-radius:16px;margin:18px 0;color:#ffab91;user-select:all}
+.status{text-align:center;color:#94a1b2;font-size:.9rem;margin:12px 0;display:flex;align-items:center;justify-content:center;gap:8px}
+.dot-pulse{width:8px;height:8px;border-radius:50%;background:#ff6b35;animation:pulse 1.2s ease-in-out infinite}
+.round-header{text-align:center;margin-bottom:22px}
+.round-label{font-size:.8rem;font-weight:700;color:#ff6b35;text-transform:uppercase;letter-spacing:.15em}
+.round-number{font-size:1rem;color:#94a1b2;font-weight:600}
+.emoji-display{font-size:4rem;text-align:center;margin:16px 0;animation:popIn .5s cubic-bezier(.17,.67,.29,1.27);line-height:1.4;min-height:80px}
+.hint-area{text-align:center;margin:8px 0 16px;min-height:32px}
+.hint-text{font-size:.95rem;color:#ce93d8;font-weight:700;padding:8px 16px;background:rgba(156,39,176,.15);border-radius:12px;display:inline-block;animation:fadeIn .3s ease}
+.lives-container{display:flex;justify-content:center;gap:4px;margin:12px 0;font-size:1.5rem}
+.life{transition:all .3s}
+.life.lost{opacity:.2;transform:scale(.8)}
+.timer-bar-container{width:100%;height:6px;border-radius:3px;background:rgba(255,255,255,.1);margin:12px 0 20px;overflow:hidden}
+.timer-bar{height:100%;border-radius:3px;background:linear-gradient(90deg,#ffd700,#ff6b35);transition:width .3s linear}
+.timer-text{text-align:center;font-size:.85rem;color:#94a1b2;font-weight:700;font-variant-numeric:tabular-nums}
+.scoreboard{display:flex;justify-content:center;gap:30px;margin:16px 0}
+.score-item{text-align:center}
+.score-name{font-size:.8rem;color:#94a1b2;font-weight:600;margin-bottom:2px}
+.score-value{font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,#ff6b35,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.reveal-container{display:flex;gap:16px;margin:20px 0;width:100%}
+.reveal-card{flex:1;padding:20px 16px;border-radius:16px;text-align:center;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.08);animation:slideUp .5s ease}
+.reveal-card .player-name{font-size:.75rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.1em}
+.reveal-card .player-answer{font-size:1rem;font-weight:800;margin-top:8px;word-break:break-word}
+.reveal-card .score-change{font-size:.85rem;font-weight:800;margin-top:8px;padding:4px 12px;border-radius:20px;display:inline-block}
+.score-change.positive{background:rgba(44,182,125,.15);color:#2cb67d}
+.score-change.negative{background:rgba(225,97,98,.15);color:#e16162}
+.score-change.neutral{background:rgba(255,255,255,.05);color:#94a1b2}
+.match-result{text-align:center;padding:18px;border-radius:16px;font-size:1.2rem;font-weight:800;margin:10px 0 20px;animation:popIn .6s cubic-bezier(.17,.67,.29,1.27)}
+.match-result.correct{background:rgba(44,182,125,.15);color:#2cb67d;border:2px solid rgba(44,182,125,.3)}
+.match-result.wrong{background:rgba(225,97,98,.15);color:#e16162;border:2px solid rgba(225,97,98,.3)}
+.match-result.info{background:rgba(255,255,255,.05);color:#94a1b2;border:2px solid rgba(255,255,255,.1)}
+.correct-answer{text-align:center;font-size:1.1rem;font-weight:800;color:#ffd700;margin:8px 0}
+.final-score{font-size:4rem;font-weight:900;text-align:center;background:linear-gradient(135deg,#ff6b35,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:10px 0}
+.final-label{text-align:center;font-size:1rem;color:#94a1b2;font-weight:700}
+.emoji-rain{font-size:2.5rem;text-align:center;margin:10px 0;animation:popIn .5s ease}
+.winner-banner{text-align:center;padding:14px;border-radius:14px;font-size:1.1rem;font-weight:800;margin:10px 0;background:rgba(255,107,53,.1);border:2px solid rgba(255,107,53,.2);color:#ff6b35;animation:popIn .5s ease}
+.error-msg{background:rgba(225,97,98,.15);color:#e16162;padding:12px 18px;border-radius:12px;font-size:.85rem;font-weight:700;text-align:center;margin:12px 0;display:none}
+.error-msg.show{display:block;animation:fadeIn .3s ease}
+.divider{display:flex;align-items:center;gap:14px;margin:20px 0;width:100%;color:#94a1b2;font-size:.8rem;font-weight:700}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.1)}
+.gap-sm{height:10px}
+.instructions{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 20px;margin:0 0 18px;width:100%}
+.instructions h3{font-size:.85rem;color:#ff6b35;margin-bottom:8px;text-transform:uppercase;letter-spacing:.1em}
+.instructions p{font-size:.82rem;color:#94a1b2;line-height:1.6}
+.instructions strong{color:#fff}
+.scoring{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:8px 0 4px;font-size:.75rem;font-weight:700}
+.scoring span{padding:3px 10px;border-radius:12px}
+.scoring .s-correct{background:rgba(44,182,125,.15);color:#2cb67d}
+.scoring .s-hint{background:rgba(156,39,176,.15);color:#ce93d8}
+.scoring .s-wrong{background:rgba(225,97,98,.15);color:#e16162}
+.input-row{display:flex;gap:8px;align-items:stretch}
+.input-row input{flex:1}
+.input-row .btn-hint{flex-shrink:0;border-radius:14px;height:auto}
+@media(max-width:480px){.logo{font-size:1.7rem}.emoji-display{font-size:3rem}.card{padding:24px 20px}.code-display{font-size:1.8rem;letter-spacing:.2em}.reveal-container{gap:10px}}
+</style>
+</head>
+<body>
+<div class="bg-blob a"></div>
+<div class="bg-blob b"></div>
+<div class="bg-blob c"></div>
+<div class="container">
+
+<!-- HOME -->
+<div class="screen active" id="screen-home">
+<div class="logo">Guess the<br>Movie 🎬</div>
+<p class="subtitle">Can you name the movie from emojis?</p>
+<div class="instructions">
+<h3>📖 How to play</h3>
+<p>Each round shows <strong>emojis</strong> representing a movie. Type the movie title! Use a <strong>hint</strong> if stuck — but it costs a point.</p>
+<div class="scoring">
+<span class="s-correct">✅ Correct +2</span>
+<span class="s-hint">💡 Hint −1</span>
+<span class="s-wrong">❌ Wrong 0</span>
+</div>
+</div>
+<div class="card">
+<label for="input-name">Your Name</label>
+<input type="text" id="input-name" placeholder="Enter your name…" maxlength="20" autocomplete="off"/>
+</div>
+<div class="mode-buttons">
+<button class="btn btn-primary" id="btn-solo">🎬 Solo</button>
+<button class="btn btn-secondary" id="btn-create">👥 Create 2P</button>
+</div>
+<div class="divider">OR JOIN A GAME</div>
+<div class="card">
+<label for="input-code">Invite Code</label>
+<input type="text" id="input-code" placeholder="e.g. A3BX9K" maxlength="6" autocomplete="off" style="text-transform:uppercase;letter-spacing:.15em;text-align:center"/>
+</div>
+<button class="btn btn-outline" id="btn-join">🤝 Join Game</button>
+<div class="error-msg" id="home-error"></div>
+</div>
+
+<!-- LOBBY -->
+<div class="screen" id="screen-lobby">
+<div class="logo">Guess the<br>Movie 🎬</div>
+<p class="subtitle">Share this code with a friend</p>
+<div class="card" style="text-align:center">
+<label>Invite Code</label>
+<div class="code-display" id="lobby-code"></div>
+<button class="btn btn-outline" id="btn-copy" style="margin-top:12px;width:auto;padding:10px 24px;display:inline-flex">📋 Copy Code</button>
+</div>
+<div class="status"><div class="dot-pulse"></div><span id="lobby-status">Waiting for opponent…</span></div>
+</div>
+
+<!-- CONNECTING -->
+<div class="screen" id="screen-connecting">
+<div class="logo">Connecting… ⏳</div>
+<div class="status"><div class="dot-pulse"></div><span id="connecting-status">Please wait…</span></div>
+</div>
+
+<!-- SOLO -->
+<div class="screen" id="screen-solo">
+<div class="round-header">
+<div class="round-label">Movie</div>
+<div class="round-number" id="solo-round-info">1 / 5</div>
+</div>
+<div class="lives-container" id="solo-lives"></div>
+<div style="text-align:center;margin-bottom:8px">
+<span style="font-size:.85rem;color:#94a1b2;font-weight:700">Score: </span>
+<span id="solo-score-display" style="font-size:1.2rem;font-weight:900;background:linear-gradient(135deg,#ff6b35,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent">0</span>
+</div>
+<div class="card">
+<div class="emoji-display" id="solo-emoji">🦁👑</div>
+<div class="hint-area" id="solo-hint-area"></div>
+<div class="timer-text" id="solo-timer-text">30s</div>
+<div class="timer-bar-container"><div class="timer-bar" id="solo-timer-bar" style="width:100%"></div></div>
+<label for="solo-input">Movie Title</label>
+<div class="input-row">
+<input type="text" id="solo-input" placeholder="Type the movie title…" maxlength="80" autocomplete="off"/>
+<button class="btn btn-hint" id="solo-hint-btn">💡</button>
+</div>
+<div class="gap-sm"></div>
+<button class="btn btn-primary" id="solo-submit">🚀 Guess</button>
+</div>
+</div>
+
+<!-- SOLO RESULT -->
+<div class="screen" id="screen-solo-result">
+<div class="round-header"><div class="round-label" id="solo-result-label">Round 1</div></div>
+<div class="emoji-display" id="solo-result-emoji" style="font-size:3rem"></div>
+<div class="match-result" id="solo-result-msg"></div>
+<div class="correct-answer" id="solo-correct-answer"></div>
+<div style="text-align:center;margin:12px 0">
+<span style="font-size:.85rem;color:#94a1b2;font-weight:700">Score: </span>
+<span id="solo-result-score" style="font-size:1.5rem;font-weight:900;background:linear-gradient(135deg,#ff6b35,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent">0</span>
+</div>
+<div class="lives-container" id="solo-result-lives"></div>
+<button class="btn btn-primary" id="solo-next-btn">➡️ Next Movie</button>
+</div>
+
+<!-- SOLO FINAL -->
+<div class="screen" id="screen-solo-final">
+<div class="logo">Game Over! 🎬</div>
+<div class="emoji-rain" id="solo-final-emoji"></div>
+<div class="card" style="text-align:center">
+<div class="final-label">Your Score</div>
+<div class="final-score" id="solo-final-score">0</div>
+<div class="final-label" id="solo-final-msg"></div>
+</div>
+<button class="btn btn-primary" id="solo-again-btn">🔄 Play Again</button>
+<button class="btn btn-outline" id="solo-home-btn">🏠 Back to Home</button>
+</div>
+
+<!-- 2P PLAY -->
+<div class="screen" id="screen-play">
+<div class="round-header">
+<div class="round-label">Round</div>
+<div class="round-number" id="round-info">1 / 5</div>
+</div>
+<div class="scoreboard" id="scoreboard"></div>
+<div class="card">
+<div class="emoji-display" id="prompt-emoji">🦁👑</div>
+<div class="hint-area" id="mp-hint-area"></div>
+<div class="timer-text" id="timer-text">30s</div>
+<div class="timer-bar-container"><div class="timer-bar" id="timer-bar" style="width:100%"></div></div>
+<label for="input-answer">Movie Title</label>
+<div class="input-row">
+<input type="text" id="input-answer" placeholder="Type the movie title…" maxlength="80" autocomplete="off"/>
+<button class="btn btn-hint" id="mp-hint-btn">💡</button>
+</div>
+<div class="gap-sm"></div>
+<button class="btn btn-primary" id="btn-submit">🚀 Guess</button>
+<div class="status" id="play-status" style="display:none"><div class="dot-pulse"></div><span id="play-status-text">Waiting…</span></div>
+</div>
+</div>
+
+<!-- 2P REVEAL -->
+<div class="screen" id="screen-reveal">
+<div class="round-header"><div class="round-label" id="reveal-round-label">Round 1</div></div>
+<div class="emoji-display" id="reveal-emoji" style="font-size:3rem"></div>
+<div class="correct-answer" id="reveal-correct"></div>
+<div class="reveal-container" id="reveal-answers"></div>
+<div class="match-result" id="match-result"></div>
+<div class="scoreboard" id="reveal-scoreboard"></div>
+<button class="btn btn-primary" id="btn-next-round">➡️ Next Round</button>
+<div class="status" id="reveal-status" style="display:none"><div class="dot-pulse"></div><span id="reveal-status-text">Waiting…</span></div>
+</div>
+
+<!-- 2P FINAL -->
+<div class="screen" id="screen-final">
+<div class="logo">Game Over! 🎬</div>
+<div class="emoji-rain" id="emoji-rain"></div>
+<div class="card" style="text-align:center">
+<div class="final-label">Final Scores</div>
+<div class="final-score" id="final-score-display">0 — 0</div>
+<div class="final-label" id="final-msg"></div>
+</div>
+<div class="winner-banner" id="winner-banner"></div>
+<button class="btn btn-primary" id="btn-play-again">🔄 Play Again</button>
+<button class="btn btn-outline" id="btn-home">🏠 Back to Home</button>
+<div class="status" id="final-status" style="display:none"><div class="dot-pulse"></div><span id="final-status-text">Waiting…</span></div>
+</div>
+
+</div>
+<div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+             border-radius:14px; padding:16px 20px; margin:20px 0; 
+             text-align:center; width:100%;">
+   <p style="color:#94a1b2; font-size:0.85rem; margin-bottom:10px;">
+     Enjoying the games? 🎉
+   </p>
+   <a href="https://ko-fi.com/restlessrusty" target="_blank"
+      style="color:#7f5af0; font-weight:700; text-decoration:none;">
+     ☕ Buy me a coffee to make more games!
+   </a>
+  </div>
+
+<script>
+(function(){
+
+// ═══════════════════════════════════════════
+// MOVIE DATABASE
+// ═══════════════════════════════════════════
+const MOVIES=[
+{emoji:'🦁👑',title:'The Lion King',hint:'Disney classic about a lion cub'},
+{emoji:'❄️👸⛄',title:'Frozen',hint:'Disney princess with ice powers'},
+{emoji:'🧞‍♂️🏜️🐒',title:'Aladdin',hint:'A magic lamp and a genie'},
+{emoji:'🧜‍♀️🌊🦀',title:'The Little Mermaid',hint:'She traded her voice'},
+{emoji:'👸🍎😴',title:'Snow White',hint:'Poisoned apple put her to sleep'},
+{emoji:'🤠🚀👨‍🚀',title:'Toy Story',hint:'To infinity and beyond'},
+{emoji:'🐠🔍🌊',title:'Finding Nemo',hint:'A lost clownfish'},
+{emoji:'👨‍🍳🐀🇫🇷',title:'Ratatouille',hint:'A rat who cooks in Paris'},
+{emoji:'👴🏠🎈',title:'Up',hint:'House lifted by balloons'},
+{emoji:'🏎️⚡😀',title:'Cars',hint:'Animated talking vehicles'},
+{emoji:'👹💚🧅',title:'Shrek',hint:'Ogre in a swamp'},
+{emoji:'🐼🥋🍜',title:'Kung Fu Panda',hint:'Martial arts bear'},
+{emoji:'🦊🐰🔍',title:'Zootopia',hint:'Animal city police duo'},
+{emoji:'🎃🦇🎄',title:'The Nightmare Before Christmas',hint:'Halloween meets Christmas'},
+{emoji:'🏴‍☠️💀⚓',title:'Pirates of the Caribbean',hint:'Captain Jack Sparrow'},
+{emoji:'🌹👹💃',title:'Beauty and the Beast',hint:'Enchanted rose'},
+{emoji:'🐘✈️🎪',title:'Dumbo',hint:'Flying elephant'},
+{emoji:'👸👠🕛',title:'Cinderella',hint:'Glass slipper at midnight'},
+{emoji:'🤖🌱🌍',title:'Wall-E',hint:'Lonely robot on Earth'},
+{emoji:'🧠😭😡😱😊',title:'Inside Out',hint:'Emotions inside your head'},
+{emoji:'🎸💀🇲🇽',title:'Coco',hint:'Day of the Dead music'},
+{emoji:'👩‍🦰🐻🏔️',title:'Brave',hint:'Scottish princess with a bow'},
+{emoji:'🐉👦🌊',title:'How to Train Your Dragon',hint:'Vikings and dragons become friends'},
+{emoji:'🦸‍♂️👨‍👩‍👧‍👦💪',title:'The Incredibles',hint:'Superhero family'},
+{emoji:'🐕🐈🏠',title:'The Secret Life of Pets',hint:'What pets do when you leave'},
+{emoji:'🧊🦥🐿️',title:'Ice Age',hint:'Prehistoric animals and a nut'},
+{emoji:'🐒👑📖',title:'The Jungle Book',hint:'Boy raised by wolves'},
+{emoji:'🏠👻👧',title:'Coraline',hint:'Other mother behind a door'},
+{emoji:'🕷️🧑🏙️',title:'Spider-Man',hint:'Bitten by a radioactive spider'},
+{emoji:'🧊🚢💔',title:'Titanic',hint:'Sinking ship love story'},
+{emoji:'🦇🌃🃏',title:'The Dark Knight',hint:'Batman versus the Joker'},
+{emoji:'💍🌋🧝',title:'The Lord of the Rings',hint:'One ring to rule them all'},
+{emoji:'⚡👦🧙‍♂️',title:'Harry Potter',hint:'Boy wizard with a scar'},
+{emoji:'🦖🏝️🔬',title:'Jurassic Park',hint:'Dinosaurs brought back to life'},
+{emoji:'👽🚲🌕',title:'E.T.',hint:'Alien wants to phone home'},
+{emoji:'🥊🏃‍♂️🏆',title:'Rocky',hint:'Underdog boxer from Philadelphia'},
+{emoji:'🦈🏖️😱',title:'Jaws',hint:'Giant shark terrorizes a beach'},
+{emoji:'🌍🐵⏰',title:'Planet of the Apes',hint:'World ruled by primates'},
+{emoji:'🚗💨⏱️',title:'Fast and Furious',hint:'Street racing family'},
+{emoji:'🧙‍♂️💚🏙️',title:'The Wizard of Oz',hint:'Follow the yellow brick road'},
+{emoji:'👻💚😂',title:'Ghostbusters',hint:'Who you gonna call'},
+{emoji:'🤖👍🔥',title:'Terminator',hint:'Robot from the future'},
+{emoji:'🏹🎯🔥',title:'The Hunger Games',hint:'Kids fight in an arena'},
+{emoji:'🧛💉❤️',title:'Twilight',hint:'Vampire romance in high school'},
+{emoji:'🚢🏴‍☠️💀',title:'Titanic',hint:'Unsinkable ship sinks'},
+{emoji:'👱‍♀️👠🛍️',title:'Legally Blonde',hint:'Pink loving law student'},
+{emoji:'🐺🌕🧑',title:'Teen Wolf',hint:'Teenager becomes a werewolf'},
+{emoji:'🧬🦎🔬',title:'The Amazing Spider-Man',hint:'Reboot with a lizard villain'},
+{emoji:'🌊🏄‍♂️🦈',title:'Soul Surfer',hint:'Surfer loses arm to shark'},
+{emoji:'🐝🍯🎬',title:'Bee Movie',hint:'A bee sues humans for honey'},
+{emoji:'🎹👦🤖',title:'Big',hint:'Kid becomes an adult overnight'},
+{emoji:'🧹✨👩',title:'Enchanted',hint:'Princess enters real world'},
+{emoji:'🏠🔪😱',title:'Scream',hint:'Ghostface killer calls you'},
+{emoji:'🧟‍♂️🌍🔫',title:'World War Z',hint:'Global zombie pandemic'},
+{emoji:'🚀👨‍🚀🌑',title:'Interstellar',hint:'Space travel through a wormhole'},
+{emoji:'🕶️💊🤖',title:'The Matrix',hint:'Red pill or blue pill'},
+{emoji:'🦍🏙️✈️',title:'King Kong',hint:'Giant ape on a skyscraper'},
+{emoji:'🐭👨‍🍳🇫🇷',title:'Ratatouille',hint:'A rat who can cook'},
+{emoji:'🧔🏻‍♂️🪓🌲',title:'The Revenant',hint:'Bear attack survival'},
+{emoji:'🌊🏝️🏐',title:'Cast Away',hint:'Stranded with Wilson'},
+{emoji:'👩‍🚀🔴🪐',title:'The Martian',hint:'Astronaut stuck on Mars'},
+{emoji:'🎭😈👼',title:'The Devil Wears Prada',hint:'Fashion magazine boss'},
+{emoji:'📓💑🌧️',title:'The Notebook',hint:'Summer love story'},
+{emoji:'🏫🧠📝',title:'Good Will Hunting',hint:'Janitor genius at MIT'},
+{emoji:'🐕‍🦺🧑‍🦯❤️',title:'A Dogs Purpose',hint:'Dog reincarnates to find its owner'},
+{emoji:'🎪🎩🐘',title:'The Greatest Showman',hint:'PT Barnum circus musical'},
+{emoji:'🧊⛏️❄️',title:'Frozen',hint:'Let it go'},
+{emoji:'🎶🎤👩‍🎤⭐',title:'A Star Is Born',hint:'Singer discovers another singer'},
+{emoji:'🏠👦🔫🎄',title:'Home Alone',hint:'Kid defends house from burglars'},
+{emoji:'🐉🗡️👸',title:'Sleeping Beauty',hint:'Princess cursed to sleep'},
+{emoji:'🚌🏃‍♂️🍫',title:'Forrest Gump',hint:'Life is like a box of chocolates'},
+{emoji:'👨‍🔬⚗️💊',title:'Breaking Bad',hint:'Chemistry teacher turns criminal'},
+{emoji:'🎩🐇✨',title:'Alice in Wonderland',hint:'Down the rabbit hole'},
+{emoji:'🤴⚔️🏰',title:'Braveheart',hint:'Scottish freedom fighter'},
+{emoji:'🧟‍♂️😂🏫',title:'Zombieland',hint:'Comedy zombie road trip'},
+{emoji:'🏖️🦈🔫',title:'Jaws',hint:'Dont go in the water'},
+{emoji:'🧙‍♂️📖🏔️',title:'The Hobbit',hint:'There and back again'},
+{emoji:'👑🗡️🐲',title:'Game of Thrones',hint:'Iron throne and dragons'},
+{emoji:'🚗🕐⚡',title:'Back to the Future',hint:'Time traveling DeLorean'},
+{emoji:'🤵🔫🍸',title:'James Bond',hint:'Shaken not stirred'},
+{emoji:'🐊🏝️🪝',title:'Peter Pan',hint:'Captain Hook and Neverland'},
+{emoji:'🏃‍♀️👗🕐',title:'Cinderella',hint:'Must leave by midnight'},
+{emoji:'🧛‍♂️🏰🌙',title:'Dracula',hint:'Classic vampire count'},
+{emoji:'🦸‍♂️🔨⚡',title:'Thor',hint:'God of thunder'},
+{emoji:'🕷️🦸‍♂️🏙️',title:'The Amazing Spider-Man',hint:'Web slinging hero'},
+{emoji:'🐧❄️🎶',title:'Happy Feet',hint:'Dancing penguin'},
+{emoji:'🤖❤️🌱',title:'Wall-E',hint:'Robot finds love and a plant'},
+{emoji:'👧🌀🏠',title:'The Wizard of Oz',hint:'Theres no place like home'},
+{emoji:'🏎️🏁🇮🇹',title:'Cars',hint:'Lightning McQueen'},
+{emoji:'🧝‍♂️🏹💍',title:'The Lord of the Rings',hint:'Elf archer and a ring'},
+{emoji:'🐋🌊👦',title:'Pinocchio',hint:'Swallowed by a whale'},
+{emoji:'🏰🐸👸',title:'The Princess and the Frog',hint:'Kiss a frog prince'},
+{emoji:'🎃👻🏚️',title:'Halloween',hint:'Michael Myers slasher'},
+{emoji:'🌍🦠😷',title:'Contagion',hint:'Global virus pandemic'},
+{emoji:'🏋️‍♂️🥊🏆',title:'Creed',hint:'Boxers sons story'},
+{emoji:'👩‍🚀🌌🕳️',title:'Interstellar',hint:'Love transcends dimensions'},
+{emoji:'🐝🌸🧸',title:'Winnie the Pooh',hint:'Silly old bear'},
+{emoji:'🎤👩‍🎤🎵🏆',title:'Bohemian Rhapsody',hint:'Freddie Mercury biopic'},
+{emoji:'🗡️⚔️🛡️',title:'Gladiator',hint:'Are you not entertained'},
+{emoji:'🧑‍💻🌐🔓',title:'The Social Network',hint:'Facebook origin story'},
+{emoji:'🐀👨‍🍳🍝',title:'Ratatouille',hint:'Anyone can cook'},
+{emoji:'💎🤵🚨',title:'Ocean\'s Eleven',hint:'Casino heist crew'},
+{emoji:'🌊🐢🐠',title:'Finding Nemo',hint:'Just keep swimming'},
+{emoji:'🤡🎈🕳️',title:'It',hint:'Scary clown in the sewer'},
+{emoji:'🏔️❄️🧗',title:'Everest',hint:'Climbing the tallest mountain'},
+{emoji:'🧸🐻🌲',title:'Brother Bear',hint:'Man transforms into a bear'},
+{emoji:'🦇🤡🃏',title:'Joker',hint:'Origin of a villain'},
+{emoji:'👨‍👩‍👧🏠💀',title:'The Others',hint:'Mother and children in haunted house'},
+{emoji:'🏫👦⚡🧙',title:'Harry Potter',hint:'Hogwarts School of Witchcraft'},
+{emoji:'🌊🏄🦈',title:'The Shallows',hint:'Surfer trapped by a shark'},
+{emoji:'🤖🔫🌃',title:'Blade Runner',hint:'Hunting replicants'},
+{emoji:'👸🏰❄️',title:'Frozen',hint:'Queen of Arendelle'},
+{emoji:'🐒🍌🏝️',title:'Madagascar',hint:'Zoo animals escape to an island'},
+{emoji:'🧙‍♀️🍎🪞',title:'Snow White',hint:'Mirror mirror on the wall'},
+{emoji:'🚂🧙⚡',title:'Harry Potter',hint:'Platform nine and three quarters'},
+{emoji:'🧛🩸🏫',title:'Twilight',hint:'Vampires in Forks Washington'},
+{emoji:'🦁🐗🐒',title:'The Lion King',hint:'Hakuna Matata'},
+{emoji:'🏺🧞✨',title:'Aladdin',hint:'A whole new world'},
+{emoji:'🤖🦾👦',title:'The Iron Giant',hint:'Giant friendly robot'},
+{emoji:'👫🚢🌊',title:'Titanic',hint:'Jack and Rose'},
+{emoji:'🐉🔥🏰',title:'Shrek',hint:'Donkey befriends a dragon'},
+{emoji:'🧒🎈🏚️',title:'It',hint:'Pennywise the clown'},
+{emoji:'🏜️🐪⭐',title:'Lawrence of Arabia',hint:'Epic desert adventure'},
+{emoji:'🧊🐻‍❄️🦥',title:'Ice Age',hint:'Manny Sid and Diego'},
+{emoji:'🕺💃🎶',title:'Grease',hint:'Summer loving had me a blast'},
+{emoji:'🚀🤖⚔️',title:'Star Wars',hint:'May the force be with you'},
+{emoji:'🧟😂🌹',title:'Warm Bodies',hint:'Zombie falls in love'},
+{emoji:'🐶🐱🏠',title:'The Secret Life of Pets',hint:'What happens when owners leave'},
+{emoji:'🦇🌑🤵',title:'Batman',hint:'The caped crusader'},
+{emoji:'🧪🦎👨‍🔬',title:'Spider-Man',hint:'With great power comes responsibility'},
+{emoji:'👱‍♀️🗼🎨',title:'Tangled',hint:'Rapunzel lets down her hair'},
+{emoji:'🐭🏰✨',title:'Cinderella',hint:'Fairy godmother transforms her'},
+{emoji:'🌺🌊⛵',title:'Moana',hint:'Polynesian girl sails the ocean'},
+{emoji:'🦝🌳🏹',title:'Pocahontas',hint:'Colors of the wind'},
+{emoji:'☀️🌻😊',title:'Despicable Me',hint:'Little yellow minions'},
+{emoji:'🎭🎪🔥',title:'The Greatest Showman',hint:'This is the greatest show'},
+{emoji:'🧜‍♀️🦀🎵',title:'The Little Mermaid',hint:'Under the sea'},
+{emoji:'🤠🐍🏜️',title:'Rango',hint:'Chameleon becomes a sheriff'}
+];
+
+const TOTAL_ROUNDS=5;
+const ROUND_TIME=30;
+const PEER_PREFIX='emojimov2024z';
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let peer=null,conn=null,isHost=false,isSolo=false;
+let myName='',opponentName='',gameCode='';
+let rounds=[],currentRound=0;
+let myScore=0,oppScore=0;
+let myAnswer=null,oppAnswer=null;
+let myUsedHint=false,oppUsedHint=false;
+let submitted=false,timerInterval=null,timeLeft=ROUND_TIME;
+let waitingNextReady=false,nextReadyCount=0;
+// Solo state
+let soloLives=3,soloScore=0,soloRound=0,soloUsedHint=false,soloRounds=[];
+
+// ═══════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════
+const $=id=>document.getElementById(id);
+const screens=document.querySelectorAll('.screen');
+function showScreen(id){screens.forEach(s=>s.classList.remove('active'));$(id).classList.add('active')}
+function showError(id,msg){const el=$(id);el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),5000)}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let r='';for(let i=0;i<6;i++)r+=c[Math.floor(Math.random()*c.length)];return r}
+
+function buildRounds(n){
+  const pool=[...MOVIES];
+  const r=[];
+  const used=new Set();
+  while(r.length<n&&pool.length>0){
+    const idx=Math.floor(Math.random()*pool.length);
+    const m=pool.splice(idx,1)[0];
+    if(!used.has(m.title)){used.add(m.title);r.push(m)}
+  }
+  return r;
+}
+
+function normalize(s){return s.trim().toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim()}
+
+function fuzzyMatch(guess,answer){
+  const g=normalize(guess);
+  const a=normalize(answer);
+  if(!g)return false;
+  if(g===a)return true;
+  // Remove "the" from start
+  const g2=g.replace(/^the\s+/,'');
+  const a2=a.replace(/^the\s+/,'');
+  if(g2===a2)return true;
+  // Levenshtein distance
+  if(levenshtein(g,a)<=2)return true;
+  if(levenshtein(g2,a2)<=2)return true;
+  // Check if answer contains guess or vice versa for long titles
+  if(a.length>8&&(a.includes(g)||g.includes(a)))return true;
+  if(a2.length>8&&(a2.includes(g2)||g2.includes(a2)))return true;
+  return false;
+}
+
+function levenshtein(a,b){
+  const m=a.length,n=b.length;
+  const dp=Array.from({length:m+1},()=>Array(n+1).fill(0));
+  for(let i=0;i<=m;i++)dp[i][0]=i;
+  for(let j=0;j<=n;j++)dp[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){
+    dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+(a[i-1]!==b[j-1]?1:0));
+  }
+  return dp[m][n];
+}
+
+function renderScoreboard(id){
+  $(id).innerHTML=`
+    <div class="score-item"><div class="score-name">${esc(myName)}</div><div class="score-value">${myScore}</div></div>
+    <div class="score-item"><div class="score-name">${esc(opponentName)}</div><div class="score-value">${oppScore}</div></div>`;
+}
+
+function renderLives(id,lives){
+  let h='';
+  for(let i=0;i<3;i++)h+=`<span class="life ${i<lives?'':'lost'}">❤️</span>`;
+  $(id).innerHTML=h;
+}
+
+function send(obj){if(conn&&conn.open)conn.send(JSON.stringify(obj))}
+
+// ═══════════════════════════════════════════
+// SOLO MODE
+// ═══════════════════════════════════════════
+function startSolo(){
+  isSolo=true;
+  soloLives=3;soloScore=0;soloRound=0;soloUsedHint=false;
+  soloRounds=buildRounds(TOTAL_ROUNDS);
+  beginSoloRound();
+}
+
+function beginSoloRound(){
+  soloUsedHint=false;
+  const movie=soloRounds[soloRound];
+  $('solo-round-info').textContent=`${soloRound+1} / ${TOTAL_ROUNDS}`;
+  $('solo-emoji').textContent=movie.emoji;
+  $('solo-hint-area').innerHTML='';
+  $('solo-score-display').textContent=soloScore;
+  renderLives('solo-lives',soloLives);
+  $('solo-input').value='';
+  $('solo-input').disabled=false;
+  $('solo-submit').disabled=false;
+  $('solo-submit').innerHTML='🚀 Guess';
+  $('solo-hint-btn').disabled=false;
+
+  timeLeft=ROUND_TIME;
+  $('solo-timer-text').textContent=ROUND_TIME+'s';
+  $('solo-timer-bar').style.width='100%';
+  $('solo-timer-bar').style.background='linear-gradient(90deg,#ffd700,#ff6b35)';
+  clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    timeLeft--;
+    if(timeLeft<0)timeLeft=0;
+    $('solo-timer-text').textContent=timeLeft+'s';
+    $('solo-timer-bar').style.width=((timeLeft/ROUND_TIME)*100)+'%';
+    if(timeLeft<=5)$('solo-timer-bar').style.background='linear-gradient(90deg,#e16162,#e16162)';
+    if(timeLeft<=0){clearInterval(timerInterval);submitSolo('')}
+  },1000);
+
+  showScreen('screen-solo');
+  setTimeout(()=>$('solo-input').focus(),300);
+}
+
+function submitSolo(answer){
+  clearInterval(timerInterval);
+  $('solo-input').disabled=true;
+  $('solo-submit').disabled=true;
+  $('solo-hint-btn').disabled=true;
+
+  const movie=soloRounds[soloRound];
+  const correct=fuzzyMatch(answer,movie.title);
+
+  if(correct){
+    soloScore+=2;
+    if(soloUsedHint)soloScore-=1;
+  }else{
+    soloLives--;
+  }
+
+  soloRound++;
+
+  // Show result
+  $('solo-result-label').textContent=`Round ${soloRound}`;
+  $('solo-result-emoji').textContent=movie.emoji;
+
+  const mr=$('solo-result-msg');
+  if(correct){
+    mr.className='match-result correct';
+    mr.innerHTML=soloUsedHint?'✅ Correct! +2 − 1 (hint) = +1':'✅ Correct! +2';
+  }else{
+    mr.className='match-result wrong';
+    mr.innerHTML=answer?'❌ Wrong answer! Lost a life':'⏰ Time\'s up! Lost a life';
+  }
+
+  $('solo-correct-answer').textContent=`🎬 ${movie.title}`;
+  $('solo-result-score').textContent=soloScore;
+  renderLives('solo-result-lives',soloLives);
+
+  const isOver=soloLives<=0||soloRound>=TOTAL_ROUNDS;
+  const btn=$('solo-next-btn');
+  btn.innerHTML=isOver?'🏆 See Results':'➡️ Next Movie';
+  btn.onclick=()=>{
+    if(isOver)showSoloFinal();
+    else beginSoloRound();
+  };
+
+  showScreen('screen-solo-result');
+}
+
+function showSoloFinal(){
+  clearInterval(timerInterval);
+  $('solo-final-score').textContent=soloScore;
+
+  let emoji,msg;
+  if(soloScore>=10){emoji='🏆🎬🔥';msg='Movie genius!'}
+  else if(soloScore>=7){emoji='🎬⭐';msg='Great movie knowledge!'}
+  else if(soloScore>=4){emoji='🎬👍';msg='Not bad! Keep watching movies!'}
+  else if(soloScore>=1){emoji='🎬';msg='Room for improvement!'}
+  else{emoji='😅';msg='Better luck next time!'}
+
+  $('solo-final-emoji').textContent=emoji;
+  $('solo-final-msg').textContent=msg;
+  showScreen('screen-solo-final');
+}
+
+$('solo-hint-btn').onclick=()=>{
+  if(soloUsedHint)return;
+  soloUsedHint=true;
+  $('solo-hint-btn').disabled=true;
+  const movie=soloRounds[soloRound];
+  $('solo-hint-area').innerHTML=`<span class="hint-text">💡 ${esc(movie.hint)} (−1 point)</span>`;
+};
+
+$('solo-submit').onclick=()=>{
+  const val=$('solo-input').value.trim();
+  if(!val)return;
+  submitSolo(val);
+};
+
+$('solo-input').onkeydown=e=>{if(e.key==='Enter')$('solo-submit').click()};
+$('solo-again-btn').onclick=()=>startSolo();
+$('solo-home-btn').onclick=()=>{clearInterval(timerInterval);showScreen('screen-home')};
+
+// ═══════════════════════════════════════════
+// 2-PLAYER MODE
+// ═══════════════════════════════════════════
+function beginRound(){
+  myAnswer=null;oppAnswer=null;submitted=false;
+  myUsedHint=false;oppUsedHint=false;
+  waitingNextReady=false;nextReadyCount=0;
+
+  const movie=rounds[currentRound];
+  $('round-info').textContent=`${currentRound+1} / ${TOTAL_ROUNDS}`;
+  $('prompt-emoji').textContent=movie.emoji;
+  $('mp-hint-area').innerHTML='';
+  renderScoreboard('scoreboard');
+
+  $('input-answer').value='';
+  $('input-answer').disabled=false;
+  $('btn-submit').disabled=false;
+  $('btn-submit').innerHTML='🚀 Guess';
+  $('mp-hint-btn').disabled=false;
+  $('play-status').style.display='none';
+
+  timeLeft=ROUND_TIME;
+  $('timer-text').textContent=ROUND_TIME+'s';
+  $('timer-bar').style.width='100%';
+  $('timer-bar').style.background='linear-gradient(90deg,#ffd700,#ff6b35)';
+  clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    timeLeft--;
+    if(timeLeft<0)timeLeft=0;
+    $('timer-text').textContent=timeLeft+'s';
+    $('timer-bar').style.width=((timeLeft/ROUND_TIME)*100)+'%';
+    if(timeLeft<=5)$('timer-bar').style.background='linear-gradient(90deg,#e16162,#e16162)';
+    if(timeLeft<=0){clearInterval(timerInterval);if(!submitted)doSubmit('')}
+  },1000);
+
+  showScreen('screen-play');
+  setTimeout(()=>$('input-answer').focus(),300);
+}
+
+function doSubmit(answer){
+  if(submitted)return;
+  submitted=true;
+  clearInterval(timerInterval);
+  myAnswer=answer.trim();
+  send({type:'answer',answer:myAnswer,usedHint:myUsedHint});
+  $('input-answer').disabled=true;
+  $('btn-submit').disabled=true;
+  $('mp-hint-btn').disabled=true;
+  $('btn-submit').innerHTML=myAnswer?'✅ Submitted!':'⏰ Time\'s up!';
+  tryReveal();
+}
+
+function tryReveal(){
+  if(myAnswer===null||oppAnswer===null){
+    $('play-status').style.display='flex';
+    $('play-status-text').textContent=oppAnswer!==null?'Processing…':'Waiting for opponent…';
+    return;
+  }
+  clearInterval(timerInterval);
+
+  const movie=rounds[currentRound];
+  const myCorrect=fuzzyMatch(myAnswer,movie.title);
+  const oppCorrect=fuzzyMatch(oppAnswer,movie.title);
+
+  let myChange=0,oppChange=0;
+  if(myCorrect){myChange=2;if(myUsedHint)myChange-=1}
+  if(oppCorrect){oppChange=2;if(oppUsedHint)oppChange-=1}
+
+  myScore+=myChange;oppScore+=oppChange;
+  const roundNum=currentRound+1;
+  currentRound++;
+
+  $('reveal-round-label').textContent=`Round ${roundNum} Result`;
+  $('reveal-emoji').textContent=movie.emoji;
+  $('reveal-correct').textContent=`🎬 ${movie.title}`;
+
+  function card(name,answer,correct,change,usedHint){
+    let cls='neutral',txt='+0';
+    if(change>0){cls='positive';txt=`+${change}`}
+    else if(change<0){cls='negative';txt=`${change}`}
+    const ans=answer||'(no answer)';
+    const mark=!answer?'⏰':(correct?'✅':'❌');
+    const hintTag=usedHint?' 💡':'';
+    return`<div class="reveal-card">
+      <div class="player-name">${esc(name)}</div>
+      <div class="player-answer">${mark} ${esc(ans)}${hintTag}</div>
+      <div class="score-change ${cls}">${txt}</div>
+    </div>`;
+  }
+
+  $('reveal-answers').innerHTML=card(myName,myAnswer,myCorrect,myChange,myUsedHint)+card(opponentName,oppAnswer,oppCorrect,oppChange,oppUsedHint);
+
+  const mr=$('match-result');
+  if(myCorrect&&oppCorrect){mr.className='match-result correct';mr.innerHTML='🎬 Both got it right!'}
+  else if(myCorrect){mr.className='match-result correct';mr.innerHTML=`✅ ${esc(myName)} got it!`}
+  else if(oppCorrect){mr.className='match-result wrong';mr.innerHTML=`✅ ${esc(opponentName)} got it!`}
+  else{mr.className='match-result info';mr.innerHTML='😅 Nobody got it!'}
+
+  renderScoreboard('reveal-scoreboard');
+
+  const isLast=currentRound>=TOTAL_ROUNDS;
+  const btn=$('btn-next-round');
+  btn.innerHTML=isLast?'🏆 See Results':'➡️ Next Round';
+  btn.disabled=false;
+  $('reveal-status').style.display='none';
+  showScreen('screen-reveal');
+}
+
+function showFinal(){
+  clearInterval(timerInterval);
+  $('final-score-display').textContent=`${myScore} — ${oppScore}`;
+  const wb=$('winner-banner');
+  let emoji,msg;
+  if(myScore>oppScore){emoji='🏆🎬🔥';msg='You win!';wb.innerHTML=`🏆 ${esc(myName)} wins!`;wb.style.display='block'}
+  else if(oppScore>myScore){emoji='😅🎬';msg='Better luck next time!';wb.innerHTML=`🏆 ${esc(opponentName)} wins!`;wb.style.display='block'}
+  else{emoji='🤝🎬';msg="It's a tie!";wb.innerHTML="🤝 It's a draw!";wb.style.display='block'}
+  $('emoji-rain').textContent=emoji;
+  $('final-msg').textContent=msg;
+  $('final-status').style.display='none';
+  $('btn-play-again').disabled=false;
+  $('btn-play-again').innerHTML='🔄 Play Again';
+  showScreen('screen-final');
+}
+
+// HINT (2P)
+$('mp-hint-btn').onclick=()=>{
+  if(myUsedHint)return;
+  myUsedHint=true;
+  $('mp-hint-btn').disabled=true;
+  const movie=rounds[currentRound];
+  $('mp-hint-area').innerHTML=`<span class="hint-text">💡 ${esc(movie.hint)} (−1 point)</span>`;
+};
+
+// ═══════════════════════════════════════════
+// PEER CONNECTION
+// ═══════════════════════════════════════════
+function wireConnection(){
+  conn.on('open',()=>{send({type:'hello',name:myName})});
+  conn.on('data',(raw)=>{
+    let data;try{data=JSON.parse(raw)}catch{return}
+    switch(data.type){
+      case'hello':
+        opponentName=data.name;
+        if(isHost){
+          send({type:'hello-ack',name:myName});
+          $('lobby-status').textContent=`${opponentName} joined! Starting…`;
+          setTimeout(()=>{
+            rounds=buildRounds(TOTAL_ROUNDS);
+            currentRound=0;myScore=0;oppScore=0;
+            send({type:'start',rounds});
+            beginRound();
+          },1500);
+        }break;
+      case'hello-ack':
+        opponentName=data.name;
+        $('connecting-status').textContent=`Connected with ${opponentName}!`;
+        break;
+      case'start':
+        rounds=data.rounds;currentRound=0;myScore=0;oppScore=0;
+        beginRound();break;
+      case'answer':
+        oppAnswer=data.answer;oppUsedHint=data.usedHint||false;
+        if(submitted)tryReveal();
+        else{$('play-status').style.display='flex';$('play-status-text').textContent='Opponent has answered!'}
+        break;
+      case'host-ready':break;
+      case'next-ready':
+        if(isHost){
+          if(waitingNextReady){
+            waitingNextReady=false;
+            if(currentRound<TOTAL_ROUNDS){send({type:'next-go'});beginRound()}
+            else{send({type:'final'});showFinal()}
+          }else{nextReadyCount++}
+        }break;
+      case'next-go':beginRound();break;
+      case'final':showFinal();break;
+      case'replay-start':
+        rounds=data.rounds;currentRound=0;myScore=0;oppScore=0;
+        beginRound();break;
+      case'replay-request':
+        $('final-status').style.display='flex';
+        $('final-status-text').textContent='Opponent wants to play again!';
+        break;
+    }
+  });
+  conn.on('close',()=>{alert('Opponent disconnected 😢');cleanup();showScreen('screen-home')});
+}
+
+function cleanup(){
+  clearInterval(timerInterval);
+  if(conn){try{conn.close()}catch{} conn=null}
+  if(peer){try{peer.destroy()}catch{} peer=null}
+  isHost=false;isSolo=false;myScore=0;oppScore=0;currentRound=0;rounds=[];
+  myAnswer=null;oppAnswer=null;submitted=false;
+}
+
+// ═══════════════════════════════════════════
+// UI EVENTS
+// ═══════════════════════════════════════════
+$('btn-solo').onclick=()=>{
+  const name=$('input-name').value.trim();
+  if(!name)return showError('home-error','Please enter your name');
+  myName=name;startSolo();
+};
+
+$('btn-create').onclick=()=>{
+  const name=$('input-name').value.trim();
+  if(!name)return showError('home-error','Please enter your name');
+  myName=name;isHost=true;isSolo=false;gameCode=genCode();
+  showScreen('screen-connecting');$('connecting-status').textContent='Setting up game…';
+  peer=new Peer(PEER_PREFIX+gameCode);
+  peer.on('open',()=>{
+    $('lobby-code').textContent=gameCode;showScreen('screen-lobby');
+    peer.on('connection',c=>{if(conn){c.close();return}conn=c;$('lobby-status').textContent='Connecting…';wireConnection()});
+  });
+  peer.on('error',err=>{
+    if(err.type==='unavailable-id'){peer.destroy();$('btn-create').click()}
+    else{showScreen('screen-home');showError('home-error','Error: '+err.type)}
+  });
+};
+
+$('btn-join').onclick=()=>{
+  const name=$('input-name').value.trim();
+  const code=$('input-code').value.trim().toUpperCase();
+  if(!name)return showError('home-error','Please enter your name');
+  if(!code||code.length<4)return showError('home-error','Enter a valid invite code');
+  myName=name;isHost=false;isSolo=false;gameCode=code;
+  showScreen('screen-connecting');$('connecting-status').textContent='Connecting…';
+  peer=new Peer(PEER_PREFIX+'g'+genCode());
+  peer.on('open',()=>{
+    $('connecting-status').textContent='Joining game…';
+    conn=peer.connect(PEER_PREFIX+code,{reliable:true});
+    wireConnection();
+  });
+  peer.on('error',err=>{
+    if(err.type==='peer-unavailable'){showScreen('screen-home');showError('home-error','Game not found. Check the code.')}
+    else{showScreen('screen-home');showError('home-error','Error: '+err.type)}
+  });
+};
+
+$('btn-copy').onclick=()=>{
+  navigator.clipboard.writeText(gameCode).then(()=>{
+    $('btn-copy').innerHTML='✅ Copied!';
+    setTimeout(()=>$('btn-copy').innerHTML='📋 Copy Code',2000);
+  }).catch(()=>{});
+};
+
+$('btn-submit').onclick=()=>{
+  const val=$('input-answer').value.trim();
+  if(!val)return;
+  doSubmit(val);
+};
+
+$('btn-next-round').onclick=()=>{
+  const btn=$('btn-next-round');
+  btn.disabled=true;
+  const isLast=currentRound>=TOTAL_ROUNDS;
+  if(isHost){
+    if(nextReadyCount>0){
+      nextReadyCount=0;waitingNextReady=false;
+      if(isLast){send({type:'final'});showFinal()}
+      else{send({type:'next-go'});beginRound()}
+    }else{
+      waitingNextReady=true;
+      send({type:'host-ready'});
+      btn.innerHTML='⏳ Waiting for opponent…';
+      $('reveal-status').style.display='flex';
+      $('reveal-status-text').textContent='Waiting for opponent…';
+    }
+  }else{
+    send({type:'next-ready'});
+    if(isLast){showFinal()}
+    else{
+      btn.innerHTML='⏳ Waiting for host…';
+      $('reveal-status').style.display='flex';
+      $('reveal-status-text').textContent='Waiting for host…';
+    }
+  }
+};
+
+$('btn-play-again').onclick=()=>{
+  $('btn-play-again').disabled=true;
+  $('btn-play-again').innerHTML='⏳ Waiting…';
+  $('final-status').style.display='flex';
+  if(isHost){
+    rounds=buildRounds(TOTAL_ROUNDS);
+    currentRound=0;myScore=0;oppScore=0;
+    send({type:'replay-start',rounds});
+    beginRound();
+  }else{
+    send({type:'replay-request'});
+    $('final-status-text').textContent='Waiting for host to restart…';
+  }
+};
+
+$('btn-home').onclick=()=>{cleanup();$('input-name').value=myName;$('input-code').value='';showScreen('screen-home')};
+
+// Keyboard shortcuts
+$('input-name').onkeydown=e=>{if(e.key==='Enter')$('btn-solo').click()};
+$('input-code').onkeydown=e=>{if(e.key==='Enter')$('btn-join').click()};
+$('input-answer').onkeydown=e=>{if(e.key==='Enter')$('btn-submit').click()};
+
+})();
+</script>
+</body>
+</html>
