@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎮 My Game Arcade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Nunito',sans-serif;min-height:100vh;
+  background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);
+  color:#fff;display:flex;flex-direction:column;align-items:center;
+  padding:40px 20px;
+}
+.bg-blob{position:fixed;border-radius:50%;filter:blur(100px);opacity:.3;pointer-events:none;z-index:0}
+.bg-blob.a{width:500px;height:500px;background:#7f5af0;top:-120px;left:-100px;animation:fA 18s ease-in-out infinite}
+.bg-blob.b{width:400px;height:400px;background:#2cb67d;bottom:-80px;right:-80px;animation:fB 22s ease-in-out infinite}
+.bg-blob.c{width:300px;height:300px;background:#e16162;top:50%;left:55%;animation:fC 20s ease-in-out infinite}
+@keyframes fA{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,80px)}}
+@keyframes fB{0%,100%{transform:translate(0,0)}50%{transform:translate(-50px,-60px)}}
+@keyframes fC{0%,100%{transform:translate(0,0)}50%{transform:translate(-40px,50px)}}
+
+.content{position:relative;z-index:1;width:100%;max-width:900px;display:flex;flex-direction:column;align-items:center}
+
+h1{
+  font-size:2.8rem;margin-bottom:10px;
+  background:linear-gradient(135deg,#7f5af0,#2cb67d);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  text-align:center;font-weight:900;
+}
+.subtitle{color:#94a1b2;margin-bottom:32px;font-size:1.1rem;text-align:center}
+
+/* Filter bar */
+.filter-bar{
+  display:flex;gap:8px;margin-bottom:32px;
+  background:rgba(255,255,255,.06);
+  backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:16px;padding:6px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+.filter-btn{
+  padding:10px 20px;border:none;border-radius:12px;
+  background:transparent;color:#94a1b2;
+  font-family:inherit;font-weight:700;font-size:.85rem;
+  cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;gap:6px;
+}
+.filter-btn:hover{color:#fff;background:rgba(255,255,255,.08)}
+.filter-btn.active{
+  background:linear-gradient(135deg,#7f5af0,#6236d6);
+  color:#fff;box-shadow:0 4px 15px rgba(127,90,240,.3);
+}
+.filter-count{
+  font-size:.7rem;background:rgba(255,255,255,.15);
+  padding:2px 8px;border-radius:10px;font-weight:800;
+}
+.filter-btn.active .filter-count{background:rgba(255,255,255,.25)}
+
+/* Game count */
+.game-count{
+  color:#94a1b2;font-size:.85rem;font-weight:700;
+  margin-bottom:16px;text-align:center;
+  transition:all .3s;
+}
+
+/* Games grid */
+.games{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:20px;width:100%;
+}
+
+/* Game card */
+.game-card{
+  background:rgba(255,255,255,.06);
+  backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:20px;padding:28px 24px;
+  text-decoration:none;color:#fff;
+  transition:all .3s ease;
+  display:flex;flex-direction:column;gap:10px;
+  position:relative;overflow:hidden;
+  animation:fadeIn .4s ease;
+}
+.game-card:hover{
+  transform:translateY(-6px);
+  box-shadow:0 12px 40px rgba(127,90,240,.25);
+  border-color:rgba(127,90,240,.3);
+}
+.game-card.hidden{display:none}
+.game-card .emoji{font-size:2.8rem}
+.game-card h2{font-size:1.2rem;font-weight:800}
+.game-card p{font-size:.85rem;color:#94a1b2;line-height:1.5}
+
+/* Badges */
+.badges{display:flex;gap:6px;flex-wrap:wrap}
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:4px 10px;border-radius:20px;
+  font-size:.65rem;font-weight:800;
+  text-transform:uppercase;letter-spacing:.08em;
+}
+.badge.solo{background:rgba(44,182,125,.15);color:#2cb67d}
+.badge.multi{background:rgba(127,90,240,.15);color:#7f5af0}
+.badge.couples{background:rgba(255,107,157,.15);color:#ff6b9d}
+.badge.new{background:rgba(251,191,36,.15);color:#fbbf24}
+
+/* Coming soon overlay */
+.game-card.coming-soon{opacity:.6;pointer-events:none}
+.game-card.coming-soon::after{
+  content:'COMING SOON';
+  position:absolute;top:16px;right:-30px;
+  background:linear-gradient(135deg,#7f5af0,#6236d6);
+  color:#fff;font-size:.6rem;font-weight:900;
+  padding:4px 40px;transform:rotate(35deg);
+  letter-spacing:.1em;
+}
+
+/* Section labels */
+.section-label{
+  width:100%;font-size:.8rem;font-weight:800;
+  color:#7f5af0;text-transform:uppercase;
+  letter-spacing:.15em;margin:24px 0 12px;
+  padding-bottom:8px;
+  border-bottom:1px solid rgba(127,90,240,.2);
+  display:flex;align-items:center;gap:10px;
+}
+.section-label.hidden{display:none}
+.section-label::after{
+  content:'';flex:1;height:1px;
+  background:rgba(127,90,240,.15);
+}
+
+/* Socials */
+.socials{margin-top:50px;text-align:center}
+.socials p{color:#94a1b2;font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.15em;margin-bottom:16px}
+.social-links{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.social-btn{
+  width:48px;height:48px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .3s;text-decoration:none;color:#fff;
+}
+.social-btn svg{width:22px;height:22px}
+.social-btn:hover{transform:translateY(-4px) scale(1.1)}
+
+footer{margin-top:40px;color:#94a1b2;font-size:.8rem;text-align:center}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+@media(max-width:600px){
+  h1{font-size:2rem}
+  .games{grid-template-columns:1fr}
+  .filter-bar{gap:4px;padding:4px}
+  .filter-btn{padding:8px 14px;font-size:.8rem}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-blob a"></div>
+<div class="bg-blob b"></div>
+<div class="bg-blob c"></div>
+
+<div class="content">
+
+  <h1>🎮 My Game Arcade</h1>
+  <p class="subtitle">Pick a game and play!</p>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <button class="filter-btn active" data-filter="all">
+      🎮 All <span class="filter-count" id="count-all">4</span>
+    </button>
+    <button class="filter-btn" data-filter="solo">
+      🧑 Solo <span class="filter-count" id="count-solo">1</span>
+    </button>
+    <button class="filter-btn" data-filter="multi">
+      👥 2 Players <span class="filter-count" id="count-multi">4</span>
+    </button>
+    <button class="filter-btn" data-filter="couples">
+      💕 Couples <span class="filter-count" id="count-couples">1</span>
+    </button>
+  </div>
+
+  <div class="game-count" id="game-count">Showing 4 games</div>
+
+  <!-- PARTY GAMES SECTION -->
+  <div class="section-label" data-section="party" id="section-party">🎮 Party Games</div>
+
+  <div class="games" id="games-container">
+
+    <a href="./think-alike/" class="game-card" data-tags="multi">
+      <div class="emoji">🧠</div>
+      <div class="badges">
+        <span class="badge multi">2 Players</span>
+      </div>
+      <h2>Do We Think Alike?</h2>
+      <p>See a word, type what comes to mind. Do you and your friend match?</p>
+    </a>
+
+    <a href="./song-association/" class="game-card" data-tags="multi">
+      <div class="emoji">🎵</div>
+      <div class="badges">
+        <span class="badge multi">2 Players</span>
+      </div>
+      <h2>Song Association</h2>
+      <p>See a word, name a song containing it. Pick the same song for bonus points!</p>
+    </a>
+
+    <a href="./emoji-movies/" class="game-card" data-tags="solo multi">
+      <div class="emoji">🎬</div>
+      <div class="badges">
+        <span class="badge solo">Solo</span>
+        <span class="badge multi">2 Players</span>
+      </div>
+      <h2>Guess the Movie</h2>
+      <p>Can you name the movie from emojis? Play solo or challenge a friend!</p>
+    </a>
+
+    <!-- COUPLES SECTION -->
+    <a href="./rate-the-same/" class="game-card" data-tags="multi couples">
+      <div class="emoji">🌡️</div>
+      <div class="badges">
+        <span class="badge multi">2 Players</span>
+        <span class="badge couples">Couples</span>
+      </div>
+      <h2>Rate the Same Thing</h2>
+      <p>Rate topics 1-10 and see how compatible you really are!</p>
+    </a>
+
+    <!-- ═══ COMING SOON ═══ -->
+    <!--
+    Uncomment these as you build them:
+
+    <a href="./would-you-rather/" class="game-card" data-tags="multi couples">
+      <div class="emoji">🔮</div>
+      <div class="badges">
+        <span class="badge multi">2 Players</span>
+        <span class="badge couples">Couples</span>
+        <span class="badge new">New</span>
+      </div>
+      <h2>Would You Rather</h2>
+      <p>Make impossible choices and see if your partner agrees!</p>
+    </a>
+
+    <a href="./reaction-time/" class="game-card" data-tags="solo multi">
+      <div class="emoji">⚡</div>
+      <div class="badges">
+        <span class="badge solo">Solo</span>
+        <span class="badge multi">2 Players</span>
+        <span class="badge new">New</span>
+      </div>
+      <h2>Reaction Time</h2>
+      <p>How fast are your reflexes? Test and compete!</p>
+    </a>
+
+    <a href="./higher-lower/" class="game-card" data-tags="solo multi">
+      <div class="emoji">📈</div>
+      <div class="badges">
+        <span class="badge solo">Solo</span>
+        <span class="badge multi">2 Players</span>
+        <span class="badge new">New</span>
+      </div>
+      <h2>Higher or Lower</h2>
+      <p>Which gets searched more? Keep your streak alive!</p>
+    </a>
+
+    <a href="./know-me/" class="game-card" data-tags="multi couples">
+      <div class="emoji">💕</div>
+      <div class="badges">
+        <span class="badge multi">2 Players</span>
+        <span class="badge couples">Couples</span>
+        <span class="badge new">New</span>
+      </div>
+      <h2>How Well Do You Know Me?</h2>
+      <p>Answer questions about your partner. Do you really know them?</p>
+    </a>
+
+    <a href="./flag-quiz/" class="game-card" data-tags="solo multi">
+      <div class="emoji">🗺️</div>
+      <div class="badges">
+        <span class="badge solo">Solo</span>
+        <span class="badge multi">2 Players</span>
+        <span class="badge new">New</span>
+      </div>
+      <h2>Flag Quiz</h2>
+      <p>See a flag, name the country. How many do you know?</p>
+    </a>
+
+    <a href="./this-or-that/" class="game-card" data-tags="multi couples">
+      <div class="emoji">✌️</div>
+      <div class="badges">
+        <span class="badge multi">2 Players</span>
+        <span class="badge couples">Couples</span>
+        <span class="badge new">New</span>
+      </div>
+      <h2>This or That</h2>
+      <p>Cats or dogs? 20 rapid-fire choices. How compatible are you?</p>
+    </a>
+    -->
+
+  </div>
+
+  <!-- SOCIALS — Replace YOUR_USERNAME with your actual usernames -->
+  <!--
+  <div class="socials">
+    <p>Follow me</p>
+    <div class="social-links">
+      <a href="https://instagram.com/YOUR_USERNAME" target="_blank" class="social-btn" style="background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);box-shadow:0 4px 15px rgba(225,48,108,.3)">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+      </a>
+      <a href="https://tiktok.com/@YOUR_USERNAME" target="_blank" class="social-btn" style="background:linear-gradient(135deg,#010101,#25f4ee);box-shadow:0 4px 15px rgba(37,244,238,.3)">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 0010.86 4.46V13.2a8.16 8.16 0 005.58 2.17v-3.45a4.85 4.85 0 01-3.77-1.46V6.69h3.77z"/></svg>
+      </a>
+    </div>
+  </div>
+  -->
+
+  <footer>Made with ❤️</footer>
+
+</div>
+
+<script>
+(function(){
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const cards = document.querySelectorAll('.game-card');
+  
+  // Count games per filter
+  function updateCounts(){
+    let all=0, solo=0, multi=0, couples=0;
+    cards.forEach(c=>{
+      if(c.classList.contains('coming-soon')) return;
+      const tags = c.dataset.tags || '';
+      all++;
+      if(tags.includes('solo')) solo++;
+      if(tags.includes('multi')) multi++;
+      if(tags.includes('couples')) couples++;
+    });
+    document.getElementById('count-all').textContent = all;
+    document.getElementById('count-solo').textContent = solo;
+    document.getElementById('count-multi').textContent = multi;
+    document.getElementById('count-couples').textContent = couples;
+  }
+  
+  function filterGames(filter){
+    let visible = 0;
+    
+    cards.forEach(card => {
+      const tags = card.dataset.tags || '';
+      let show = false;
+      
+      if(filter === 'all') show = true;
+      else if(filter === 'solo' && tags.includes('solo')) show = true;
+      else if(filter === 'multi' && tags.includes('multi')) show = true;
+      else if(filter === 'couples' && tags.includes('couples')) show = true;
+      
+      if(show){
+        card.classList.remove('hidden');
+        card.style.animation = 'none';
+        card.offsetHeight; // trigger reflow
+        card.style.animation = 'fadeIn 0.4s ease';
+        visible++;
+      } else {
+        card.classList.add('hidden');
+      }
+    });
+    
+    // Update count text
+    const label = filter === 'all' ? 'all' : 
+                  filter === 'solo' ? 'solo' :
+                  filter === 'multi' ? '2-player' : 'couples';
+    document.getElementById('game-count').textContent = 
+      `Showing ${visible} ${label} game${visible !== 1 ? 's' : ''}`;
+  }
+  
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterGames(btn.dataset.filter);
+    });
+  });
+  
+  updateCounts();
+})();
+</script>
+</body>
+</html>
