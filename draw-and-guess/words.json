@@ -1,0 +1,126 @@
+{
+  "categories": [
+    {
+      "id": "animals",
+      "name": "Animals",
+      "emoji": "🐾",
+      "words": [
+        "cat", "dog", "elephant", "giraffe", "penguin", "dolphin", "butterfly", "snake",
+        "horse", "rabbit", "shark", "eagle", "frog", "turtle", "monkey", "bear",
+        "octopus", "parrot", "kangaroo", "whale", "spider", "bat", "crocodile",
+        "flamingo", "jellyfish", "peacock", "chameleon", "sloth", "rhinoceros", "hedgehog"
+      ]
+    },
+    {
+      "id": "food",
+      "name": "Food & Drinks",
+      "emoji": "🍕",
+      "words": [
+        "pizza", "hamburger", "sushi", "ice cream", "pancake", "taco", "cookie",
+        "watermelon", "spaghetti", "sandwich", "cupcake", "popcorn", "banana",
+        "chocolate", "donut", "french fries", "hot dog", "milkshake", "pineapple",
+        "fried egg", "birthday cake", "soup", "burrito", "pretzel", "waffle",
+        "grapes", "cheese", "lollipop", "avocado", "cinnamon roll"
+      ]
+    },
+    {
+      "id": "objects",
+      "name": "Objects",
+      "emoji": "🏠",
+      "words": [
+        "umbrella", "television", "guitar", "scissors", "ladder", "candle", "camera",
+        "trophy", "telescope", "headphones", "clock", "key", "lightbulb", "mirror",
+        "backpack", "toothbrush", "hammer", "diamond", "envelope", "globe",
+        "treasure chest", "alarm clock", "binoculars", "fire extinguisher", "wheelbarrow",
+        "chandelier", "magnifying glass", "hourglass", "microphone", "shopping cart"
+      ]
+    },
+    {
+      "id": "movies",
+      "name": "Movies & TV",
+      "emoji": "🎬",
+      "words": [
+        "Titanic", "Star Wars", "Batman", "Frozen", "Shrek", "Spider-Man", "Jaws",
+        "Harry Potter", "The Lion King", "Finding Nemo", "Jurassic Park", "Toy Story",
+        "Avatar", "Ghostbusters", "Indiana Jones", "The Wizard of Oz", "Rocky",
+        "Aladdin", "Terminator", "Pinocchio", "Kung Fu Panda", "Monsters Inc",
+        "Ratatouille", "Wall-E", "Up", "Moana", "Coco", "Tangled", "Zootopia", "Bambi"
+      ]
+    },
+    {
+      "id": "places",
+      "name": "Places",
+      "emoji": "🌍",
+      "words": [
+        "beach", "hospital", "castle", "volcano", "library", "airport", "pyramid",
+        "lighthouse", "playground", "church", "prison", "waterfall", "cave",
+        "skyscraper", "farm", "desert island", "roller coaster", "stadium",
+        "haunted house", "igloo", "windmill", "treehouse", "bridge", "fountain",
+        "aquarium", "museum", "carnival", "subway", "campfire", "space station"
+      ]
+    },
+    {
+      "id": "actions",
+      "name": "Actions",
+      "emoji": "🏃",
+      "words": [
+        "swimming", "dancing", "cooking", "sleeping", "fishing", "surfing",
+        "skateboarding", "painting", "singing", "juggling", "running", "climbing",
+        "sneezing", "crying", "laughing", "skydiving", "bowling", "meditation",
+        "arm wrestling", "limbo", "tightrope walking", "bungee jumping", "karate",
+        "hula hooping", "snowboarding", "yoga", "boxing", "hopscotch", "moonwalking",
+        "weightlifting"
+      ]
+    },
+    {
+      "id": "nature",
+      "name": "Nature",
+      "emoji": "🌿",
+      "words": [
+        "rainbow", "tornado", "sunrise", "mountain", "cactus", "mushroom", "palm tree",
+        "snowflake", "lightning", "ocean wave", "forest", "volcano", "sunflower",
+        "river", "iceberg", "coral reef", "northern lights", "earthquake", "tsunami",
+        "shooting star", "full moon", "rain cloud", "sand dune", "bamboo",
+        "willow tree", "ivy", "canyon", "geyser", "meadow", "avalanche"
+      ]
+    },
+    {
+      "id": "people",
+      "name": "People & Jobs",
+      "emoji": "👤",
+      "words": [
+        "doctor", "pirate", "astronaut", "wizard", "ninja", "firefighter", "chef",
+        "zombie", "mermaid", "vampire", "robot", "cowboy", "clown", "knight",
+        "superhero", "detective", "pharaoh", "ballerina", "lumberjack", "lifeguard",
+        "scarecrow", "gladiator", "queen", "samurai", "pilot", "dentist",
+        "witch", "teacher", "angel", "werewolf"
+      ]
+    },
+    {
+      "id": "sports",
+      "name": "Sports & Games",
+      "emoji": "⚽",
+      "words": [
+        "basketball", "soccer", "tennis", "baseball", "golf", "hockey", "volleyball",
+        "archery", "fencing", "wrestling", "ping pong", "chess", "darts", "pool",
+        "rock climbing", "skiing", "horse racing", "gymnastics", "dodgeball",
+        "tug of war", "sumo wrestling", "water polo", "javelin", "hurdles",
+        "figure skating", "bobsled", "trampoline", "arm wrestling", "marathon",
+        "kayaking"
+      ]
+    },
+    {
+      "id": "random",
+      "name": "Wild Card",
+      "emoji": "🎲",
+      "words": [
+        "time machine", "black hole", "UFO", "love", "nightmare", "selfie",
+        "traffic jam", "brain freeze", "solar system", "wifi signal", "emoji",
+        "password", "déjà vu", "photobomb", "bucket list", "plot twist",
+        "cloud nine", "Monday morning", "awkward silence", "hot lava",
+        "pillow fight", "food coma", "road trip", "bad hair day", "stage fright",
+        "paper airplane", "bubble bath", "couch potato", "brain surgery", "world peace"
+      ]
+    }
+  ]
+}
