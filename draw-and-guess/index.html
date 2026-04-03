@@ -1,1 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-19MTMYDQ3S"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-19MTMYDQ3S');
+</script>
+<link rel="icon" type="image/png" href="/my-game-arcade/favicon.png">
+<title>Draw & Guess 🎨</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Nunito',sans-serif;min-height:100vh;
+  background:linear-gradient(135deg,#0a0a1a,#1a1a3e,#0f0f2e);
+  color:#fff;display:flex;justify-content:center;align-items:flex-start;
+  overflow-x:hidden;overflow-y:auto;user-select:none;-webkit-user-select:none;
+}
+.bg-blob{position:fixed;border-radius:50%;filter:blur(100px);opacity:.25;pointer-events:none;z-index:0}
+.bg-blob.a{width:500px;height:500px;background:#f97316;top:-120px;left:-100px;animation:fA 18s ease-in-out infinite}
+.bg-blob.b{width:400px;height:400px;background:#8b5cf6;bottom:-80px;right:-80px;animation:fB 22s ease-in-out infinite}
+.bg-blob.c{width:300px;height:300px;background:#06b6d4;top:50%;left:55%;animation:fC 20s ease-in-out infinite}
+@keyframes fA{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,80px)}}
+@keyframes fB{0%,100%{transform:translate(0,0)}50%{transform:translate(-50px,-60px)}}
+@keyframes fC{0%,100%{transform:translate(0,0)}50%{transform:translate(-40px,50px)}}
 
+.container{position:relative;z-index:1;width:100%;max-width:520px;padding:40px 20px;display:flex;flex-direction:column;align-items:center}
+.screen{display:none;width:100%;animation:fadeIn .4s ease}
+.screen.active{display:flex;flex-direction:column;align-items:center}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes correctFlash{0%{background:rgba(34,197,94,.3)}100%{background:transparent}}
+
+.logo{font-size:2.2rem;font-weight:900;text-align:center;line-height:1.15;margin-bottom:8px;background:linear-gradient(135deg,#f97316,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{font-size:.95rem;color:#94a1b2;text-align:center;margin-bottom:32px}
+
+.card{background:rgba(255,255,255,.06);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px 24px;width:100%;margin-bottom:18px;box-shadow:0 8px 32px rgba(0,0,0,.25)}
+
+label{font-weight:700;font-size:.85rem;margin-bottom:6px;display:block;color:#ffffffcc}
+input[type="text"]{width:100%;padding:14px 18px;border:2px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.07);color:#fff;font-size:1rem;font-family:inherit;font-weight:600;outline:none;transition:border .2s}
+input[type="text"]:focus{border-color:#f97316}
+input[type="text"]::placeholder{color:#ffffff44}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 32px;border:none;border-radius:14px;font-family:inherit;font-size:1rem;font-weight:800;cursor:pointer;transition:all .2s;width:100%}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;box-shadow:0 4px 20px rgba(249,115,22,.4)}
+.btn-primary:hover{box-shadow:0 6px 28px rgba(249,115,22,.55)}
+.btn-secondary{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;box-shadow:0 4px 20px rgba(139,92,246,.3)}
+.btn-secondary:hover{box-shadow:0 6px 28px rgba(139,92,246,.5)}
+.btn-outline{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.2)}
+.btn-outline:hover{border-color:#f97316;color:#f97316}
+.btn-share{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;box-shadow:0 4px 20px rgba(139,92,246,.3)}
+.btn+.btn{margin-top:12px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-sm{padding:10px 18px;font-size:.85rem;width:auto}
+
+.code-display{font-size:2.4rem;font-weight:900;letter-spacing:.3em;text-align:center;padding:18px;background:rgba(249,115,22,.15);border:2px dashed rgba(249,115,22,.4);border-radius:16px;margin:18px 0;color:#fdba74;user-select:all}
+.status{text-align:center;color:#94a1b2;font-size:.9rem;margin:12px 0;display:flex;align-items:center;justify-content:center;gap:8px}
+.dot-pulse{width:8px;height:8px;border-radius:50%;background:#f97316;animation:pulse 1.2s ease-in-out infinite}
+.divider{display:flex;align-items:center;gap:14px;margin:20px 0;width:100%;color:#94a1b2;font-size:.8rem;font-weight:700}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.1)}
+
+.instructions{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 20px;margin:0 0 18px;width:100%}
+.instructions h3{font-size:.85rem;color:#f97316;margin-bottom:8px;text-transform:uppercase;letter-spacing:.1em}
+.instructions p{font-size:.82rem;color:#94a1b2;line-height:1.6}
+.instructions strong{color:#fff}
+
+.error-msg{background:rgba(239,68,68,.15);color:#ef4444;padding:12px 18px;border-radius:12px;font-size:.85rem;font-weight:700;text-align:center;margin:12px 0;display:none;width:100%}
+.error-msg.show{display:block;animation:shake .4s ease}
+
+/* Category picker */
+.cat-picker{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0;width:100%}
+.cat-pick{
+  padding:12px 10px;border:2px solid rgba(255,255,255,.12);border-radius:14px;
+  background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-weight:700;
+  font-size:.82rem;cursor:pointer;transition:all .2s;text-align:center;
+}
+.cat-pick:hover{border-color:#f97316}
+.cat-pick.active{background:rgba(249,115,22,.15);border-color:#f97316}
+.cat-pick .cat-emoji{font-size:1.2rem;display:block;margin-bottom:2px}
+.cat-pick .cat-name{font-weight:800;font-size:.82rem}
+
+/* Time picker */
+.time-picker{display:flex;gap:8px;margin:12px 0;width:100%}
+.time-pick{flex:1;padding:14px;border:2px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(255,255,255,.05);color:#fff;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;transition:all .2s;text-align:center}
+.time-pick:hover{border-color:#f97316}
+.time-pick.active{background:rgba(249,115,22,.15);border-color:#f97316}
+
+/* ══════ GAME HUD ══════ */
+.game-hud{
+  display:flex;justify-content:space-between;align-items:center;
+  width:100%;padding:8px 0;margin-bottom:4px;
+}
+.hud-item{text-align:center;flex:1}
+.hud-label{font-size:.6rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.hud-value{font-size:1.2rem;font-weight:900}
+.hud-value.timer-val{color:#facc15}
+.hud-value.timer-val.danger{color:#ef4444}
+.hud-value.score-val{color:#f97316}
+.hud-value.role-val{color:#8b5cf6;font-size:.85rem}
+
+.timer-bar{width:100%;height:6px;border-radius:3px;background:rgba(255,255,255,.1);margin:4px 0 12px;overflow:hidden}
+.timer-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#f97316,#facc15);transition:width .5s linear}
+.timer-bar-fill.danger{background:linear-gradient(90deg,#ef4444,#f97316)}
+
+/* Word display (drawer) */
+.word-display{
+  background:rgba(249,115,22,.1);border:2px solid rgba(249,115,22,.3);
+  border-radius:14px;padding:12px 20px;text-align:center;width:100%;margin:8px 0;
+}
+.word-display .word-label{font-size:.7rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.1em}
+.word-display .word-text{font-size:1.5rem;font-weight:900;color:#fdba74;margin-top:4px}
+.word-actions{display:flex;gap:8px;margin:8px 0;justify-content:center}
+
+/* Hint display (guesser) */
+.hint-display{
+  background:rgba(139,92,246,.1);border:2px solid rgba(139,92,246,.3);
+  border-radius:14px;padding:12px 20px;text-align:center;width:100%;margin:8px 0;
+}
+.hint-display .hint-label{font-size:.7rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.1em}
+.hint-display .hint-text{font-size:1.8rem;font-weight:900;color:#c4b5fd;margin-top:4px;letter-spacing:.15em;font-family:monospace}
+.hint-display .hint-cat{font-size:.75rem;color:#94a1b2;margin-top:6px}
+
+/* Canvas */
+.canvas-wrap{
+  width:100%;background:#fff;border-radius:16px;overflow:hidden;
+  margin:8px 0;box-shadow:0 4px 20px rgba(0,0,0,.3);
+  position:relative;touch-action:none;
+}
+.canvas-wrap canvas{display:block;width:100%;cursor:crosshair}
+
+/* Drawing tools */
+.draw-tools{
+  display:flex;gap:6px;align-items:center;justify-content:center;
+  flex-wrap:wrap;margin:8px 0;padding:10px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  border-radius:14px;width:100%;
+}
+.color-btn{
+  width:32px;height:32px;border-radius:50%;border:3px solid transparent;
+  cursor:pointer;transition:all .15s;flex-shrink:0;
+}
+.color-btn:hover{transform:scale(1.1)}
+.color-btn.active{border-color:#fff;transform:scale(1.15)}
+
+.size-btn{
+  width:32px;height:32px;border-radius:50%;
+  background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.15);
+  cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.size-btn:hover{border-color:#fff}
+.size-btn.active{border-color:#f97316;background:rgba(249,115,22,.2)}
+.size-dot{border-radius:50%;background:#fff}
+
+.tool-btn{
+  padding:6px 12px;border-radius:10px;background:rgba(255,255,255,.1);
+  border:2px solid rgba(255,255,255,.15);color:#fff;font-family:inherit;
+  font-weight:700;font-size:.75rem;cursor:pointer;transition:all .15s;
+}
+.tool-btn:hover{border-color:#fff}
+.tool-btn.active{border-color:#f97316;background:rgba(249,115,22,.2)}
+.tool-divider{width:1px;height:28px;background:rgba(255,255,255,.15);margin:0 4px}
+
+/* Guess input */
+.guess-area{width:100%;margin:8px 0}
+.guess-input-wrap{display:flex;gap:8px}
+.guess-input-wrap input{flex:1}
+.guess-input-wrap .btn{width:auto;padding:14px 20px}
+
+/* Correct banner */
+.correct-banner{
+  background:rgba(34,197,94,.15);border:2px solid rgba(34,197,94,.3);
+  border-radius:14px;padding:16px;text-align:center;width:100%;margin:8px 0;
+  animation:popIn .4s ease;
+}
+.correct-banner .correct-emoji{font-size:2rem}
+.correct-banner .correct-text{font-size:1.1rem;font-weight:800;color:#22c55e;margin-top:4px}
+.correct-banner .correct-word{font-size:.9rem;color:#94a1b2;margin-top:2px}
+
+/* Swap overlay */
+.swap-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(10,10,26,.95);display:flex;align-items:center;justify-content:center;
+  z-index:100;padding:20px;
+}
+.swap-card{
+  background:rgba(255,255,255,.06);backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,.15);border-radius:24px;
+  padding:40px 32px;text-align:center;max-width:400px;width:100%;
+  animation:popIn .4s ease;
+}
+.swap-emoji{font-size:3rem;margin-bottom:12px}
+.swap-title{font-size:1.4rem;font-weight:900;margin-bottom:8px}
+.swap-sub{font-size:.9rem;color:#94a1b2;margin-bottom:24px;font-weight:600}
+
+/* ══════ RESULTS ══════ */
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin:16px 0}
+.result-box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px 12px;text-align:center}
+.result-box .label{font-size:.7rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.result-box .value{font-size:1.5rem;font-weight:900}
+.result-box .value.orange{background:linear-gradient(135deg,#f97316,#ea580c);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.result-box .value.purple{background:linear-gradient(135deg,#8b5cf6,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+.word-recap{width:100%;margin:16px 0}
+.recap-title{font-size:.8rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;text-align:center}
+.recap-list{display:flex;flex-direction:column;gap:6px}
+.recap-item{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;font-size:.82rem;
+}
+.recap-item .recap-word{font-weight:700;color:#ffffffcc}
+.recap-item .recap-status{font-weight:800}
+.recap-item.guessed .recap-status{color:#22c55e}
+.recap-item.skipped .recap-status{color:#94a1b2}
+
+.share-section{width:100%;margin:16px 0;text-align:center}
+.share-preview{width:100%;border-radius:16px;margin-bottom:12px;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.share-buttons{display:flex;gap:8px}
+.share-buttons .btn{flex:1}
+
+@media(max-width:480px){
+  .logo{font-size:1.7rem}
+  .card{padding:24px 20px}
+  .code-display{font-size:1.8rem;letter-spacing:.2em}
+  .word-display .word-text{font-size:1.2rem}
+  .hint-display .hint-text{font-size:1.4rem}
+  .color-btn{width:28px;height:28px}
+  .size-btn{width:28px;height:28px}
+}
+</style>
+</head>
+<body>
+
+<a href="../" id="arcade-home-btn" style="position:fixed;top:16px;left:16px;z-index:999;background:rgba(255,255,255,.06);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:10px 16px;color:#fff;text-decoration:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:.85rem;display:flex;align-items:center;gap:6px;transition:all .3s;box-shadow:0 4px 15px rgba(0,0,0,.2)">🏠 Back to the Arcade</a>
+<style>#arcade-home-btn:hover{background:rgba(255,255,255,.12);transform:translateY(-2px)}</style>
+
+<div class="bg-blob a"></div>
+<div class="bg-blob b"></div>
+<div class="bg-blob c"></div>
+
+<div class="container">
+
+<!-- ══════ HOME ══════ -->
+<div class="screen active" id="screen-home">
+<div class="logo">Draw &<br>Guess 🎨</div>
+<p class="subtitle">One draws, one guesses — how many can you get?</p>
+
+<div class="instructions">
+<h3>📖 How to play</h3>
+<p>One player <strong>draws</strong> a word, the other <strong>guesses</strong> by typing. Correct guesses score a point for the team! When time's up, <strong>swap roles</strong> and keep going. Play as many rounds as you want!</p>
+</div>
+
+<div class="card">
+<label for="input-name">Your Name</label>
+<input type="text" id="input-name" placeholder="Enter your name…" maxlength="16" autocomplete="off"/>
+</div>
+
+<button class="btn btn-primary" id="btn-create">✨ Create Game</button>
+<div class="divider">OR</div>
+<div class="card">
+<label for="input-code">Invite Code</label>
+<input type="text" id="input-code" placeholder="e.g. A3BX9K" maxlength="6" autocomplete="off" style="text-transform:uppercase;letter-spacing:.15em;text-align:center"/>
+</div>
+<button class="btn btn-secondary" id="btn-join">🤝 Join Game</button>
+<div class="error-msg" id="home-error"></div>
+</div>
+
+<!-- ══════ LOBBY ══════ -->
+<div class="screen" id="screen-lobby">
+<div class="logo">Draw &<br>Guess 🎨</div>
+<p class="subtitle">Share this code with a friend</p>
+<div class="card" style="text-align:center">
+<label>Invite Code</label>
+<div class="code-display" id="lobby-code"></div>
+<button class="btn btn-outline btn-sm" id="btn-copy-code" style="margin:0 auto">📋 Copy Code</button>
+</div>
+
+<div class="card" id="lobby-settings">
+<label>Category</label>
+<div class="cat-picker" id="cat-picker"></div>
+<div style="height:16px"></div>
+<label>Round Time</label>
+<div class="time-picker">
+<button class="time-pick active" data-time="180">3 min</button>
+<button class="time-pick" data-time="300">5 min</button>
+</div>
+</div>
+
+<div class="status"><div class="dot-pulse"></div><span id="lobby-status">Waiting for opponent…</span></div>
+<button class="btn btn-primary" id="btn-start-game" style="display:none" disabled>🎨 Start Game</button>
+</div>
+
+<!-- ══════ CONNECTING ══════ -->
+<div class="screen" id="screen-connecting">
+<div class="logo">Connecting… ⏳</div>
+<div class="status"><div class="dot-pulse"></div><span id="connecting-status">Please wait…</span></div>
+</div>
+
+<!-- ══════ GAME: DRAWER ══════ -->
+<div class="screen" id="screen-drawer">
+<div class="game-hud">
+<div class="hud-item"><div class="hud-label">Time</div><div class="hud-value timer-val" id="drawer-timer">3:00</div></div>
+<div class="hud-item"><div class="hud-label">Role</div><div class="hud-value role-val">✏️ Drawing</div></div>
+<div class="hud-item"><div class="hud-label">Score</div><div class="hud-value score-val" id="drawer-score">0</div></div>
+</div>
+<div class="timer-bar"><div class="timer-bar-fill" id="drawer-timer-bar" style="width:100%"></div></div>
+
+<div class="word-display" id="word-display">
+<div class="word-label">Draw this word</div>
+<div class="word-text" id="current-word">Cat</div>
+</div>
+<div class="word-actions">
+<button class="btn btn-outline btn-sm" id="btn-skip">⏭ Skip Word</button>
+</div>
+
+<div id="correct-banner-drawer" style="display:none"></div>
+
+<div class="canvas-wrap" id="canvas-wrap">
+<canvas id="draw-canvas" width="800" height="600"></canvas>
+</div>
+
+<div class="draw-tools" id="draw-tools">
+<button class="color-btn active" data-color="#000000" style="background:#000"></button>
+<button class="color-btn" data-color="#ef4444" style="background:#ef4444"></button>
+<button class="color-btn" data-color="#f97316" style="background:#f97316"></button>
+<button class="color-btn" data-color="#facc15" style="background:#facc15"></button>
+<button class="color-btn" data-color="#22c55e" style="background:#22c55e"></button>
+<button class="color-btn" data-color="#3b82f6" style="background:#3b82f6"></button>
+<button class="color-btn" data-color="#8b5cf6" style="background:#8b5cf6"></button>
+<div class="tool-divider"></div>
+<button class="size-btn active" data-size="4"><div class="size-dot" style="width:4px;height:4px"></div></button>
+<button class="size-btn" data-size="8"><div class="size-dot" style="width:8px;height:8px"></div></button>
+<button class="size-btn" data-size="14"><div class="size-dot" style="width:14px;height:14px"></div></button>
+<div class="tool-divider"></div>
+<button class="tool-btn" id="btn-eraser">🧹 Eraser</button>
+<button class="tool-btn" id="btn-undo">↩ Undo</button>
+<button class="tool-btn" id="btn-clear">🗑 Clear</button>
+</div>
+</div>
+
+<!-- ══════ GAME: GUESSER ══════ -->
+<div class="screen" id="screen-guesser">
+<div class="game-hud">
+<div class="hud-item"><div class="hud-label">Time</div><div class="hud-value timer-val" id="guesser-timer">3:00</div></div>
+<div class="hud-item"><div class="hud-label">Role</div><div class="hud-value role-val">🔍 Guessing</div></div>
+<div class="hud-item"><div class="hud-label">Score</div><div class="hud-value score-val" id="guesser-score">0</div></div>
+</div>
+<div class="timer-bar"><div class="timer-bar-fill" id="guesser-timer-bar" style="width:100%"></div></div>
+
+<div class="hint-display" id="hint-display">
+<div class="hint-label">Guess the word</div>
+<div class="hint-text" id="hint-text">_ _ _ _</div>
+<div class="hint-cat" id="hint-cat"></div>
+</div>
+
+<div id="correct-banner-guesser" style="display:none"></div>
+
+<div class="canvas-wrap">
+<canvas id="view-canvas" width="800" height="600"></canvas>
+</div>
+
+<div class="guess-area">
+<div class="guess-input-wrap">
+<input type="text" id="guess-input" placeholder="Type your guess…" maxlength="40" autocomplete="off"/>
+<button class="btn btn-primary" id="btn-guess" style="width:auto;padding:14px 20px">Guess</button>
+</div>
+<div id="guess-feedback" style="text-align:center;margin-top:8px;font-size:.85rem;font-weight:700;min-height:24px"></div>
+</div>
+</div>
+
+<!-- ══════ SWAP ══════ -->
+<div class="swap-overlay" id="swap-overlay" style="display:none">
+<div class="swap-card">
+<div class="swap-emoji" id="swap-emoji">🔄</div>
+<div class="swap-title" id="swap-title">Time's Up!</div>
+<div class="swap-sub" id="swap-sub">Swapping roles…</div>
+<div class="results-grid" id="swap-results" style="margin:16px 0"></div>
+<button class="btn btn-primary" id="btn-swap-ready">Ready!</button>
+</div>
+</div>
+
+<!-- ══════ RESULTS ══════ -->
+<div class="screen" id="screen-results">
+<div class="logo">Results 🎨</div>
+
+<div class="card" style="text-align:center">
+<div style="font-size:.8rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Team Score</div>
+<div style="font-size:4rem;font-weight:900;background:linear-gradient(135deg,#f97316,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent" id="res-total">0</div>
+<div style="font-size:1rem;color:#94a1b2;font-weight:700" id="res-label">words guessed</div>
+</div>
+
+<div class="results-grid">
+<div class="result-box"><div class="label">Guessed</div><div class="value orange" id="res-guessed">0</div></div>
+<div class="result-box"><div class="label">Skipped</div><div class="value purple" id="res-skipped">0</div></div>
+</div>
+
+<div class="word-recap">
+<div class="recap-title">Words</div>
+<div class="recap-list" id="recap-list"></div>
+</div>
+
+<div class="share-section">
+<canvas id="share-canvas" style="display:none"></canvas>
+<img id="share-preview" class="share-preview" style="display:none" alt="Result card"/>
+<div class="share-buttons">
+<button class="btn btn-share" id="btn-save-img">📸 Save Image</button>
+<button class="btn btn-outline" id="btn-copy-text">📋 Copy Result</button>
+</div>
+</div>
+
+<button class="btn btn-primary" id="btn-new-round">🔄 Play Another Round</button>
+<button class="btn btn-outline" id="btn-home-end">🏠 Back to Menu</button>
+</div>
+
+<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:16px 20px;margin:20px 0;text-align:center;width:100%;">
+<p style="color:#94a1b2;font-size:0.85rem;margin-bottom:10px;">Enjoying the game? 🎉</p>
+<a href="https://ko-fi.com/restlessrusty" target="_blank" style="color:#7f5af0;font-weight:700;text-decoration:none;">☕ Buy me a coffee to make more games!</a>
+</div>
+</div>
+
+<script>
+(function(){
+
+const PEER_PREFIX='dng2024x';
+const HINT_FIRST_DELAY=15000;
+const HINT_INTERVAL=10000;
+
+let wordData=null;
+let selectedCats=new Set(['all']);
+let roundTime=180;
+let peer=null;
+let conn=null;
+let isHost=false;
+let myName='';
+let oppName='';
+let gameCode='';
+let isDrawer=false;
+let score=0;
+let currentWord='';
+let currentCatEmoji='';
+let wordPool=[];
+let usedWords=new Set();
+let roundWords=[];
+let timerInterval=null;
+let timeLeft=0;
+let totalTime=0;
+let hintTimers=[];
+let revealedIndices=new Set();
+let drawHistory=[];
+let currentColor='#000000';
+let currentSize=4;
+let isEraser=false;
+let isDrawing=false;
+let lastX=0,lastY=0;
+let swapReadyCount=0;
+let waitingSwap=false;
+let oppConnected=false;
+
+const $=id=>document.getElementById(id);
+const screens=document.querySelectorAll('.screen');
+function showScreen(id){screens.forEach(s=>s.classList.remove('active'));$(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'})}
+function showError(id,msg){const el=$(id);el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),5000)}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let r='';for(let i=0;i<6;i++)r+=c[Math.floor(Math.random()*c.length)];return r}
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+function send(obj){if(conn&&conn.open)conn.send(JSON.stringify(obj))}
+
+// ══════════════════════════════════
+// LOAD WORDS
+// ══════════════════════════════════
+async function loadWords(){
+  try{const res=await fetch('words.json');wordData=await res.json()}
+  catch(e){console.error(e);showError('home-error','Failed to load words. Refresh.')}
+}
+loadWords();
+
+function buildCategoryPicker(){
+  if(!wordData)return;
+  const picker=$('cat-picker');
+  picker.innerHTML='';
+  const allBtn=document.createElement('button');
+  allBtn.className='cat-pick active';allBtn.dataset.cat='all';
+  allBtn.innerHTML=`<span class="cat-emoji">🎲</span><span class="cat-name">All Mixed</span>`;
+  picker.appendChild(allBtn);
+  wordData.categories.forEach(cat=>{
+    const btn=document.createElement('button');
+    btn.className='cat-pick';btn.dataset.cat=cat.id;
+    btn.innerHTML=`<span class="cat-emoji">${cat.emoji}</span><span class="cat-name">${cat.name}</span>`;
+    picker.appendChild(btn);
+  });
+  picker.querySelectorAll('.cat-pick').forEach(btn=>{
+    btn.onclick=()=>{
+      const cat=btn.dataset.cat;
+      if(cat==='all'){
+        picker.querySelectorAll('.cat-pick').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');selectedCats=new Set(['all']);
+      }else{
+        picker.querySelector('[data-cat="all"]').classList.remove('active');
+        selectedCats.delete('all');btn.classList.toggle('active');
+        if(btn.classList.contains('active'))selectedCats.add(cat);else selectedCats.delete(cat);
+        if(selectedCats.size===0){picker.querySelector('[data-cat="all"]').classList.add('active');selectedCats.add('all')}
+      }
+    };
+  });
+}
+
+document.querySelectorAll('.time-pick').forEach(btn=>{
+  btn.onclick=()=>{document.querySelectorAll('.time-pick').forEach(b=>b.classList.remove('active'));btn.classList.add('active');roundTime=parseInt(btn.dataset.time)}
+});
+
+function getWordPool(){
+  if(!wordData)return[];
+  if(selectedCats.has('all'))return wordData.categories.flatMap(c=>c.words.map(w=>({word:w,cat:c.name,emoji:c.emoji})));
+  return wordData.categories.filter(c=>selectedCats.has(c.id)).flatMap(c=>c.words.map(w=>({word:w,cat:c.name,emoji:c.emoji})));
+}
+
+function pickWord(){
+  if(wordPool.length===0)wordPool=shuffle(getWordPool());
+  let w=wordPool.pop();
+  let tries=0;
+  while(usedWords.has(w.word.toLowerCase())&&wordPool.length>0&&tries<50){w=wordPool.pop();tries++}
+  usedWords.add(w.word.toLowerCase());
+  return w;
+}
+
+// ══════════════════════════════════
+// PEER CONNECTION
+// ══════════════════════════════════
+$('btn-create').onclick=()=>{
+  const name=$('input-name').value.trim();
+  if(!name)return showError('home-error','Please enter your name');
+  if(!wordData)return showError('home-error','Words still loading, try again');
+  myName=name;isHost=true;gameCode=genCode();
+  showScreen('screen-connecting');$('connecting-status').textContent='Setting up game…';
+  peer=new Peer(PEER_PREFIX+gameCode);
+  peer.on('open',()=>{
+    $('lobby-code').textContent=gameCode;buildCategoryPicker();
+    showScreen('screen-lobby');$('lobby-status').textContent='Waiting for opponent…';$('btn-start-game').style.display='none';
+    peer.on('connection',c=>{if(conn){c.close();return}conn=c;$('lobby-status').textContent='Connecting…';wireConnection()});
+  });
+  peer.on('error',err=>{
+    if(err.type==='unavailable-id'){peer.destroy();$('btn-create').click()}
+    else{showScreen('screen-home');showError('home-error','Error: '+err.type)}
+  });
+};
+
+$('btn-join').onclick=()=>{
+  const name=$('input-name').value.trim();const code=$('input-code').value.trim().toUpperCase();
+  if(!name)return showError('home-error','Please enter your name');
+  if(!code||code.length<4)return showError('home-error','Enter a valid invite code');
+  myName=name;isHost=false;gameCode=code;
+  showScreen('screen-connecting');$('connecting-status').textContent='Connecting…';
+  peer=new Peer(PEER_PREFIX+'g'+genCode());
+  peer.on('open',()=>{$('connecting-status').textContent='Joining game…';conn=peer.connect(PEER_PREFIX+code,{reliable:true});wireConnection()});
+  peer.on('error',err=>{
+    if(err.type==='peer-unavailable'){showScreen('screen-home');showError('home-error','Game not found.')}
+    else{showScreen('screen-home');showError('home-error','Error: '+err.type)}
+  });
+};
+
+function wireConnection(){
+  conn.on('open',()=>send({type:'hello',name:myName}));
+  conn.on('data',onMessage);
+  conn.on('close',()=>{alert('Opponent disconnected 😢');cleanup();showScreen('screen-home')});
+}
+
+function cleanup(){
+  clearTimers();
+  if(conn){try{conn.close()}catch{}conn=null}
+  if(peer){try{peer.destroy()}catch{}peer=null}
+  isHost=false;oppConnected=false;score=0;usedWords.clear();roundWords=[];
+}
+
+function clearTimers(){
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null}
+  hintTimers.forEach(t=>clearTimeout(t));hintTimers=[];
+}
+
+// ══════════════════════════════════
+// MESSAGES
+// ══════════════════════════════════
+function onMessage(raw){
+  let d;try{d=JSON.parse(raw)}catch{return}
+  switch(d.type){
+    case 'hello':
+      oppName=d.name;
+      if(isHost){send({type:'hello-ack',name:myName});oppConnected=true;$('lobby-status').textContent=`${oppName} joined!`;$('btn-start-game').style.display='';$('btn-start-game').disabled=false}
+      break;
+    case 'hello-ack':
+      oppName=d.name;oppConnected=true;$('connecting-status').textContent=`Connected with ${oppName}!`;
+      break;
+    case 'start-round':
+      roundTime=d.roundTime;isDrawer=d.yourRole==='drawer';score=d.score||score;
+      wordPool=shuffle(getWordPool());usedWords=new Set(d.usedWords||[]);roundWords=[];
+      if(isDrawer){startDrawerRound(d.word,d.catEmoji)}else{startGuesserRound(d.wordLength,d.catName,d.catEmoji)}
+      break;
+    case 'draw':applyDrawData(d);break;
+    case 'clear-canvas':clearViewCanvas();break;
+    case 'undo':undoViewCanvas(d.history);break;
+    case 'new-word':
+      if(!isDrawer){clearViewCanvas();revealedIndices.clear();hintTimers.forEach(t=>clearTimeout(t));hintTimers=[];
+        startGuesserHints(d.wordLength);updateHintDisplay(d.wordLength);$('hint-cat').textContent=d.catEmoji+' '+d.catName}
+      break;
+    case 'correct':
+      score=d.score;
+      if(isDrawer){showCorrectBanner('drawer',d.word);updateDrawerUI()}
+      else{showCorrectBanner('guesser',d.word);updateGuesserUI()}
+      break;
+    case 'skip':
+      if(!isDrawer){roundWords.push({word:d.word,status:'skipped'})}
+      break;
+    case 'time-up':
+      clearTimers();showSwapScreen(d);
+      break;
+    case 'swap-ready':
+      swapReadyCount++;
+      if(isHost&&waitingSwap){startNewRound()}
+      break;
+    case 'new-round':
+      isDrawer=d.yourRole==='drawer';score=d.score;
+      wordPool=shuffle(getWordPool());usedWords=new Set(d.usedWords||[]);roundWords=[];
+      if(isDrawer){startDrawerRound(d.word,d.catEmoji)}else{startGuesserRound(d.wordLength,d.catName,d.catEmoji)}
+      break;
+    case 'end-game':showResults(d);break;
+  }
+}
+
+// ══════════════════════════════════
+// HOST START
+// ══════════════════════════════════
+$('btn-start-game').onclick=()=>{
+  if(!oppConnected)return;
+  wordPool=shuffle(getWordPool());
+  const w=pickWord();currentWord=w.word;currentCatEmoji=w.emoji;
+  isDrawer=true;roundWords=[];score=0;
+  send({type:'start-round',roundTime,yourRole:'guesser',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji,score:0,usedWords:[...usedWords]});
+  startDrawerRound(w.word,w.emoji);
+};
+
+// ══════════════════════════════════
+// DRAWER
+// ══════════════════════════════════
+function startDrawerRound(word,catEmoji){
+  isDrawer=true;currentWord=word;currentCatEmoji=catEmoji;
+  $('current-word').textContent=word;
+  $('drawer-score').textContent=score;
+  $('correct-banner-drawer').style.display='none';
+  clearDrawCanvas();drawHistory=[];
+  timeLeft=roundTime;totalTime=roundTime;
+  updateTimerDisplay('drawer');
+  showScreen('screen-drawer');
+  startTimer('drawer');
+}
+
+function nextWord(){
+  const w=pickWord();currentWord=w.word;currentCatEmoji=w.emoji;
+  $('current-word').textContent=w.word;
+  clearDrawCanvas();drawHistory=[];
+  send({type:'new-word',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji});
+  send({type:'clear-canvas'});
+}
+
+$('btn-skip').onclick=()=>{
+  roundWords.push({word:currentWord,status:'skipped'});
+  send({type:'skip',word:currentWord});
+  nextWord();
+};
+
+function updateDrawerUI(){
+  $('drawer-score').textContent=score;
+}
+
+// ══════════════════════════════════
+// GUESSER
+// ══════════════════════════════════
+function startGuesserRound(wordLength,catName,catEmoji){
+  isDrawer=false;revealedIndices.clear();
+  $('guesser-score').textContent=score;
+  $('guess-input').value='';$('guess-feedback').textContent='';
+  $('correct-banner-guesser').style.display='none';
+  $('hint-cat').textContent=catEmoji+' '+catName;
+  clearViewCanvas();
+  updateHintDisplay(wordLength);
+  startGuesserHints(wordLength);
+  timeLeft=roundTime;totalTime=roundTime;
+  updateTimerDisplay('guesser');
+  showScreen('screen-guesser');
+  startTimer('guesser');
+  setTimeout(()=>$('guess-input').focus(),300);
+}
+
+function updateHintDisplay(len){
+  const word=currentWord||'x'.repeat(len);
+  const actual=isDrawer?word:null;
+  let display='';
+  for(let i=0;i<len;i++){
+    if(revealedIndices.has(i)){
+      // We need the actual letter — guesser doesn't know the word
+      // We store revealed letters in a map
+      display+=revealedLetters[i]||'_';
+    }else{
+      display+='_';
+    }
+    if(i<len-1)display+=' ';
+  }
+  $('hint-text').textContent=display;
+}
+
+let revealedLetters={};
+let currentWordLength=0;
+
+function startGuesserHints(wordLength){
+  hintTimers.forEach(t=>clearTimeout(t));hintTimers=[];
+  revealedIndices.clear();revealedLetters={};currentWordLength=wordLength;
+  updateHintDisplayClean(wordLength);
+
+  const maxReveal=Math.floor(wordLength*0.5);
+  let revealed=0;
+
+  function scheduleNext(delay){
+    if(revealed>=maxReveal)return;
+    const t=setTimeout(()=>{
+      // Request a hint from drawer
+      send({type:'request-hint',revealed:[...revealedIndices]});
+    },delay);
+    hintTimers.push(t);
+  }
+
+  scheduleNext(HINT_FIRST_DELAY);
+}
+
+function updateHintDisplayClean(len){
+  let display='';
+  for(let i=0;i<len;i++){
+    display+=revealedLetters[i]||'_';
+    if(i<len-1)display+=' ';
+  }
+  $('hint-text').textContent=display;
+}
+
+function updateGuesserUI(){
+  $('guesser-score').textContent=score;
+}
+
+// Handle hint from drawer side
+function handleHintRequest(alreadyRevealed){
+  if(!currentWord)return;
+  const indices=[];
+  for(let i=0;i<currentWord.length;i++){
+    if(!alreadyRevealed.includes(i)&&currentWord[i]!==' ')indices.push(i);
+  }
+  if(indices.length===0)return;
+  const idx=indices[Math.floor(Math.random()*indices.length)];
+  send({type:'hint-reveal',index:idx,letter:currentWord[idx]});
+}
+
+// ══════════════════════════════════
+// TIMER
+// ══════════════════════════════════
+function startTimer(role){
+  clearTimers();
+  const startMs=Date.now();
+  timerInterval=setInterval(()=>{
+    const elapsed=Math.floor((Date.now()-startMs)/1000);
+    timeLeft=Math.max(0,totalTime-elapsed);
+    updateTimerDisplay(role);
+    if(timeLeft<=0){
+      clearTimers();
+      if(isHost||(isDrawer)){
+        send({type:'time-up',score,roundWords,drawer:isDrawer?myName:oppName,guesser:isDrawer?oppName:myName});
+        showSwapScreen({score,roundWords,drawer:isDrawer?myName:oppName,guesser:isDrawer?oppName:myName});
+      }
+    }
+  },500);
+}
+
+function updateTimerDisplay(role){
+  const min=Math.floor(timeLeft/60);
+  const sec=timeLeft%60;
+  const str=min+':'+(sec<10?'0':'')+sec;
+  const pct=(timeLeft/totalTime)*100;
+  const prefix=role==='drawer'?'drawer':'guesser';
+  $(prefix+'-timer').textContent=str;
+  $(prefix+'-timer').className='hud-value timer-val'+(timeLeft<=30?' danger':'');
+  $(prefix+'-timer-bar').style.width=pct+'%';
+  $(prefix+'-timer-bar').className='timer-bar-fill'+(timeLeft<=30?' danger':'');
+}
+
+function formatTime(s){return Math.floor(s/60)+':'+(s%60<10?'0':'')+(s%60)}
+
+// ══════════════════════════════════
+// CORRECT / BANNER
+// ══════════════════════════════════
+function showCorrectBanner(role,word){
+  const el=$(role==='drawer'?'correct-banner-drawer':'correct-banner-guesser');
+  el.style.display='block';
+  el.innerHTML=`<div class="correct-banner"><div class="correct-emoji">🎉</div><div class="correct-text">Correct!</div><div class="correct-word">The word was: ${esc(word)}</div></div>`;
+  setTimeout(()=>{el.style.display='none'},1500);
+}
+
+// ══════════════════════════════════
+// GUESS LOGIC
+// ══════════════════════════════════
+$('btn-guess').onclick=submitGuess;
+$('guess-input').onkeydown=e=>{if(e.key==='Enter')submitGuess()};
+
+function submitGuess(){
+  const val=$('guess-input').value.trim();
+  if(!val)return;
+  $('guess-input').value='';
+  send({type:'guess',text:val});
+  $('guess-feedback').textContent='❌ Not quite…';
+  $('guess-feedback').style.color='#ef4444';
+  setTimeout(()=>{if($('guess-feedback').textContent==='❌ Not quite…')$('guess-feedback').textContent=''},1500);
+}
+
+// Extend message handler for guess/hint
+const origOnMessage=onMessage;
+
+function onMessageExtended(raw){
+  let d;try{d=JSON.parse(raw)}catch{return}
+
+  if(d.type==='guess'){
+    // Drawer receives guess
+    if(isDrawer&&currentWord){
+      const guess=d.text.toLowerCase().trim();
+      const answer=currentWord.toLowerCase().trim();
+      if(guess===answer){
+        score++;
+        roundWords.push({word:currentWord,status:'guessed'});
+        send({type:'correct',word:currentWord,score});
+        showCorrectBanner('drawer',currentWord);
+        updateDrawerUI();
+        setTimeout(()=>nextWord(),800);
+      }else{
+        // Check close match
+        if(answer.includes(guess)||guess.includes(answer)){
+          send({type:'close-guess'});
+        }
+      }
+    }
+    return;
+  }
+  if(d.type==='close-guess'){
+    $('guess-feedback').textContent='🔥 Very close!';
+    $('guess-feedback').style.color='#facc15';
+    setTimeout(()=>$('guess-feedback').textContent='',2000);
+    return;
+  }
+  if(d.type==='request-hint'){
+    if(isDrawer)handleHintRequest(d.revealed);
+    return;
+  }
+  if(d.type==='hint-reveal'){
+    revealedIndices.add(d.index);
+    revealedLetters[d.index]=d.letter;
+    updateHintDisplayClean(currentWordLength);
+    // Schedule next hint
+    const maxReveal=Math.floor(currentWordLength*0.5);
+    if(revealedIndices.size<maxReveal){
+      const t=setTimeout(()=>{
+        send({type:'request-hint',revealed:[...revealedIndices]});
+      },HINT_INTERVAL);
+      hintTimers.push(t);
+    }
+    return;
+  }
+
+  onMessage(raw);
+}
+
+// Patch connection
+function wireConnection(){
+  conn.on('open',()=>send({type:'hello',name:myName}));
+  conn.on('data',onMessageExtended);
+  conn.on('close',()=>{alert('Opponent disconnected 😢');cleanup();showScreen('screen-home')});
+}
+
+// ══════════════════════════════════
+// DRAWING CANVAS
+// ══════════════════════════════════
+const drawCanvas=$('draw-canvas');
+const drawCtx=drawCanvas.getContext('2d');
+const viewCanvas=$('view-canvas');
+const viewCtx=viewCanvas.getContext('2d');
+
+function clearDrawCanvas(){
+  drawCtx.fillStyle='#fff';drawCtx.fillRect(0,0,800,600);
+  drawHistory=[];
+}
+function clearViewCanvas(){
+  viewCtx.fillStyle='#fff';viewCtx.fillRect(0,0,800,600);
+}
+
+// Initialize canvases
+clearDrawCanvas();clearViewCanvas();
+
+function getCanvasPos(canvas,e){
+  const rect=canvas.getBoundingClientRect();
+  const scaleX=800/rect.width;const scaleY=600/rect.height;
+  let clientX,clientY;
+  if(e.touches){clientX=e.touches[0].clientX;clientY=e.touches[0].clientY}
+  else{clientX=e.clientX;clientY=e.clientY}
+  return{x:(clientX-rect.left)*scaleX,y:(clientY-rect.top)*scaleY};
+}
+
+function startDraw(e){
+  e.preventDefault();
+  if(!isDrawer)return;
+  isDrawing=true;
+  const pos=getCanvasPos(drawCanvas,e);
+  lastX=pos.x;lastY=pos.y;
+  // Start new stroke in history
+    drawHistory.push([{x:pos.x,y:pos.y,color:isEraser?'#ffffff':currentColor,size:isEraser?20:currentSize}]);
+}
+
+function moveDraw(e){
+  e.preventDefault();
+  if(!isDrawing||!isDrawer)return;
+  const pos=getCanvasPos(drawCanvas,e);
+  const color=isEraser?'#ffffff':currentColor;
+  const size=isEraser?20:currentSize;
+
+  drawLine(drawCtx,lastX,lastY,pos.x,pos.y,color,size);
+  send({type:'draw',x1:lastX,y1:lastY,x2:pos.x,y2:pos.y,color,size});
+
+  if(drawHistory.length>0){
+    drawHistory[drawHistory.length-1].push({x:pos.x,y:pos.y,color,size});
+  }
+
+  lastX=pos.x;lastY=pos.y;
+}
+
+function endDraw(e){
+  e.preventDefault();
+  isDrawing=false;
+}
+
+function drawLine(ctx,x1,y1,x2,y2,color,size){
+  ctx.beginPath();
+  ctx.moveTo(x1,y1);
+  ctx.lineTo(x2,y2);
+  ctx.strokeStyle=color;
+  ctx.lineWidth=size;
+  ctx.lineCap='round';
+  ctx.lineJoin='round';
+  ctx.stroke();
+}
+
+function applyDrawData(d){
+  drawLine(viewCtx,d.x1,d.y1,d.x2,d.y2,d.color,d.size);
+}
+
+function redrawCanvas(ctx,history){
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,800,600);
+  history.forEach(stroke=>{
+    for(let i=1;i<stroke.length;i++){
+      const prev=stroke[i-1];const curr=stroke[i];
+      drawLine(ctx,prev.x,prev.y,curr.x,curr.y,curr.color,curr.size);
+    }
+  });
+}
+
+function undoViewCanvas(history){
+  // Rebuild view canvas from history
+  viewCtx.fillStyle='#fff';viewCtx.fillRect(0,0,800,600);
+  history.forEach(stroke=>{
+    for(let i=1;i<stroke.length;i++){
+      const prev=stroke[i-1];const curr=stroke[i];
+      drawLine(viewCtx,prev.x,prev.y,curr.x,curr.y,curr.color,curr.size);
+    }
+  });
+}
+
+// Mouse events
+drawCanvas.addEventListener('mousedown',startDraw);
+drawCanvas.addEventListener('mousemove',moveDraw);
+drawCanvas.addEventListener('mouseup',endDraw);
+drawCanvas.addEventListener('mouseleave',endDraw);
+
+// Touch events
+drawCanvas.addEventListener('touchstart',startDraw,{passive:false});
+drawCanvas.addEventListener('touchmove',moveDraw,{passive:false});
+drawCanvas.addEventListener('touchend',endDraw,{passive:false});
+drawCanvas.addEventListener('touchcancel',endDraw,{passive:false});
+
+// ══════════════════════════════════
+// DRAWING TOOLS
+// ══════════════════════════════════
+document.querySelectorAll('.color-btn').forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentColor=btn.dataset.color;
+    isEraser=false;
+    $('btn-eraser').classList.remove('active');
+  };
+});
+
+document.querySelectorAll('.size-btn').forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll('.size-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentSize=parseInt(btn.dataset.size);
+  };
+});
+
+$('btn-eraser').onclick=()=>{
+  isEraser=!isEraser;
+  $('btn-eraser').classList.toggle('active',isEraser);
+  if(isEraser)document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('active'));
+  else{
+    const first=document.querySelector('.color-btn');
+    if(first){first.classList.add('active');currentColor=first.dataset.color}
+  }
+};
+
+$('btn-undo').onclick=()=>{
+  if(drawHistory.length===0)return;
+  drawHistory.pop();
+  redrawCanvas(drawCtx,drawHistory);
+  // Send full history to guesser for undo
+  const simplified=drawHistory.map(stroke=>stroke.map(p=>({x:p.x,y:p.y,color:p.color,size:p.size})));
+  send({type:'undo',history:simplified});
+};
+
+$('btn-clear').onclick=()=>{
+  clearDrawCanvas();drawHistory=[];
+  send({type:'clear-canvas'});
+};
+
+// ══════════════════════════════════
+// SWAP SCREEN
+// ══════════════════════════════════
+function showSwapScreen(data){
+  clearTimers();
+  const overlay=$('swap-overlay');
+  $('swap-emoji').textContent='⏰';
+  $('swap-title').textContent="Time's Up!";
+
+  const guessed=roundWords.filter(w=>w.status==='guessed').length;
+  const skipped=roundWords.filter(w=>w.status==='skipped').length;
+
+  $('swap-sub').textContent=`${guessed} word${guessed!==1?'s':''} guessed this round!`;
+  $('swap-results').innerHTML=`
+    <div class="result-box"><div class="label">Guessed</div><div class="value orange">${guessed}</div></div>
+    <div class="result-box"><div class="label">Skipped</div><div class="value purple">${skipped}</div></div>
+  `;
+
+  $('btn-swap-ready').textContent='🔄 Swap Roles & Continue';
+  $('btn-swap-ready').disabled=false;
+  overlay.style.display='flex';
+  swapReadyCount=0;waitingSwap=false;
+}
+
+$('btn-swap-ready').onclick=()=>{
+  $('btn-swap-ready').disabled=true;
+  $('btn-swap-ready').textContent='⏳ Waiting for opponent…';
+
+  if(isHost){
+    if(swapReadyCount>0){
+      startNewRound();
+    }else{
+      waitingSwap=true;
+      send({type:'host-ready'});
+    }
+  }else{
+    send({type:'swap-ready'});
+  }
+};
+
+function startNewRound(){
+  $('swap-overlay').style.display='none';
+  swapReadyCount=0;waitingSwap=false;
+
+  // Swap roles — whoever was drawer is now guesser
+  const newDrawerIsHost=!isDrawer; // if host was drawer, now host is guesser, so new drawer is guest
+  // Actually simpler: just swap
+  const w=pickWord();
+
+  if(isHost){
+    // Host decides roles
+    const hostDraws=!isDrawer; // host swaps
+    if(hostDraws){
+      isDrawer=true;currentWord=w.word;currentCatEmoji=w.emoji;roundWords=[];
+      send({type:'new-round',yourRole:'guesser',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji,score,usedWords:[...usedWords]});
+      startDrawerRound(w.word,w.emoji);
+    }else{
+      isDrawer=false;roundWords=[];
+      send({type:'new-round',yourRole:'drawer',word:w.word,catEmoji:w.emoji,score,usedWords:[...usedWords]});
+      startGuesserRound(w.word.length,w.cat,w.emoji);
+    }
+  }
+}
+
+// ══════════════════════════════════
+// RESULTS
+// ══════════════════════════════════
+function showResults(data){
+  clearTimers();
+  const allWords=data.allWords||roundWords;
+  const guessed=allWords.filter(w=>w.status==='guessed').length;
+  const skipped=allWords.filter(w=>w.status==='skipped').length;
+
+  $('res-total').textContent=data.score||score;
+  $('res-label').textContent='words guessed';
+  $('res-guessed').textContent=guessed;
+  $('res-skipped').textContent=skipped;
+
+  const recap=$('recap-list');
+  recap.innerHTML='';
+  allWords.forEach(w=>{
+    const item=document.createElement('div');
+    item.className='recap-item '+(w.status==='guessed'?'guessed':'skipped');
+    item.innerHTML=`<span class="recap-word">${esc(w.word)}</span><span class="recap-status">${w.status==='guessed'?'✅ Guessed':'⏭ Skipped'}</span>`;
+    recap.appendChild(item);
+  });
+
+  generateShareCard(data.score||score,guessed,skipped);
+  showScreen('screen-results');
+}
+
+// ══════════════════════════════════
+// SHARE CARD
+// ══════════════════════════════════
+function generateShareCard(totalScore,guessed,skipped){
+  const canvas=$('share-canvas');
+  const ctx=canvas.getContext('2d');
+  const w=600,h=400;
+  canvas.width=w;canvas.height=h;
+
+  const grad=ctx.createLinearGradient(0,0,w,h);
+  grad.addColorStop(0,'#0f0c29');grad.addColorStop(0.5,'#1a1a3e');grad.addColorStop(1,'#0f0f2e');
+  ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);
+
+  ctx.globalAlpha=0.08;
+  ctx.fillStyle='#f97316';ctx.beginPath();ctx.arc(500,60,120,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#8b5cf6';ctx.beginPath();ctx.arc(80,350,100,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=1;
+
+  ctx.font='900 28px Nunito, sans-serif';ctx.fillStyle='#f97316';ctx.textAlign='center';
+  ctx.fillText('🎨 Draw & Guess',w/2,48);
+
+  ctx.font='700 18px Nunito, sans-serif';ctx.fillStyle='#c4b5fd';
+  ctx.fillText(`${myName} & ${oppName}`,w/2,80);
+
+  ctx.font='900 80px Nunito, sans-serif';
+  ctx.fillStyle='#f97316';
+  ctx.fillText(String(totalScore),w/2,180);
+
+  ctx.font='700 16px Nunito, sans-serif';ctx.fillStyle='#94a1b2';
+  ctx.fillText('WORDS GUESSED',w/2,210);
+
+  const statY=260;
+  ctx.fillText('GUESSED',200,statY);
+  ctx.font='900 36px Nunito, sans-serif';ctx.fillStyle='#22c55e';
+  ctx.fillText(String(guessed),200,statY+38);
+
+  ctx.font='700 16px Nunito, sans-serif';ctx.fillStyle='#94a1b2';
+  ctx.fillText('SKIPPED',400,statY);
+  ctx.font='900 36px Nunito, sans-serif';ctx.fillStyle='#8b5cf6';
+  ctx.fillText(String(skipped),400,statY+38);
+
+  ctx.font='800 15px Nunito, sans-serif';ctx.fillStyle='#f9731688';
+  ctx.fillText('Can you draw better? 🎨',w/2,348);
+  ctx.font='700 12px Nunito, sans-serif';ctx.fillStyle='#94a1b2';
+  ctx.fillText(window.location.href.replace(/\/$/,''),w/2,375);
+
+  const img=$('share-preview');img.src=canvas.toDataURL('image/png');img.style.display='block';
+}
+
+$('btn-save-img').onclick=()=>{
+  const link=document.createElement('a');
+  link.download='draw-and-guess-result.png';
+  link.href=$('share-canvas').toDataURL('image/png');
+  link.click();
+  $('btn-save-img').innerHTML='✅ Saved!';
+  setTimeout(()=>$('btn-save-img').innerHTML='📸 Save Image',2000);
+};
+
+$('btn-copy-text').onclick=()=>{
+  const guessed=roundWords.filter(w=>w.status==='guessed').length;
+  let text=`🎨 Draw & Guess\n\n`;
+  text+=`${myName} & ${oppName}\n`;
+  text+=`Score: ${score} words guessed!\n\n`;
+  text+=`Can you draw better?\n${window.location.href}`;
+  navigator.clipboard.writeText(text).then(()=>{
+    $('btn-copy-text').innerHTML='✅ Copied!';
+    setTimeout(()=>$('btn-copy-text').innerHTML='📋 Copy Result',2000);
+  }).catch(()=>{});
+};
+
+$('btn-copy-code').onclick=()=>{
+  navigator.clipboard.writeText(gameCode).then(()=>{
+    $('btn-copy-code').innerHTML='✅ Copied!';
+    setTimeout(()=>$('btn-copy-code').innerHTML='📋 Copy Code',2000);
+  }).catch(()=>{});
+};
+
+// ══════════════════════════════════
+// NEW ROUND / HOME
+// ══════════════════════════════════
+$('btn-new-round').onclick=()=>{
+  if(isHost){
+    const w=pickWord();
+    isDrawer=!isDrawer;roundWords=[];
+    if(isDrawer){
+      send({type:'new-round',yourRole:'guesser',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji,score,usedWords:[...usedWords]});
+      startDrawerRound(w.word,w.emoji);
+    }else{
+      send({type:'new-round',yourRole:'drawer',word:w.word,catEmoji:w.emoji,score,usedWords:[...usedWords]});
+      startGuesserRound(w.word.length,w.cat,w.emoji);
+    }
+  }else{
+    send({type:'swap-ready'});
+    $('btn-new-round').disabled=true;$('btn-new-round').innerHTML='⏳ Waiting for host…';
+  }
+};
+
+$('btn-home-end').onclick=()=>{cleanup();$('input-name').value=myName;$('input-code').value='';showScreen('screen-home')};
+
+// Keyboard
+$('input-name').onkeydown=e=>{if(e.key==='Enter')$('btn-create').click()};
+$('input-code').onkeydown=e=>{if(e.key==='Enter')$('btn-join').click()};
+
+})();
+</script>
+</body>
+</html>
