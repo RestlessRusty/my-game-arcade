@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎮 My Game Arcade</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+  }
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #7f5af0, #2cb67d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle { color: #94a1b2; margin-bottom: 40px; font-size: 1.1rem; }
+  .games {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px; max-width: 900px; width: 100%;
+  }
+  .game-card {
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 32px 28px;
+    text-decoration: none;
+    color: #fff;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .game-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 40px rgba(127,90,240,0.3);
+  }
+  .game-card .emoji { font-size: 3rem; }
+  .game-card h2 { font-size: 1.3rem; font-weight: 800; }
+  .game-card p { font-size: 0.9rem; color: #94a1b2; line-height: 1.5; }
+  .badge {
+    display: inline-block; padding: 4px 12px; border-radius: 20px;
+    font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.1em; width: fit-content;
+  }
+  .badge.multiplayer { background: rgba(127,90,240,0.2); color: #7f5af0; }
+  .badge.solo { background: rgba(44,182,125,0.2); color: #2cb67d; }
+  footer { margin-top: 60px; color: #94a1b2; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+  <h1>🎮 My Game Arcade</h1>
+  <p class="subtitle">Pick a game and play!</p>
+  <div class="games">
+    <a href="./think-alike/" class="game-card">
+      <div class="emoji">🧠</div>
+      <span class="badge multiplayer">2 Players</span>
+      <h2>Do We Think Alike?</h2>
+      <p>See a word, type what comes to mind. Do you and your friend think the same?</p>
+    </a>
+  </div>
+  <footer>Made with ❤️</footer>
+</body>
+</html>
