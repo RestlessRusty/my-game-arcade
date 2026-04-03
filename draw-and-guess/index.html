@@ -451,12 +451,14 @@ let currentWord='';
 let currentCatEmoji='';
 let wordPool=[];
 let usedWords=new Set();
-let roundWords=[];
+let allGameWords=[];
 let timerInterval=null;
 let timeLeft=0;
 let totalTime=0;
 let hintTimers=[];
 let revealedIndices=new Set();
+let revealedLetters={};
+let currentWordLength=0;
 let drawHistory=[];
 let currentColor='#000000';
 let currentSize=4;
@@ -466,6 +468,8 @@ let lastX=0,lastY=0;
 let swapReadyCount=0;
 let waitingSwap=false;
 let oppConnected=false;
+let newRoundReadyCount=0;
+let waitingNewRound=false;
 
 const $=id=>document.getElementById(id);
 const screens=document.querySelectorAll('.screen');
@@ -579,7 +583,8 @@ function cleanup(){
   clearTimers();
   if(conn){try{conn.close()}catch{}conn=null}
   if(peer){try{peer.destroy()}catch{}peer=null}
-  isHost=false;oppConnected=false;score=0;usedWords.clear();roundWords=[];
+  isHost=false;oppConnected=false;score=0;usedWords.clear();allGameWords=[];
+  newRoundReadyCount=0;waitingNewRound=false;
 }
 
 function clearTimers(){
@@ -601,38 +606,86 @@ function onMessage(raw){
       oppName=d.name;oppConnected=true;$('connecting-status').textContent=`Connected with ${oppName}!`;
       break;
     case 'start-round':
-      roundTime=d.roundTime;isDrawer=d.yourRole==='drawer';score=d.score||score;
-      wordPool=shuffle(getWordPool());usedWords=new Set(d.usedWords||[]);roundWords=[];
-      if(isDrawer){startDrawerRound(d.word,d.catEmoji)}else{startGuesserRound(d.wordLength,d.catName,d.catEmoji)}
+      roundTime=d.roundTime;isDrawer=d.yourRole==='drawer';score=d.score!=null?d.score:score;
+      wordPool=shuffle(getWordPool());usedWords=new Set(d.usedWords||[]);
+      if(d.allGameWords)allGameWords=d.allGameWords;
+      if(isDrawer){startDrawerRound(d.word,d.catEmoji)}
+      else{currentWord='';startGuesserRound(d.wordLength,d.catName,d.catEmoji)}
       break;
     case 'draw':applyDrawData(d);break;
     case 'clear-canvas':clearViewCanvas();break;
     case 'undo':undoViewCanvas(d.history);break;
     case 'new-word':
-      if(!isDrawer){clearViewCanvas();revealedIndices.clear();hintTimers.forEach(t=>clearTimeout(t));hintTimers=[];
-        startGuesserHints(d.wordLength);updateHintDisplay(d.wordLength);$('hint-cat').textContent=d.catEmoji+' '+d.catName}
+      if(!isDrawer){
+        clearViewCanvas();revealedIndices.clear();revealedLetters={};
+        hintTimers.forEach(t=>clearTimeout(t));hintTimers=[];
+        currentWordLength=d.wordLength;
+        startGuesserHints(d.wordLength);
+        updateHintDisplayClean(d.wordLength);
+        $('hint-cat').textContent=d.catEmoji+' '+d.catName;
+        $('correct-banner-guesser').style.display='none';
+      }
       break;
     case 'correct':
       score=d.score;
+      allGameWords=d.allGameWords||allGameWords;
       if(isDrawer){showCorrectBanner('drawer',d.word);updateDrawerUI()}
       else{showCorrectBanner('guesser',d.word);updateGuesserUI()}
       break;
     case 'skip':
-      if(!isDrawer){roundWords.push({word:d.word,status:'skipped'})}
+      allGameWords=d.allGameWords||allGameWords;
       break;
     case 'time-up':
-      clearTimers();showSwapScreen(d);
+      clearTimers();
+      score=d.score!=null?d.score:score;
+      allGameWords=d.allGameWords||allGameWords;
+      showSwapScreen();
       break;
     case 'swap-ready':
       swapReadyCount++;
-      if(isHost&&waitingSwap){startNewRound()}
+      if(isHost&&waitingSwap){doSwap()}
       break;
-    case 'new-round':
-      isDrawer=d.yourRole==='drawer';score=d.score;
-      wordPool=shuffle(getWordPool());usedWords=new Set(d.usedWords||[]);roundWords=[];
-      if(isDrawer){startDrawerRound(d.word,d.catEmoji)}else{startGuesserRound(d.wordLength,d.catName,d.catEmoji)}
+    case 'host-swap-ready':
+      // informational for guest
       break;
-    case 'end-game':showResults(d);break;
+    case 'new-round-go':
+      isDrawer=d.yourRole==='drawer';score=d.score!=null?d.score:score;
+      if(d.usedWords)usedWords=new Set(d.usedWords);
+      if(d.allGameWords)allGameWords=d.allGameWords;
+      wordPool=shuffle(getWordPool());
+      if(isDrawer){startDrawerRound(d.word,d.catEmoji)}
+      else{currentWord='';startGuesserRound(d.wordLength,d.catName,d.catEmoji)}
+      break;
+    case 'guess':
+      handleGuessFromOpponent(d.text);
+      break;
+    case 'close-guess':
+      $('guess-feedback').textContent='🔥 Very close!';
+      $('guess-feedback').style.color='#facc15';
+      setTimeout(()=>{if($('guess-feedback').textContent==='🔥 Very close!')$('guess-feedback').textContent=''},2000);
+      break;
+    case 'request-hint':
+      if(isDrawer)handleHintRequest(d.revealed);
+      break;
+    case 'hint-reveal':
+      revealedIndices.add(d.index);
+      revealedLetters[d.index]=d.letter;
+      updateHintDisplayClean(currentWordLength);
+      const maxReveal=Math.floor(currentWordLength*0.5);
+      if(revealedIndices.size<maxReveal){
+        const t=setTimeout(()=>{send({type:'request-hint',revealed:[...revealedIndices]})},HINT_INTERVAL);
+        hintTimers.push(t);
+      }
+      break;
+    case 'new-round-ready':
+      newRoundReadyCount++;
+      if(isHost&&waitingNewRound){startNewRoundFromResults()}
+      break;
+    case 'show-results':
+      score=d.score!=null?d.score:score;
+      allGameWords=d.allGameWords||allGameWords;
+      showResults();
+      break;
   }
 }
 
@@ -643,13 +696,13 @@ $('btn-start-game').onclick=()=>{
   if(!oppConnected)return;
   wordPool=shuffle(getWordPool());
   const w=pickWord();currentWord=w.word;currentCatEmoji=w.emoji;
-  isDrawer=true;roundWords=[];score=0;
-  send({type:'start-round',roundTime,yourRole:'guesser',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji,score:0,usedWords:[...usedWords]});
+  isDrawer=true;score=0;allGameWords=[];
+  send({type:'start-round',roundTime,yourRole:'guesser',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji,score:0,usedWords:[...usedWords],allGameWords:[]});
   startDrawerRound(w.word,w.emoji);
 };
 
 // ══════════════════════════════════
-// DRAWER
+// DRAWER ROUND
 // ══════════════════════════════════
 function startDrawerRound(word,catEmoji){
   isDrawer=true;currentWord=word;currentCatEmoji=catEmoji;
@@ -666,94 +719,60 @@ function startDrawerRound(word,catEmoji){
 function nextWord(){
   const w=pickWord();currentWord=w.word;currentCatEmoji=w.emoji;
   $('current-word').textContent=w.word;
+  $('correct-banner-drawer').style.display='none';
   clearDrawCanvas();drawHistory=[];
   send({type:'new-word',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji});
   send({type:'clear-canvas'});
 }
 
 $('btn-skip').onclick=()=>{
-  roundWords.push({word:currentWord,status:'skipped'});
-  send({type:'skip',word:currentWord});
+  allGameWords.push({word:currentWord,status:'skipped'});
+  send({type:'skip',word:currentWord,allGameWords});
   nextWord();
 };
 
-function updateDrawerUI(){
-  $('drawer-score').textContent=score;
-}
+function updateDrawerUI(){$('drawer-score').textContent=score}
 
 // ══════════════════════════════════
-// GUESSER
+// GUESSER ROUND
 // ══════════════════════════════════
 function startGuesserRound(wordLength,catName,catEmoji){
-  isDrawer=false;revealedIndices.clear();
+  isDrawer=false;revealedIndices.clear();revealedLetters={};currentWordLength=wordLength;
   $('guesser-score').textContent=score;
   $('guess-input').value='';$('guess-feedback').textContent='';
   $('correct-banner-guesser').style.display='none';
   $('hint-cat').textContent=catEmoji+' '+catName;
   clearViewCanvas();
-  updateHintDisplay(wordLength);
+  updateHintDisplayClean(wordLength);
   startGuesserHints(wordLength);
   timeLeft=roundTime;totalTime=roundTime;
   updateTimerDisplay('guesser');
   showScreen('screen-guesser');
-  startTimer('guesser');
   setTimeout(()=>$('guess-input').focus(),300);
-}
-
-function updateHintDisplay(len){
-  const word=currentWord||'x'.repeat(len);
-  const actual=isDrawer?word:null;
-  let display='';
-  for(let i=0;i<len;i++){
-    if(revealedIndices.has(i)){
-      // We need the actual letter — guesser doesn't know the word
-      // We store revealed letters in a map
-      display+=revealedLetters[i]||'_';
-    }else{
-      display+='_';
-    }
-    if(i<len-1)display+=' ';
-  }
-  $('hint-text').textContent=display;
-}
-
-let revealedLetters={};
-let currentWordLength=0;
-
-function startGuesserHints(wordLength){
-  hintTimers.forEach(t=>clearTimeout(t));hintTimers=[];
-  revealedIndices.clear();revealedLetters={};currentWordLength=wordLength;
-  updateHintDisplayClean(wordLength);
-
-  const maxReveal=Math.floor(wordLength*0.5);
-  let revealed=0;
-
-  function scheduleNext(delay){
-    if(revealed>=maxReveal)return;
-    const t=setTimeout(()=>{
-      // Request a hint from drawer
-      send({type:'request-hint',revealed:[...revealedIndices]});
-    },delay);
-    hintTimers.push(t);
-  }
-
-  scheduleNext(HINT_FIRST_DELAY);
 }
 
 function updateHintDisplayClean(len){
   let display='';
   for(let i=0;i<len;i++){
-    display+=revealedLetters[i]||'_';
+    if(revealedLetters[i])display+=revealedLetters[i].toUpperCase();
+    else display+='_';
     if(i<len-1)display+=' ';
   }
   $('hint-text').textContent=display;
 }
 
-function updateGuesserUI(){
-  $('guesser-score').textContent=score;
+function startGuesserHints(wordLength){
+  hintTimers.forEach(t=>clearTimeout(t));hintTimers=[];
+  revealedIndices.clear();revealedLetters={};currentWordLength=wordLength;
+  const maxReveal=Math.floor(wordLength*0.5);
+  if(maxReveal>0){
+    const t=setTimeout(()=>{send({type:'request-hint',revealed:[...revealedIndices]})},HINT_FIRST_DELAY);
+    hintTimers.push(t);
+  }
 }
 
-// Handle hint from drawer side
+function updateGuesserUI(){$('guesser-score').textContent=score}
+
 function handleHintRequest(alreadyRevealed){
   if(!currentWord)return;
   const indices=[];
@@ -763,6 +782,64 @@ function handleHintRequest(alreadyRevealed){
   if(indices.length===0)return;
   const idx=indices[Math.floor(Math.random()*indices.length)];
   send({type:'hint-reveal',index:idx,letter:currentWord[idx]});
+}
+
+// ══════════════════════════════════
+// GUESS HANDLING
+// ══════════════════════════════════
+$('btn-guess').onclick=submitGuess;
+$('guess-input').onkeydown=e=>{if(e.key==='Enter')submitGuess()};
+
+function submitGuess(){
+  const val=$('guess-input').value.trim();
+  if(!val)return;
+  $('guess-input').value='';
+  send({type:'guess',text:val});
+  $('guess-feedback').textContent='❌ Not quite…';
+  $('guess-feedback').style.color='#ef4444';
+  setTimeout(()=>{if($('guess-feedback').textContent==='❌ Not quite…')$('guess-feedback').textContent=''},1500);
+  setTimeout(()=>$('guess-input').focus(),50);
+}
+
+function handleGuessFromOpponent(text){
+  if(!isDrawer||!currentWord)return;
+  const guess=text.toLowerCase().trim();
+  const answer=currentWord.toLowerCase().trim();
+  if(guess===answer){
+    score++;
+    allGameWords.push({word:currentWord,status:'guessed'});
+    send({type:'correct',word:currentWord,score,allGameWords});
+    showCorrectBanner('drawer',currentWord);
+    updateDrawerUI();
+    setTimeout(()=>nextWord(),800);
+  }else{
+    // Check close match — if guess is at least 60% of the answer and contained
+    const isClose=(answer.includes(guess)&&guess.length>=3)||(guess.includes(answer)&&answer.length>=3)||levenshtein(guess,answer)<=2;
+    if(isClose){
+      send({type:'close-guess'});
+    }
+  }
+}
+
+function levenshtein(a,b){
+  const m=a.length,n=b.length;
+  const dp=Array.from({length:m+1},()=>Array(n+1).fill(0));
+  for(let i=0;i<=m;i++)dp[i][0]=i;
+  for(let j=0;j<=n;j++)dp[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){
+    dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+(a[i-1]!==b[j-1]?1:0));
+  }
+  return dp[m][n];
+}
+
+// ══════════════════════════════════
+// CORRECT BANNER
+// ══════════════════════════════════
+function showCorrectBanner(role,word){
+  const el=$(role==='drawer'?'correct-banner-drawer':'correct-banner-guesser');
+  el.style.display='block';
+  el.innerHTML=`<div class="correct-banner"><div class="correct-emoji">🎉</div><div class="correct-text">Correct!</div><div class="correct-word">The word was: ${esc(word)}</div></div>`;
+  setTimeout(()=>{el.style.display='none'},1500);
 }
 
 // ══════════════════════════════════
@@ -777,9 +854,10 @@ function startTimer(role){
     updateTimerDisplay(role);
     if(timeLeft<=0){
       clearTimers();
-      if(isHost||(isDrawer)){
-        send({type:'time-up',score,roundWords,drawer:isDrawer?myName:oppName,guesser:isDrawer?oppName:myName});
-        showSwapScreen({score,roundWords,drawer:isDrawer?myName:oppName,guesser:isDrawer?oppName:myName});
+      if(isDrawer){
+        // Drawer controls the timer ending
+        send({type:'time-up',score,allGameWords});
+        showSwapScreen();
       }
     }
   },500);
@@ -797,264 +875,21 @@ function updateTimerDisplay(role){
   $(prefix+'-timer-bar').className='timer-bar-fill'+(timeLeft<=30?' danger':'');
 }
 
-function formatTime(s){return Math.floor(s/60)+':'+(s%60<10?'0':'')+(s%60)}
-
-// ══════════════════════════════════
-// CORRECT / BANNER
-// ══════════════════════════════════
-function showCorrectBanner(role,word){
-  const el=$(role==='drawer'?'correct-banner-drawer':'correct-banner-guesser');
-  el.style.display='block';
-  el.innerHTML=`<div class="correct-banner"><div class="correct-emoji">🎉</div><div class="correct-text">Correct!</div><div class="correct-word">The word was: ${esc(word)}</div></div>`;
-  setTimeout(()=>{el.style.display='none'},1500);
-}
-
-// ══════════════════════════════════
-// GUESS LOGIC
-// ══════════════════════════════════
-$('btn-guess').onclick=submitGuess;
-$('guess-input').onkeydown=e=>{if(e.key==='Enter')submitGuess()};
-
-function submitGuess(){
-  const val=$('guess-input').value.trim();
-  if(!val)return;
-  $('guess-input').value='';
-  send({type:'guess',text:val});
-  $('guess-feedback').textContent='❌ Not quite…';
-  $('guess-feedback').style.color='#ef4444';
-  setTimeout(()=>{if($('guess-feedback').textContent==='❌ Not quite…')$('guess-feedback').textContent=''},1500);
-}
-
-// Extend message handler for guess/hint
-const origOnMessage=onMessage;
-
-function onMessageExtended(raw){
-  let d;try{d=JSON.parse(raw)}catch{return}
-
-  if(d.type==='guess'){
-    // Drawer receives guess
-    if(isDrawer&&currentWord){
-      const guess=d.text.toLowerCase().trim();
-      const answer=currentWord.toLowerCase().trim();
-      if(guess===answer){
-        score++;
-        roundWords.push({word:currentWord,status:'guessed'});
-        send({type:'correct',word:currentWord,score});
-        showCorrectBanner('drawer',currentWord);
-        updateDrawerUI();
-        setTimeout(()=>nextWord(),800);
-      }else{
-        // Check close match
-        if(answer.includes(guess)||guess.includes(answer)){
-          send({type:'close-guess'});
-        }
-      }
-    }
-    return;
-  }
-  if(d.type==='close-guess'){
-    $('guess-feedback').textContent='🔥 Very close!';
-    $('guess-feedback').style.color='#facc15';
-    setTimeout(()=>$('guess-feedback').textContent='',2000);
-    return;
-  }
-  if(d.type==='request-hint'){
-    if(isDrawer)handleHintRequest(d.revealed);
-    return;
-  }
-  if(d.type==='hint-reveal'){
-    revealedIndices.add(d.index);
-    revealedLetters[d.index]=d.letter;
-    updateHintDisplayClean(currentWordLength);
-    // Schedule next hint
-    const maxReveal=Math.floor(currentWordLength*0.5);
-    if(revealedIndices.size<maxReveal){
-      const t=setTimeout(()=>{
-        send({type:'request-hint',revealed:[...revealedIndices]});
-      },HINT_INTERVAL);
-      hintTimers.push(t);
-    }
-    return;
-  }
-
-  onMessage(raw);
-}
-
-// Patch connection
-function wireConnection(){
-  conn.on('open',()=>send({type:'hello',name:myName}));
-  conn.on('data',onMessageExtended);
-  conn.on('close',()=>{alert('Opponent disconnected 😢');cleanup();showScreen('screen-home')});
-}
-
-// ══════════════════════════════════
-// DRAWING CANVAS
-// ══════════════════════════════════
-const drawCanvas=$('draw-canvas');
-const drawCtx=drawCanvas.getContext('2d');
-const viewCanvas=$('view-canvas');
-const viewCtx=viewCanvas.getContext('2d');
-
-function clearDrawCanvas(){
-  drawCtx.fillStyle='#fff';drawCtx.fillRect(0,0,800,600);
-  drawHistory=[];
-}
-function clearViewCanvas(){
-  viewCtx.fillStyle='#fff';viewCtx.fillRect(0,0,800,600);
-}
-
-// Initialize canvases
-clearDrawCanvas();clearViewCanvas();
-
-function getCanvasPos(canvas,e){
-  const rect=canvas.getBoundingClientRect();
-  const scaleX=800/rect.width;const scaleY=600/rect.height;
-  let clientX,clientY;
-  if(e.touches){clientX=e.touches[0].clientX;clientY=e.touches[0].clientY}
-  else{clientX=e.clientX;clientY=e.clientY}
-  return{x:(clientX-rect.left)*scaleX,y:(clientY-rect.top)*scaleY};
-}
-
-function startDraw(e){
-  e.preventDefault();
-  if(!isDrawer)return;
-  isDrawing=true;
-  const pos=getCanvasPos(drawCanvas,e);
-  lastX=pos.x;lastY=pos.y;
-  // Start new stroke in history
-    drawHistory.push([{x:pos.x,y:pos.y,color:isEraser?'#ffffff':currentColor,size:isEraser?20:currentSize}]);
-}
-
-function moveDraw(e){
-  e.preventDefault();
-  if(!isDrawing||!isDrawer)return;
-  const pos=getCanvasPos(drawCanvas,e);
-  const color=isEraser?'#ffffff':currentColor;
-  const size=isEraser?20:currentSize;
-
-  drawLine(drawCtx,lastX,lastY,pos.x,pos.y,color,size);
-  send({type:'draw',x1:lastX,y1:lastY,x2:pos.x,y2:pos.y,color,size});
-
-  if(drawHistory.length>0){
-    drawHistory[drawHistory.length-1].push({x:pos.x,y:pos.y,color,size});
-  }
-
-  lastX=pos.x;lastY=pos.y;
-}
-
-function endDraw(e){
-  e.preventDefault();
-  isDrawing=false;
-}
-
-function drawLine(ctx,x1,y1,x2,y2,color,size){
-  ctx.beginPath();
-  ctx.moveTo(x1,y1);
-  ctx.lineTo(x2,y2);
-  ctx.strokeStyle=color;
-  ctx.lineWidth=size;
-  ctx.lineCap='round';
-  ctx.lineJoin='round';
-  ctx.stroke();
-}
-
-function applyDrawData(d){
-  drawLine(viewCtx,d.x1,d.y1,d.x2,d.y2,d.color,d.size);
-}
-
-function redrawCanvas(ctx,history){
-  ctx.fillStyle='#fff';ctx.fillRect(0,0,800,600);
-  history.forEach(stroke=>{
-    for(let i=1;i<stroke.length;i++){
-      const prev=stroke[i-1];const curr=stroke[i];
-      drawLine(ctx,prev.x,prev.y,curr.x,curr.y,curr.color,curr.size);
-    }
-  });
-}
-
-function undoViewCanvas(history){
-  // Rebuild view canvas from history
-  viewCtx.fillStyle='#fff';viewCtx.fillRect(0,0,800,600);
-  history.forEach(stroke=>{
-    for(let i=1;i<stroke.length;i++){
-      const prev=stroke[i-1];const curr=stroke[i];
-      drawLine(viewCtx,prev.x,prev.y,curr.x,curr.y,curr.color,curr.size);
-    }
-  });
-}
-
-// Mouse events
-drawCanvas.addEventListener('mousedown',startDraw);
-drawCanvas.addEventListener('mousemove',moveDraw);
-drawCanvas.addEventListener('mouseup',endDraw);
-drawCanvas.addEventListener('mouseleave',endDraw);
-
-// Touch events
-drawCanvas.addEventListener('touchstart',startDraw,{passive:false});
-drawCanvas.addEventListener('touchmove',moveDraw,{passive:false});
-drawCanvas.addEventListener('touchend',endDraw,{passive:false});
-drawCanvas.addEventListener('touchcancel',endDraw,{passive:false});
-
-// ══════════════════════════════════
-// DRAWING TOOLS
-// ══════════════════════════════════
-document.querySelectorAll('.color-btn').forEach(btn=>{
-  btn.onclick=()=>{
-    document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    currentColor=btn.dataset.color;
-    isEraser=false;
-    $('btn-eraser').classList.remove('active');
-  };
-});
-
-document.querySelectorAll('.size-btn').forEach(btn=>{
-  btn.onclick=()=>{
-    document.querySelectorAll('.size-btn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    currentSize=parseInt(btn.dataset.size);
-  };
-});
-
-$('btn-eraser').onclick=()=>{
-  isEraser=!isEraser;
-  $('btn-eraser').classList.toggle('active',isEraser);
-  if(isEraser)document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('active'));
-  else{
-    const first=document.querySelector('.color-btn');
-    if(first){first.classList.add('active');currentColor=first.dataset.color}
-  }
-};
-
-$('btn-undo').onclick=()=>{
-  if(drawHistory.length===0)return;
-  drawHistory.pop();
-  redrawCanvas(drawCtx,drawHistory);
-  // Send full history to guesser for undo
-  const simplified=drawHistory.map(stroke=>stroke.map(p=>({x:p.x,y:p.y,color:p.color,size:p.size})));
-  send({type:'undo',history:simplified});
-};
-
-$('btn-clear').onclick=()=>{
-  clearDrawCanvas();drawHistory=[];
-  send({type:'clear-canvas'});
-};
-
 // ══════════════════════════════════
 // SWAP SCREEN
 // ══════════════════════════════════
-function showSwapScreen(data){
+function showSwapScreen(){
   clearTimers();
   const overlay=$('swap-overlay');
   $('swap-emoji').textContent='⏰';
   $('swap-title').textContent="Time's Up!";
 
-  const guessed=roundWords.filter(w=>w.status==='guessed').length;
-  const skipped=roundWords.filter(w=>w.status==='skipped').length;
+  const guessed=allGameWords.filter(w=>w.status==='guessed').length;
+  const skipped=allGameWords.filter(w=>w.status==='skipped').length;
 
-  $('swap-sub').textContent=`${guessed} word${guessed!==1?'s':''} guessed this round!`;
+  $('swap-sub').textContent=`Team score: ${score} words guessed so far!`;
   $('swap-results').innerHTML=`
-    <div class="result-box"><div class="label">Guessed</div><div class="value orange">${guessed}</div></div>
+    <div class="result-box"><div class="label">Total Guessed</div><div class="value orange">${guessed}</div></div>
     <div class="result-box"><div class="label">Skipped</div><div class="value purple">${skipped}</div></div>
   `;
 
@@ -1070,66 +905,117 @@ $('btn-swap-ready').onclick=()=>{
 
   if(isHost){
     if(swapReadyCount>0){
-      startNewRound();
+      doSwap();
     }else{
       waitingSwap=true;
-      send({type:'host-ready'});
+      send({type:'host-swap-ready'});
     }
   }else{
     send({type:'swap-ready'});
   }
 };
 
-function startNewRound(){
+function doSwap(){
   $('swap-overlay').style.display='none';
   swapReadyCount=0;waitingSwap=false;
 
-  // Swap roles — whoever was drawer is now guesser
-  const newDrawerIsHost=!isDrawer; // if host was drawer, now host is guesser, so new drawer is guest
-  // Actually simpler: just swap
   const w=pickWord();
+  // Host swaps: if host was drawer, host is now guesser
+  const hostDrawsNow=!isDrawer;
 
-  if(isHost){
-    // Host decides roles
-    const hostDraws=!isDrawer; // host swaps
-    if(hostDraws){
-      isDrawer=true;currentWord=w.word;currentCatEmoji=w.emoji;roundWords=[];
-      send({type:'new-round',yourRole:'guesser',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji,score,usedWords:[...usedWords]});
-      startDrawerRound(w.word,w.emoji);
-    }else{
-      isDrawer=false;roundWords=[];
-      send({type:'new-round',yourRole:'drawer',word:w.word,catEmoji:w.emoji,score,usedWords:[...usedWords]});
-      startGuesserRound(w.word.length,w.cat,w.emoji);
-    }
+  if(hostDrawsNow){
+    isDrawer=true;currentWord=w.word;currentCatEmoji=w.emoji;
+    send({type:'new-round-go',yourRole:'guesser',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji,score,usedWords:[...usedWords],allGameWords});
+    startDrawerRound(w.word,w.emoji);
+  }else{
+    isDrawer=false;currentWord='';
+    send({type:'new-round-go',yourRole:'drawer',word:w.word,catEmoji:w.emoji,score,usedWords:[...usedWords],allGameWords});
+    startGuesserRound(w.word.length,w.cat,w.emoji);
   }
 }
 
 // ══════════════════════════════════
 // RESULTS
 // ══════════════════════════════════
-function showResults(data){
+function showResults(){
   clearTimers();
-  const allWords=data.allWords||roundWords;
-  const guessed=allWords.filter(w=>w.status==='guessed').length;
-  const skipped=allWords.filter(w=>w.status==='skipped').length;
+  const guessed=allGameWords.filter(w=>w.status==='guessed').length;
+  const skipped=allGameWords.filter(w=>w.status==='skipped').length;
 
-  $('res-total').textContent=data.score||score;
-  $('res-label').textContent='words guessed';
+  $('res-total').textContent=score;
+  $('res-label').textContent=score===1?'word guessed':'words guessed';
   $('res-guessed').textContent=guessed;
   $('res-skipped').textContent=skipped;
 
   const recap=$('recap-list');
   recap.innerHTML='';
-  allWords.forEach(w=>{
+  allGameWords.forEach(w=>{
     const item=document.createElement('div');
     item.className='recap-item '+(w.status==='guessed'?'guessed':'skipped');
     item.innerHTML=`<span class="recap-word">${esc(w.word)}</span><span class="recap-status">${w.status==='guessed'?'✅ Guessed':'⏭ Skipped'}</span>`;
     recap.appendChild(item);
   });
 
-  generateShareCard(data.score||score,guessed,skipped);
+  generateShareCard(score,guessed,skipped);
   showScreen('screen-results');
 }
+
+// Add "End Game" button to swap screen
+// Actually let's add it — modify swap screen to have both options
+const swapCard=document.querySelector('.swap-card');
+const endBtn=document.createElement('button');
+endBtn.className='btn btn-outline';
+endBtn.style.marginTop='12px';
+endBtn.innerHTML='🏆 End Game & See Results';
+endBtn.id='btn-end-game';
+swapCard.appendChild(endBtn);
+
+$('btn-end-game').onclick=()=>{
+  $('swap-overlay').style.display='none';
+  send({type:'show-results',score,allGameWords});
+  showResults();
+};
+
+// ══════════════════════════════════
+// NEW ROUND FROM RESULTS
+// ══════════════════════════════════
+$('btn-new-round').onclick=()=>{
+  $('btn-new-round').disabled=true;
+  $('btn-new-round').innerHTML='⏳ Waiting for opponent…';
+
+  if(isHost){
+    if(newRoundReadyCount>0){
+      startNewRoundFromResults();
+    }else{
+      waitingNewRound=true;
+      send({type:'host-swap-ready'});
+    }
+  }else{
+    send({type:'new-round-ready'});
+  }
+};
+
+function startNewRoundFromResults(){
+  newRoundReadyCount=0;waitingNewRound=false;
+  $('btn-new-round').disabled=false;
+  $('btn-new-round').innerHTML='🔄 Play Another Round';
+
+  const w=pickWord();
+  // Swap roles from last round
+  const hostDrawsNow=!isDrawer;
+
+  if(hostDrawsNow){
+    isDrawer=true;currentWord=w.word;currentCatEmoji=w.emoji;
+    send({type:'new-round-go',yourRole:'guesser',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji,score,usedWords:[...usedWords],allGameWords});
+    startDrawerRound(w.word,w.emoji);
+  }else{
+    isDrawer=false;currentWord='';
+    send({type:'new-round-go',yourRole:'drawer',word:w.word,catEmoji:w.emoji,score,usedWords:[...usedWords],allGameWords});
+    startGuesserRound(w.word.length,w.cat,w.emoji);
+  }
+}
+
+$('btn-home-end').onclick=()=>{cleanup();$('input-name').value=myName;$('input-code').value='';showScreen('screen-home')};
 
 // ══════════════════════════════════
 // SHARE CARD
@@ -1150,13 +1036,12 @@ function generateShareCard(totalScore,guessed,skipped){
   ctx.globalAlpha=1;
 
   ctx.font='900 28px Nunito, sans-serif';ctx.fillStyle='#f97316';ctx.textAlign='center';
-  ctx.fillText('🎨 Draw & Guess',w/2,48);
+  ctx.fillText('✏️ Draw & Guess',w/2,48);
 
   ctx.font='700 18px Nunito, sans-serif';ctx.fillStyle='#c4b5fd';
   ctx.fillText(`${myName} & ${oppName}`,w/2,80);
 
-  ctx.font='900 80px Nunito, sans-serif';
-  ctx.fillStyle='#f97316';
+  ctx.font='900 80px Nunito, sans-serif';ctx.fillStyle='#f97316';
   ctx.fillText(String(totalScore),w/2,180);
 
   ctx.font='700 16px Nunito, sans-serif';ctx.fillStyle='#94a1b2';
@@ -1173,7 +1058,7 @@ function generateShareCard(totalScore,guessed,skipped){
   ctx.fillText(String(skipped),400,statY+38);
 
   ctx.font='800 15px Nunito, sans-serif';ctx.fillStyle='#f9731688';
-  ctx.fillText('Can you draw better? 🎨',w/2,348);
+  ctx.fillText('Can you draw better? ✏️',w/2,348);
   ctx.font='700 12px Nunito, sans-serif';ctx.fillStyle='#94a1b2';
   ctx.fillText(window.location.href.replace(/\/$/,''),w/2,375);
 
@@ -1190,8 +1075,7 @@ $('btn-save-img').onclick=()=>{
 };
 
 $('btn-copy-text').onclick=()=>{
-  const guessed=roundWords.filter(w=>w.status==='guessed').length;
-  let text=`🎨 Draw & Guess\n\n`;
+  let text=`✏️ Draw & Guess\n\n`;
   text+=`${myName} & ${oppName}\n`;
   text+=`Score: ${score} words guessed!\n\n`;
   text+=`Can you draw better?\n${window.location.href}`;
@@ -1209,26 +1093,121 @@ $('btn-copy-code').onclick=()=>{
 };
 
 // ══════════════════════════════════
-// NEW ROUND / HOME
+// DRAWING CANVAS
 // ══════════════════════════════════
-$('btn-new-round').onclick=()=>{
-  if(isHost){
-    const w=pickWord();
-    isDrawer=!isDrawer;roundWords=[];
-    if(isDrawer){
-      send({type:'new-round',yourRole:'guesser',wordLength:w.word.length,catName:w.cat,catEmoji:w.emoji,score,usedWords:[...usedWords]});
-      startDrawerRound(w.word,w.emoji);
-    }else{
-      send({type:'new-round',yourRole:'drawer',word:w.word,catEmoji:w.emoji,score,usedWords:[...usedWords]});
-      startGuesserRound(w.word.length,w.cat,w.emoji);
+const drawCanvas=$('draw-canvas');
+const drawCtx=drawCanvas.getContext('2d');
+const viewCanvas=$('view-canvas');
+const viewCtx=viewCanvas.getContext('2d');
+
+function clearDrawCanvas(){drawCtx.fillStyle='#fff';drawCtx.fillRect(0,0,800,600);drawHistory=[]}
+function clearViewCanvas(){viewCtx.fillStyle='#fff';viewCtx.fillRect(0,0,800,600)}
+
+clearDrawCanvas();clearViewCanvas();
+
+function getCanvasPos(canvas,e){
+  const rect=canvas.getBoundingClientRect();
+  const scaleX=800/rect.width;const scaleY=600/rect.height;
+  let clientX,clientY;
+  if(e.touches){clientX=e.touches[0].clientX;clientY=e.touches[0].clientY}
+  else{clientX=e.clientX;clientY=e.clientY}
+  return{x:(clientX-rect.left)*scaleX,y:(clientY-rect.top)*scaleY};
+}
+
+function startDraw(e){
+  e.preventDefault();if(!isDrawer)return;
+  isDrawing=true;
+  const pos=getCanvasPos(drawCanvas,e);
+  lastX=pos.x;lastY=pos.y;
+  drawHistory.push([{x:pos.x,y:pos.y,color:isEraser?'#ffffff':currentColor,size:isEraser?20:currentSize}]);
+}
+
+function moveDraw(e){
+  e.preventDefault();if(!isDrawing||!isDrawer)return;
+  const pos=getCanvasPos(drawCanvas,e);
+  const color=isEraser?'#ffffff':currentColor;
+  const size=isEraser?20:currentSize;
+  drawLine(drawCtx,lastX,lastY,pos.x,pos.y,color,size);
+  send({type:'draw',x1:lastX,y1:lastY,x2:pos.x,y2:pos.y,color,size});
+  if(drawHistory.length>0)drawHistory[drawHistory.length-1].push({x:pos.x,y:pos.y,color,size});
+  lastX=pos.x;lastY=pos.y;
+}
+
+function endDraw(e){e.preventDefault();isDrawing=false}
+
+function drawLine(ctx,x1,y1,x2,y2,color,size){
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);
+  ctx.strokeStyle=color;ctx.lineWidth=size;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();
+}
+
+function applyDrawData(d){drawLine(viewCtx,d.x1,d.y1,d.x2,d.y2,d.color,d.size)}
+
+function redrawCanvas(ctx,history){
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,800,600);
+  history.forEach(stroke=>{
+    for(let i=1;i<stroke.length;i++){
+      const prev=stroke[i-1];const curr=stroke[i];
+      drawLine(ctx,prev.x,prev.y,curr.x,curr.y,curr.color,curr.size);
     }
-  }else{
-    send({type:'swap-ready'});
-    $('btn-new-round').disabled=true;$('btn-new-round').innerHTML='⏳ Waiting for host…';
-  }
+  });
+}
+
+function undoViewCanvas(history){
+  viewCtx.fillStyle='#fff';viewCtx.fillRect(0,0,800,600);
+  history.forEach(stroke=>{
+    for(let i=1;i<stroke.length;i++){
+      const prev=stroke[i-1];const curr=stroke[i];
+      drawLine(viewCtx,prev.x,prev.y,curr.x,curr.y,curr.color,curr.size);
+    }
+  });
+}
+
+drawCanvas.addEventListener('mousedown',startDraw);
+drawCanvas.addEventListener('mousemove',moveDraw);
+drawCanvas.addEventListener('mouseup',endDraw);
+drawCanvas.addEventListener('mouseleave',endDraw);
+drawCanvas.addEventListener('touchstart',startDraw,{passive:false});
+drawCanvas.addEventListener('touchmove',moveDraw,{passive:false});
+drawCanvas.addEventListener('touchend',endDraw,{passive:false});
+drawCanvas.addEventListener('touchcancel',endDraw,{passive:false});
+
+// ══════════════════════════════════
+// DRAWING TOOLS
+// ══════════════════════════════════
+document.querySelectorAll('.color-btn').forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');currentColor=btn.dataset.color;
+    isEraser=false;$('btn-eraser').classList.remove('active');
+  };
+});
+
+document.querySelectorAll('.size-btn').forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll('.size-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');currentSize=parseInt(btn.dataset.size);
+  };
+});
+
+$('btn-eraser').onclick=()=>{
+  isEraser=!isEraser;
+  $('btn-eraser').classList.toggle('active',isEraser);
+  if(isEraser)document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('active'));
+  else{const first=document.querySelector('.color-btn');if(first){first.classList.add('active');currentColor=first.dataset.color}}
 };
 
-$('btn-home-end').onclick=()=>{cleanup();$('input-name').value=myName;$('input-code').value='';showScreen('screen-home')};
+$('btn-undo').onclick=()=>{
+  if(drawHistory.length===0)return;
+  drawHistory.pop();
+  redrawCanvas(drawCtx,drawHistory);
+  const simplified=drawHistory.map(stroke=>stroke.map(p=>({x:p.x,y:p.y,color:p.color,size:p.size})));
+  send({type:'undo',history:simplified});
+};
+
+$('btn-clear').onclick=()=>{
+  clearDrawCanvas();drawHistory=[];
+  send({type:'clear-canvas'});
+};
 
 // Keyboard
 $('input-name').onkeydown=e=>{if(e.key==='Enter')$('btn-create').click()};
