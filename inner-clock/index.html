@@ -782,7 +782,7 @@ function generateShareCard(){
   const pct=Math.min((bestTime/TARGET),1);
   const grade=getGrade(bestDiff);
   x.beginPath();
-  x.arc(w/2,160,-Math.PI/2,(-Math.PI/2)+(Math.PI*2*pct));
+  x.arc(w/2,160,70,-Math.PI/2,(-Math.PI/2)+(Math.PI*2*pct));
   x.strokeStyle=grade.color;x.lineWidth=6;x.stroke();
 
   x.font='900 28px Nunito, sans-serif';x.fillStyle='#fff';x.textAlign='center';
