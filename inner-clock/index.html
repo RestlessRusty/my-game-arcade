@@ -555,7 +555,7 @@ function startCountdown(){
   clockBtn.className='clock-btn';
   clockSub.textContent='';
   stateText.textContent='Get ready…';
-  $('btn-results').style.display='none';
+  if(attempts.length<3)$('btn-results').style.display='none'
 
   showCountdownStep();
   countdownTimer=setInterval(()=>{
@@ -667,7 +667,7 @@ function stopTimer(){
 
   // Show results button after 3+ attempts
   if(attempts.length>=3){
-    $('btn-results').style.display='';
+    $('btn-results').style.display='inline-flex';
   }
 }
 
