@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-19MTMYDQ3S"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-19MTMYDQ3S');
+</script>
+<link rel="icon" type="image/png" href="/my-game-arcade/favicon.png">
+<title>Inner Clock ⏱️</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Nunito',sans-serif;min-height:100vh;
+  background:linear-gradient(135deg,#0a0a1a,#1a1a3e,#0f0f2e);
+  color:#fff;display:flex;justify-content:center;align-items:flex-start;
+  overflow-x:hidden;overflow-y:auto;user-select:none;-webkit-user-select:none;
+}
+.bg-blob{position:fixed;border-radius:50%;filter:blur(100px);opacity:.25;pointer-events:none;z-index:0}
+.bg-blob.a{width:500px;height:500px;background:#f97316;top:-120px;left:-100px;animation:fA 18s ease-in-out infinite}
+.bg-blob.b{width:400px;height:400px;background:#8b5cf6;bottom:-80px;right:-80px;animation:fB 22s ease-in-out infinite}
+.bg-blob.c{width:300px;height:300px;background:#06b6d4;top:50%;left:55%;animation:fC 20s ease-in-out infinite}
+@keyframes fA{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,80px)}}
+@keyframes fB{0%,100%{transform:translate(0,0)}50%{transform:translate(-50px,-60px)}}
+@keyframes fC{0%,100%{transform:translate(0,0)}50%{transform:translate(-40px,50px)}}
+
+.container{position:relative;z-index:1;width:100%;max-width:520px;padding:40px 20px;display:flex;flex-direction:column;align-items:center}
+.screen{display:none;width:100%;animation:fadeIn .4s ease}
+.screen.active{display:flex;flex-direction:column;align-items:center}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.05);opacity:1}}
+@keyframes ripple{0%{transform:scale(0);opacity:.5}100%{transform:scale(4);opacity:0}}
+@keyframes breathe{0%,100%{transform:scale(1);box-shadow:0 0 40px rgba(139,92,246,.3)}50%{transform:scale(1.02);box-shadow:0 0 60px rgba(139,92,246,.5)}}
+@keyframes countPulse{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+@keyframes gradeIn{from{opacity:0;transform:scale(.3) rotate(-10deg)}to{opacity:1;transform:scale(1) rotate(0deg)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes ringFill{from{stroke-dashoffset:565.48}to{stroke-dashoffset:0}}
+
+.logo{font-size:2.2rem;font-weight:900;text-align:center;line-height:1.15;margin-bottom:8px;background:linear-gradient(135deg,#f97316,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{font-size:.95rem;color:#94a1b2;text-align:center;margin-bottom:32px}
+
+.card{background:rgba(255,255,255,.06);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px 24px;width:100%;margin-bottom:18px;box-shadow:0 8px 32px rgba(0,0,0,.25)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 32px;border:none;border-radius:14px;font-family:inherit;font-size:1rem;font-weight:800;cursor:pointer;transition:all .2s;width:100%}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;box-shadow:0 4px 20px rgba(249,115,22,.4)}
+.btn-primary:hover{box-shadow:0 6px 28px rgba(249,115,22,.55)}
+.btn-secondary{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;box-shadow:0 4px 20px rgba(139,92,246,.3)}
+.btn-outline{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.2)}
+.btn-outline:hover{border-color:#f97316;color:#f97316}
+.btn-share{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;box-shadow:0 4px 20px rgba(139,92,246,.3)}
+.btn+.btn{margin-top:12px}
+.btn-sm{padding:10px 18px;font-size:.85rem;width:auto}
+
+.instructions{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 20px;margin:0 0 18px;width:100%}
+.instructions h3{font-size:.85rem;color:#f97316;margin-bottom:8px;text-transform:uppercase;letter-spacing:.1em}
+.instructions p{font-size:.82rem;color:#94a1b2;line-height:1.6}
+.instructions strong{color:#fff}
+
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin:16px 0}
+.result-box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px 12px;text-align:center}
+.result-box .label{font-size:.7rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.result-box .value{font-size:1.5rem;font-weight:900}
+.result-box .value.orange{background:linear-gradient(135deg,#f97316,#ea580c);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.result-box .value.purple{background:linear-gradient(135deg,#8b5cf6,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.result-box .value.gold{color:#facc15}
+
+.share-section{width:100%;margin:16px 0;text-align:center}
+.share-preview{width:100%;border-radius:16px;margin-bottom:12px;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.share-buttons{display:flex;gap:8px}
+.share-buttons .btn{flex:1}
+
+/* ══════ GAME AREA ══════ */
+
+.game-zone{
+  width:100%;display:flex;flex-direction:column;align-items:center;
+  padding:20px 0;
+}
+
+/* The big circle button */
+.clock-ring-wrap{
+  position:relative;
+  width:260px;height:260px;
+  margin:20px auto;
+}
+
+.clock-ring-svg{
+  position:absolute;top:0;left:0;
+  width:100%;height:100%;
+  transform:rotate(-90deg);
+}
+
+.clock-ring-bg{
+  fill:none;
+  stroke:rgba(255,255,255,.08);
+  stroke-width:6;
+}
+
+.clock-ring-fill{
+  fill:none;
+  stroke:#8b5cf6;
+  stroke-width:6;
+  stroke-linecap:round;
+  stroke-dasharray:565.48;
+  stroke-dashoffset:565.48;
+  transition:stroke-dashoffset 0.1s linear;
+}
+
+.clock-ring-fill.animated{
+  transition:none;
+}
+
+.clock-ring-fill.success{stroke:#22c55e}
+.clock-ring-fill.warning{stroke:#facc15}
+.clock-ring-fill.danger{stroke:#ef4444}
+
+.clock-btn{
+  position:absolute;
+  top:12px;left:12px;right:12px;bottom:12px;
+  border-radius:50%;
+  background:rgba(255,255,255,.04);
+  border:2px solid rgba(255,255,255,.1);
+  cursor:pointer;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  transition:all .2s;
+  -webkit-tap-highlight-color:transparent;
+}
+
+.clock-btn:hover{
+  background:rgba(255,255,255,.08);
+  border-color:rgba(255,255,255,.2);
+}
+
+.clock-btn:active{
+  transform:scale(.97);
+}
+
+.clock-btn.waiting{
+  animation:breathe 2s ease-in-out infinite;
+  border-color:rgba(139,92,246,.4);
+  background:rgba(139,92,246,.08);
+}
+
+.clock-btn.counting{
+  border-color:rgba(249,115,22,.4);
+  background:rgba(249,115,22,.06);
+  cursor:pointer;
+}
+
+.clock-btn.counting:hover{
+  background:rgba(249,115,22,.12);
+}
+
+.clock-btn .clock-label{
+  font-size:.75rem;
+  font-weight:700;
+  color:#94a1b2;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  margin-bottom:4px;
+}
+
+.clock-btn .clock-main{
+  font-size:3.2rem;
+  font-weight:900;
+  line-height:1;
+  margin-bottom:4px;
+}
+
+.clock-btn .clock-sub{
+  font-size:.8rem;
+  font-weight:700;
+  color:#94a1b2;
+}
+
+.clock-btn .clock-main.countdown{
+  animation:countPulse .3s ease;
+}
+
+/* Ripple effect */
+.ripple{
+  position:absolute;
+  width:60px;height:60px;
+  border-radius:50%;
+  background:rgba(139,92,246,.3);
+  animation:ripple .8s ease-out forwards;
+  pointer-events:none;
+}
+
+/* State text */
+.state-text{
+  text-align:center;
+  font-size:.9rem;
+  font-weight:700;
+  color:#94a1b2;
+  margin:12px 0;
+  min-height:28px;
+}
+
+/* Streak bar */
+.streak-bar{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin:8px 0;
+}
+.streak-label{font-size:.75rem;font-weight:700;color:#94a1b2;text-transform:uppercase;letter-spacing:.1em}
+.streak-val{font-size:1.1rem;font-weight:900;color:#f97316}
+
+/* History dots */
+.history-bar{
+  display:flex;gap:6px;justify-content:center;flex-wrap:wrap;
+  margin:12px 0;min-height:20px;
+}
+.history-dot{
+  width:12px;height:12px;border-radius:50%;
+  animation:popIn .3s ease;
+}
+.history-dot.great{background:#22c55e}
+.history-dot.good{background:#facc15}
+.history-dot.ok{background:#f97316}
+.history-dot.bad{background:#ef4444}
+
+/* Grade display */
+.grade-display{
+  text-align:center;
+  margin:8px 0;
+}
+.grade-emoji{font-size:2.5rem;animation:gradeIn .4s ease}
+.grade-text{font-size:1.2rem;font-weight:900;margin-top:4px;animation:slideUp .4s ease}
+.grade-diff{font-size:.85rem;font-weight:700;color:#94a1b2;margin-top:2px;animation:slideUp .5s ease}
+
+/* Stats row */
+.stats-row{
+  display:flex;justify-content:center;gap:24px;
+  margin:12px 0;
+}
+.stat-item{text-align:center}
+.stat-label{font-size:.65rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.stat-val{font-size:1rem;font-weight:900}
+
+@media(max-width:480px){
+  .logo{font-size:1.7rem}
+  .clock-ring-wrap{width:220px;height:220px}
+  .clock-btn .clock-main{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+
+<a href="../" id="arcade-home-btn" style="position:fixed;top:16px;left:16px;z-index:999;background:rgba(255,255,255,.06);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:10px 16px;color:#fff;text-decoration:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:.85rem;display:flex;align-items:center;gap:6px;transition:all .3s;box-shadow:0 4px 15px rgba(0,0,0,.2)">🏠 Back to the Arcade</a>
+<style>#arcade-home-btn:hover{background:rgba(255,255,255,.12);transform:translateY(-2px)}</style>
+
+<div class="bg-blob a"></div>
+<div class="bg-blob b"></div>
+<div class="bg-blob c"></div>
+
+<div class="container">
+
+<!-- ══════ HOME ══════ -->
+<div class="screen active" id="screen-home">
+<div class="logo">Inner Clock ⏱️</div>
+<p class="subtitle">How well do you know 10 seconds?</p>
+
+<div class="instructions">
+<h3>📖 How to play</h3>
+<p><strong>Tap to start</strong> the timer, then <strong>tap again</strong> when you think exactly <strong>9.99 seconds</strong> have passed. No cheating — the screen goes blank! See how close your inner clock really is.</p>
+</div>
+
+<div class="card" style="text-align:center">
+<div style="font-size:.8rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Your Best</div>
+<div style="font-size:2.4rem;font-weight:900;color:#facc15" id="home-best">—</div>
+<div style="font-size:.8rem;color:#94a1b2;font-weight:600;margin-top:4px" id="home-best-diff"></div>
+</div>
+
+<button class="btn btn-primary" id="btn-start">⏱️ Start Game</button>
+</div>
+
+<!-- ══════ GAME ══════ -->
+<div class="screen" id="screen-game">
+<div class="logo" style="font-size:1.4rem;margin-bottom:4px">Inner Clock ⏱️</div>
+
+<div class="stats-row">
+<div class="stat-item"><div class="stat-label">Best</div><div class="stat-val" id="game-best" style="color:#facc15">—</div></div>
+<div class="stat-item"><div class="stat-label">Streak</div><div class="stat-val" id="game-streak" style="color:#f97316">0</div></div>
+<div class="stat-item"><div class="stat-label">Attempts</div><div class="stat-val" id="game-attempts" style="color:#8b5cf6">0</div></div>
+</div>
+
+<div class="game-zone">
+
+<div class="state-text" id="state-text">Tap the circle to begin</div>
+
+<div class="clock-ring-wrap" id="clock-wrap">
+<svg class="clock-ring-svg" viewBox="0 0 200 200">
+<circle class="clock-ring-bg" cx="100" cy="100" r="90"/>
+<circle class="clock-ring-fill" id="ring-fill" cx="100" cy="100" r="90"/>
+</svg>
+<div class="clock-btn" id="clock-btn">
+<div class="clock-label" id="clock-label">TAP TO START</div>
+<div class="clock-main" id="clock-main">9.99</div>
+<div class="clock-sub" id="clock-sub">seconds</div>
+</div>
+</div>
+
+<div class="grade-display" id="grade-display" style="display:none">
+<div class="grade-emoji" id="grade-emoji">🎯</div>
+<div class="grade-text" id="grade-text">Perfect!</div>
+<div class="grade-diff" id="grade-diff">0.00s off</div>
+</div>
+
+<div class="history-bar" id="history-bar"></div>
+
+</div>
+
+<button class="btn btn-outline btn-sm" id="btn-results" style="display:none;margin:0 auto">📊 See Full Results</button>
+</div>
+
+<!-- ══════ RESULTS ══════ -->
+<div class="screen" id="screen-results">
+<div class="logo">Results ⏱️</div>
+
+<div class="card" style="text-align:center">
+<div style="font-size:.8rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Best Attempt</div>
+<div style="font-size:3.5rem;font-weight:900;background:linear-gradient(135deg,#f97316,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent" id="res-best-time">0.00s</div>
+<div style="font-size:1rem;font-weight:800;margin-top:4px" id="res-best-grade">—</div>
+<div style="font-size:.85rem;color:#94a1b2;font-weight:600;margin-top:2px" id="res-best-diff">0.00s off</div>
+</div>
+
+<div class="results-grid">
+<div class="result-box"><div class="label">Attempts</div><div class="value orange" id="res-attempts">0</div></div>
+<div class="result-box"><div class="label">Best Streak</div><div class="value purple" id="res-streak">0</div></div>
+<div class="result-box"><div class="label">Avg Time</div><div class="value orange" id="res-avg">0.00s</div></div>
+<div class="result-box"><div class="label">Avg Off By</div><div class="value gold" id="res-avg-diff">0.00s</div></div>
+</div>
+
+<div class="card" style="text-align:center">
+<div style="font-size:.75rem;color:#94a1b2;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">All Attempts</div>
+<div class="history-bar" id="results-history-bar" style="margin:8px 0 4px"></div>
+<div style="display:flex;justify-content:center;gap:16px;margin-top:8px;font-size:.7rem;font-weight:700;color:#94a1b2">
+<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;margin-right:3px"></span>&lt;0.5s</span>
+<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#facc15;margin-right:3px"></span>&lt;1.0s</span>
+<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f97316;margin-right:3px"></span>&lt;2.0s</span>
+<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;margin-right:3px"></span>&gt;2.0s</span>
+</div>
+</div>
+
+<div class="share-section">
+<canvas id="share-canvas" style="display:none"></canvas>
+<img id="share-preview" class="share-preview" style="display:none" alt="Result card"/>
+<div class="share-buttons">
+<button class="btn btn-share" id="btn-save-img">📸 Save Image</button>
+<button class="btn btn-outline" id="btn-copy-text">📋 Copy Result</button>
+</div>
+</div>
+
+<button class="btn btn-primary" id="btn-play-again">⏱️ Keep Playing</button>
+<button class="btn btn-outline" id="btn-home-end">🏠 Back to Menu</button>
+</div>
+
+<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:16px 20px;margin:20px 0;text-align:center;width:100%;">
+<p style="color:#94a1b2;font-size:0.85rem;margin-bottom:10px;">Enjoying the game? 🎉</p>
+<a href="https://ko-fi.com/restlessrusty" target="_blank" style="color:#7f5af0;font-weight:700;text-decoration:none;">☕ Buy me a coffee to make more games!</a>
+</div>
+</div>
+
+<script>
+(function(){
+
+const TARGET=9.99;
+const LS_KEY='innerclock_best';
+const CIRC=2*Math.PI*90; // 565.48
+
+// ── GRADES ──
+function getGrade(diff){
+  const d=Math.abs(diff);
+  if(d<=0.1)return{emoji:'🏆',text:'Inhuman!',color:'#22c55e',dot:'great'};
+  if(d<=0.3)return{emoji:'🔥',text:'Insane!',color:'#22c55e',dot:'great'};
+  if(d<=0.5)return{emoji:'😎',text:'Impressive!',color:'#4ade80',dot:'great'};
+  if(d<=1.0)return{emoji:'👍',text:'Good!',color:'#facc15',dot:'good'};
+  if(d<=2.0)return{emoji:'😅',text:'Okay…',color:'#f97316',dot:'ok'};
+  return{emoji:'💀',text:'Yikes!',color:'#ef4444',dot:'bad'};
+}
+
+function getRingClass(diff){
+  const d=Math.abs(diff);
+  if(d<=0.5)return'success';
+  if(d<=1.0)return'warning';
+  return'danger';
+}
+
+// ── STATE ──
+let state='idle'; // idle, countdown, running, reveal
+let startTime=0;
+let countdownStep=0;
+let countdownTimer=null;
+let attempts=[];
+let streak=0;
+let bestStreak=0;
+let bestDiff=Infinity;
+let bestTime=0;
+
+// ── DOM ──
+const $=id=>document.getElementById(id);
+const screens=document.querySelectorAll('.screen');
+function showScreen(id){screens.forEach(s=>s.classList.remove('active'));$(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'})}
+
+// ── AUDIO ──
+const audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+
+function playTickSound(freq){
+  const o=audioCtx.createOscillator();
+  const g=audioCtx.createGain();
+  o.connect(g);g.connect(audioCtx.destination);
+  o.type='sine';
+  o.frequency.setValueAtTime(freq||600,audioCtx.currentTime);
+  g.gain.setValueAtTime(0.1,audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.1);
+  o.start(audioCtx.currentTime);
+  o.stop(audioCtx.currentTime+0.1);
+}
+
+function playStartSound(){
+  const o=audioCtx.createOscillator();
+  const g=audioCtx.createGain();
+  o.connect(g);g.connect(audioCtx.destination);
+  o.type='sine';
+  o.frequency.setValueAtTime(880,audioCtx.currentTime);
+  g.gain.setValueAtTime(0.12,audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.2);
+  o.start(audioCtx.currentTime);
+  o.stop(audioCtx.currentTime+0.2);
+}
+
+function playRevealSound(good){
+  const o=audioCtx.createOscillator();
+  const g=audioCtx.createGain();
+  o.connect(g);g.connect(audioCtx.destination);
+  o.type='sine';
+  if(good){
+    o.frequency.setValueAtTime(523,audioCtx.currentTime);
+    o.frequency.setValueAtTime(659,audioCtx.currentTime+0.1);
+    o.frequency.setValueAtTime(784,audioCtx.currentTime+0.2);
+  }else{
+    o.frequency.setValueAtTime(400,audioCtx.currentTime);
+    o.frequency.setValueAtTime(300,audioCtx.currentTime+0.15);
+  }
+  g.gain.setValueAtTime(0.12,audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.3);
+  o.start(audioCtx.currentTime);
+  o.stop(audioCtx.currentTime+0.3);
+}
+
+// ── LOCAL STORAGE ──
+function loadBest(){
+  try{
+    const d=JSON.parse(localStorage.getItem(LS_KEY));
+    if(d&&d.time!=null){
+      bestTime=d.time;
+      bestDiff=d.diff;
+      $('home-best').textContent=bestTime.toFixed(2)+'s';
+      $('home-best-diff').textContent=formatDiff(bestDiff)+' off target';
+    }
+  }catch{}
+}
+
+function saveBest(){
+  try{localStorage.setItem(LS_KEY,JSON.stringify({time:bestTime,diff:bestDiff}))}catch{}
+}
+
+function formatDiff(d){
+  const sign=d>=0?'+':'';
+  return sign+d.toFixed(2)+'s';
+}
+
+function formatAbsDiff(d){
+  return Math.abs(d).toFixed(2)+'s';
+}
+
+loadBest();
+
+// ── RING ANIMATION ──
+const ringFill=$('ring-fill');
+ringFill.style.strokeDasharray=CIRC;
+ringFill.style.strokeDashoffset=CIRC;
+
+function setRingProgress(pct){
+  const offset=CIRC-(pct/100)*CIRC;
+  ringFill.style.strokeDashoffset=offset;
+}
+
+function resetRing(){
+  ringFill.classList.remove('success','warning','danger');
+  ringFill.classList.add('animated');
+  ringFill.style.strokeDashoffset=CIRC;
+  ringFill.style.stroke='#8b5cf6';
+}
+
+function animateRingReveal(elapsed){
+  const pct=Math.min((elapsed/TARGET)*100,100);
+  ringFill.classList.remove('animated');
+  const diff=elapsed-TARGET;
+  const cls=getRingClass(diff);
+  ringFill.classList.add(cls);
+
+  // Animate from 0 to actual
+  ringFill.style.strokeDashoffset=CIRC;
+  requestAnimationFrame(()=>{
+    ringFill.style.transition='stroke-dashoffset 0.8s cubic-bezier(0.4,0,0.2,1)';
+    setRingProgress(pct);
+    setTimeout(()=>{ringFill.style.transition='none'},900);
+  });
+}
+
+// ── CLOCK BUTTON ──
+const clockBtn=$('clock-btn');
+const clockMain=$('clock-main');
+const clockLabel=$('clock-label');
+const clockSub=$('clock-sub');
+const stateText=$('state-text');
+const gradeDisplay=$('grade-display');
+
+clockBtn.addEventListener('click',handleClockTap);
+clockBtn.addEventListener('touchstart',e=>{e.preventDefault();handleClockTap()},{passive:false});
+
+function handleClockTap(){
+  if(audioCtx.state==='suspended')audioCtx.resume();
+
+  switch(state){
+    case 'idle':
+    case 'reveal':
+      startCountdown();
+      break;
+    case 'countdown':
+      // Ignore during countdown
+      break;
+    case 'running':
+      stopTimer();
+      break;
+  }
+}
+
+// ── COUNTDOWN (3, 2, 1, GO) ──
+function startCountdown(){
+  state='countdown';
+  countdownStep=3;
+  gradeDisplay.style.display='none';
+  resetRing();
+  clockBtn.className='clock-btn';
+  clockSub.textContent='';
+  stateText.textContent='Get ready…';
+  $('btn-results').style.display='none';
+
+  showCountdownStep();
+  countdownTimer=setInterval(()=>{
+    countdownStep--;
+    if(countdownStep>0){
+      showCountdownStep();
+    }else{
+      clearInterval(countdownTimer);
+      countdownTimer=null;
+      startRunning();
+    }
+  },800);
+}
+
+function showCountdownStep(){
+  clockLabel.textContent='GET READY';
+  clockMain.textContent=countdownStep;
+  clockMain.className='clock-main countdown';
+  playTickSound(440);
+  setTimeout(()=>{clockMain.className='clock-main'},200);
+}
+
+// ── RUNNING (timer hidden) ──
+function startRunning(){
+  state='running';
+  startTime=performance.now();
+  playStartSound();
+
+  clockBtn.className='clock-btn counting';
+  clockLabel.textContent='COUNTING…';
+  clockMain.textContent='???';
+  clockMain.className='clock-main';
+  clockSub.textContent='tap when 9.99s';
+  stateText.textContent="Tap when you feel 9.99 seconds!";
+
+  // Slowly pulse the ring while counting (no time info!)
+  ringFill.style.stroke='#f97316';
+  ringFill.classList.add('animated');
+  ringFill.style.strokeDashoffset=CIRC;
+}
+
+// ── STOP / REVEAL ──
+function stopTimer(){
+  const elapsed=(performance.now()-startTime)/1000;
+  state='reveal';
+
+  const diff=elapsed-TARGET;
+  const absDiff=Math.abs(diff);
+  const grade=getGrade(diff);
+
+  // Track attempt
+  attempts.push({time:elapsed,diff});
+
+  // Streak (within 1.0s = streak continues)
+  if(absDiff<=1.0){
+    streak++;
+    if(streak>bestStreak)bestStreak=streak;
+  }else{
+    streak=0;
+  }
+
+  // Best
+  let newBest=false;
+  if(absDiff<Math.abs(bestDiff)||bestDiff===Infinity){
+    bestDiff=diff;
+    bestTime=elapsed;
+    newBest=true;
+    saveBest();
+  }
+
+  // Sound
+  playRevealSound(absDiff<=1.0);
+
+  // Update UI
+  clockBtn.className='clock-btn';
+  clockLabel.textContent='YOUR TIME';
+  clockMain.textContent=elapsed.toFixed(2)+'s';
+  clockMain.className='clock-main';
+  clockSub.textContent=newBest?'🎉 NEW BEST!':'Tap to try again';
+  stateText.textContent='';
+
+  // Ring reveal
+  animateRingReveal(elapsed);
+
+  // Grade
+  gradeDisplay.style.display='block';
+  $('grade-emoji').textContent=grade.emoji;
+  $('grade-emoji').style.animation='none';
+  requestAnimationFrame(()=>{$('grade-emoji').style.animation='gradeIn .4s ease'});
+  $('grade-text').textContent=grade.text;
+  $('grade-text').style.color=grade.color;
+  const diffText=diff>=0?'+'+diff.toFixed(2)+'s (too slow)':diff.toFixed(2)+'s (too fast)';
+  $('grade-diff').textContent=diffText;
+
+  // History dot
+  const dot=document.createElement('div');
+  dot.className='history-dot '+grade.dot;
+  $('history-bar').appendChild(dot);
+
+  // Limit to 20 visible dots
+  while($('history-bar').children.length>20){
+    $('history-bar').removeChild($('history-bar').firstChild);
+  }
+
+  // Update stats
+  $('game-best').textContent=bestTime.toFixed(2)+'s';
+  $('game-streak').textContent=streak;
+  $('game-attempts').textContent=attempts.length;
+
+  // Show results button after 3+ attempts
+  if(attempts.length>=3){
+    $('btn-results').style.display='';
+  }
+}
+
+// ── SCREEN NAV ──
+$('btn-start').onclick=()=>{
+  attempts=[];streak=0;bestStreak=0;
+  if(bestDiff!==Infinity){/* keep localStorage best */}
+  $('history-bar').innerHTML='';
+  $('game-best').textContent=bestDiff!==Infinity?bestTime.toFixed(2)+'s':'—';
+  $('game-streak').textContent='0';
+  $('game-attempts').textContent='0';
+  $('btn-results').style.display='none';
+  gradeDisplay.style.display='none';
+  state='idle';
+  resetRing();
+  clockBtn.className='clock-btn';
+  clockLabel.textContent='TAP TO START';
+  clockMain.textContent='9.99';
+  clockSub.textContent='seconds';
+  stateText.textContent='Tap the circle to begin';
+  showScreen('screen-game');
+};
+
+$('btn-results').onclick=()=>showResultsScreen();
+
+$('btn-play-again').onclick=()=>{
+  state='idle';
+  resetRing();
+  gradeDisplay.style.display='none';
+  clockBtn.className='clock-btn';
+  clockLabel.textContent='TAP TO START';
+  clockMain.textContent='9.99';
+  clockSub.textContent='seconds';
+  stateText.textContent='Tap the circle to begin';
+  showScreen('screen-game');
+};
+
+$('btn-home-end').onclick=()=>{
+  state='idle';
+  if(countdownTimer){clearInterval(countdownTimer);countdownTimer=null}
+  loadBest();
+  showScreen('screen-home');
+};
+
+// ── RESULTS SCREEN ──
+function showResultsScreen(){
+  if(countdownTimer){clearInterval(countdownTimer);countdownTimer=null}
+  state='idle';
+
+  // Best
+  $('res-best-time').textContent=bestTime.toFixed(2)+'s';
+  const bestGrade=getGrade(bestDiff);
+  $('res-best-grade').textContent=bestGrade.emoji+' '+bestGrade.text;
+  $('res-best-grade').style.color=bestGrade.color;
+  const bestDiffText=bestDiff>=0?'+'+bestDiff.toFixed(2)+'s off':bestDiff.toFixed(2)+'s off';
+  $('res-best-diff').textContent=bestDiffText;
+
+  // Stats
+  $('res-attempts').textContent=attempts.length;
+  $('res-streak').textContent=bestStreak;
+
+  if(attempts.length>0){
+    const avgTime=attempts.reduce((s,a)=>s+a.time,0)/attempts.length;
+    const avgDiff=attempts.reduce((s,a)=>s+Math.abs(a.diff),0)/attempts.length;
+    $('res-avg').textContent=avgTime.toFixed(2)+'s';
+    $('res-avg-diff').textContent=avgDiff.toFixed(2)+'s';
+  }
+
+  // History dots
+  const hb=$('results-history-bar');
+  hb.innerHTML='';
+  attempts.forEach(a=>{
+    const grade=getGrade(a.diff);
+    const dot=document.createElement('div');
+    dot.className='history-dot '+grade.dot;
+    dot.title=a.time.toFixed(2)+'s';
+    hb.appendChild(dot);
+  });
+
+  generateShareCard();
+  showScreen('screen-results');
+}
+
+// ── SHARE CARD ──
+function generateShareCard(){
+  const c=$('share-canvas');
+  const x=c.getContext('2d');
+  const w=600,h=400;
+  c.width=w;c.height=h;
+
+  const grad=x.createLinearGradient(0,0,w,h);
+  grad.addColorStop(0,'#0f0c29');grad.addColorStop(0.5,'#1a1a3e');grad.addColorStop(1,'#0f0f2e');
+  x.fillStyle=grad;x.fillRect(0,0,w,h);
+
+  x.globalAlpha=0.08;
+  x.fillStyle='#f97316';x.beginPath();x.arc(500,60,120,0,Math.PI*2);x.fill();
+  x.fillStyle='#8b5cf6';x.beginPath();x.arc(80,350,100,0,Math.PI*2);x.fill();
+  x.globalAlpha=1;
+
+  // Ring
+  x.beginPath();x.arc(w/2,160,70,0,Math.PI*2);
+  x.strokeStyle='rgba(255,255,255,0.1)';x.lineWidth=6;x.stroke();
+
+  const pct=Math.min((bestTime/TARGET),1);
+  const grade=getGrade(bestDiff);
+  x.beginPath();
+  x.arc(w/2,160,-Math.PI/2,(-Math.PI/2)+(Math.PI*2*pct));
+  x.strokeStyle=grade.color;x.lineWidth=6;x.stroke();
+
+  x.font='900 28px Nunito, sans-serif';x.fillStyle='#fff';x.textAlign='center';
+  x.fillText('⏱️ Inner Clock',w/2,44);
+
+  x.font='900 36px Nunito, sans-serif';x.fillStyle=grade.color;
+  x.fillText(bestTime.toFixed(2)+'s',w/2,170);
+
+  x.font='800 16px Nunito, sans-serif';x.fillStyle='#94a1b2';
+  x.fillText('TARGET: 9.99s',w/2,196);
+
+  x.font='900 24px Nunito, sans-serif';
+  x.fillText(grade.emoji+' '+grade.text,w/2,240);
+
+  const statY=290;
+  x.font='700 14px Nunito, sans-serif';x.fillStyle='#94a1b2';
+  x.fillText('ATTEMPTS',150,statY);
+  x.font='900 28px Nunito, sans-serif';x.fillStyle='#f97316';
+  x.fillText(String(attempts.length),150,statY+30);
+
+  x.font='700 14px Nunito, sans-serif';x.fillStyle='#94a1b2';
+  x.fillText('BEST STREAK',300,statY);
+  x.font='900 28px Nunito, sans-serif';x.fillStyle='#8b5cf6';
+  x.fillText(String(bestStreak),300,statY+30);
+
+  x.font='700 14px Nunito, sans-serif';x.fillStyle='#94a1b2';
+  x.fillText('OFF BY',450,statY);
+  x.font='900 28px Nunito, sans-serif';x.fillStyle='#facc15';
+  x.fillText(Math.abs(bestDiff).toFixed(2)+'s',450,statY+30);
+
+  // History dots
+  if(attempts.length>0){
+    const dotY=355;
+    const maxDots=Math.min(attempts.length,30);
+    const startIdx=attempts.length-maxDots;
+    const totalW=maxDots*14;
+    const startX=(w-totalW)/2+7;
+    for(let i=0;i<maxDots;i++){
+      const a=attempts[startIdx+i];
+      const g=getGrade(a.diff);
+      x.fillStyle=g.color;
+      x.beginPath();x.arc(startX+i*14,dotY,4,0,Math.PI*2);x.fill();
+    }
+  }
+
+  x.font='700 11px Nunito, sans-serif';x.fillStyle='#94a1b2';
+  x.fillText(window.location.href.replace(/\/$/,''),w/2,390);
+
+  const img=$('share-preview');img.src=c.toDataURL('image/png');img.style.display='block';
+}
+
+$('btn-save-img').onclick=()=>{
+  const link=document.createElement('a');
+  link.download='inner-clock-result.png';
+  link.href=$('share-canvas').toDataURL('image/png');
+  link.click();
+  $('btn-save-img').innerHTML='✅ Saved!';
+  setTimeout(()=>$('btn-save-img').innerHTML='📸 Save Image',2000);
+};
+
+$('btn-copy-text').onclick=()=>{
+  const grade=getGrade(bestDiff);
+  let text='⏱️ Inner Clock\n\n';
+  text+=grade.emoji+' '+bestTime.toFixed(2)+'s / 9.99s target\n';
+  text+='Off by: '+Math.abs(bestDiff).toFixed(2)+'s\n';
+  text+='Streak: '+bestStreak+' · Attempts: '+attempts.length+'\n\n';
+  text+='How close is YOUR inner clock?\n'+window.location.href;
+  navigator.clipboard.writeText(text).then(()=>{
+    $('btn-copy-text').innerHTML='✅ Copied!';
+    setTimeout(()=>$('btn-copy-text').innerHTML='📋 Copy Result',2000);
+  }).catch(()=>{});
+};
+
+// ── KEYBOARD SUPPORT ──
+document.addEventListener('keydown',e=>{
+  if(e.key===' '||e.key==='Enter'){
+    e.preventDefault();
+    handleClockTap();
+  }
+});
+
+})();
+</script>
+</body>
+</html>
