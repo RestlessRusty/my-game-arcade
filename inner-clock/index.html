@@ -691,7 +691,15 @@ $('btn-start').onclick=()=>{
   showScreen('screen-game');
 };
 
-$('btn-results').onclick=()=>showResultsScreen();
+$('btn-results').addEventListener('click',e=>{
+  e.stopPropagation();
+  showResultsScreen();
+  });
+$('btn-results').addEventListener('touchstart',e=>{
+  e.stopPropagation();
+  e.preventDefault();
+  showResultsScreen();
+},{passive:false});
 
 $('btn-play-again').onclick=()=>{
   state='idle';
